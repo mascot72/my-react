@@ -58,3 +58,6 @@ export default tseslint.config({
 
 # yarn을 사용할 경우:
 yarn add eslint eslint-config-airbnb eslint-plugin-import eslint-plugin-react eslint-plugin-react-hooks prettier eslint-plugin-prettier eslint-config-prettier --dev
+
+# scss 적용
+yarn add scss
