@@ -3,4 +3,4 @@
 
 # sass
 
-# FSD, ATOM 폴더 구조
+# FSD, ATOMIC 폴더 구조
