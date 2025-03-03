@@ -22,7 +22,7 @@ export default tseslint.config({
       tsconfigRootDir: import.meta.dirname,
     },
   },
-})
+});
 ```
 
 - Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
@@ -31,7 +31,7 @@ export default tseslint.config({
 
 ```js
 // eslint.config.js
-import react from 'eslint-plugin-react'
+import react from 'eslint-plugin-react';
 
 export default tseslint.config({
   // Set the react version
@@ -46,18 +46,58 @@ export default tseslint.config({
     ...react.configs.recommended.rules,
     ...react.configs['jsx-runtime'].rules,
   },
-})
+});
 ```
 
-* config setting
-  # yarn으로 Vite 프로젝트 생성
-    yarn create vite my-react-project --template react-ts
-    cd my-react-project
-  # React Toolkit, React Router, Axios 등을 설치
-    yarn add @reduxjs/toolkit react-redux react-router-dom axios
+## Project Setup
 
-# yarn을 사용할 경우:
+To create a new Vite project with React and TypeScript, run:
+
+```sh
+yarn create vite my-react-project --template react-ts
+cd my-react-project
+```
+
+To install additional dependencies like React Toolkit, React Router, and Axios, run:
+
+```sh
+yarn add @reduxjs/toolkit react-redux react-router-dom axios
+```
+
+To install ESLint and Prettier with Airbnb configuration, run:
+
+```sh
 yarn add eslint eslint-config-airbnb eslint-plugin-import eslint-plugin-react eslint-plugin-react-hooks prettier eslint-plugin-prettier eslint-config-prettier --dev
+```
 
-# scss 적용
+To install SCSS, run:
+
+```sh
 yarn add scss
+```
+
+To configure ESLint and Prettier, create and modify the `.eslintrc.json` file:
+
+```json
+{
+  "extends": ["airbnb", "prettier"],
+  "plugins": ["prettier"],
+  "rules": {
+    "prettier/prettier": "error",
+    "react/jsx-filename-extension": [
+      1,
+      { "extensions": [".js", ".jsx", ".ts", ".tsx"] }
+    ],
+    "import/extensions": [
+      "error",
+      "ignorePackages",
+      { "js": "never", "jsx": "never", "ts": "never", "tsx": "never" }
+    ]
+  },
+  "settings": {
+    "import/resolver": {
+      "node": { "extensions": [".js", ".jsx", ".ts", ".tsx"] }
+    }
+  }
+}
+```

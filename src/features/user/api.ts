@@ -1,4 +1,4 @@
-// src/features/user/api.ts
+// src/features/user/api.ts (Redux만 사용 할 경우 : 코드가 다소 길어짐 )
 import axios from 'axios';
 // import { createAsyncThunk } from '@reduxjs/toolkit';
 import { setUser, setLoading, setError } from './slice';

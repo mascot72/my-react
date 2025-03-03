@@ -1,4 +1,4 @@
-// src/features/user/slice.ts
+// src/features/user/slice.ts (Redux만 사용 할 경우 : 코드가 다소 길어짐 )
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { User, initialUserState } from '../../entities/user';
 

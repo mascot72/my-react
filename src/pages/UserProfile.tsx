@@ -1,4 +1,4 @@
-// src/pages/UserProfile.tsx
+// src/pages/UserProfile.tsx (Redux만 사용 할 경우 : 코드가 다소 길어짐 )
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from '../app/store';
