@@ -26,6 +26,16 @@
     "es2021": true
   },
   "rules": {
+    // 인라인 스타일을 허용하려면, 아래와 같이 규칙을 수정할 수 있습니다.
+    // "react/forbid-component-props": [
+    //   "error",
+    //   {
+    //     "forbid": ["style"],
+    //   },
+    // ],
+    // JSX 스타일에서의 빈 객체를 허용하려면 아래와 같이 설정
+    // "react/jsx-no-literals": "off",
+    // "react/jsx-props-no-spreading": "off", // 필요 시 수정
     "prettier/prettier": "error", 
     "react/jsx-filename-extension": [
       "warn", 
