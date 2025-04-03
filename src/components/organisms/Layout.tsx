@@ -1,21 +1,16 @@
-import React from 'react';
-import Card from '../molecules/Card';
+import { Outlet } from 'react-router-dom'
+import Header from '../molecules/Header'
 
-const Layout: React.FC = () => {
-  const handleButtonClick = () => {
-    alert('Button clicked!');
-  };
-
+export default function Layout() {
   return (
     <div>
-      <Card
-        title="Sample Card"
-        content="This is a sample card."
-        buttonText="Click Me"
-        onButtonClick={handleButtonClick}
-      />
+      <Header />
+      <main>
+        <Outlet />
+      </main>
+      <footer>
+        <p>© 2025 My React App</p>
+      </footer>
     </div>
-  );
-};
-
-export default Layout;
+  )
+}

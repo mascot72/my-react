@@ -3,9 +3,11 @@
   line-height: 1.5;
   font-weight: 400;
 
+  --color: rgba(255, 255, 255, 0.87);
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  color: var(--color);
+  --background-color: #242424;
+  background-color: var(--background-color);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -24,7 +26,7 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
+  /* display: flex; */
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
@@ -54,10 +56,23 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0.25em;
+  text-align: center;
+  background-color: #646cff;
+  opacity: 0.9;
+}
+
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    --color: #213547;
+    --background-color: #ffffff;
+    color: var(--color);
+    background-color: var(--background-color);
   }
   a:hover {
     color: #747bff;

@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".", // 기본 경로를 루트로 설정
+    "paths": {
+      "@/*": ["src/*"] // @를 src 디렉터리로 매핑
+    },
+    "jsx": "react-jsx",
+    "strict": true,
+    "esModuleInterop": true
+  }
+}

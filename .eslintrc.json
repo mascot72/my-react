@@ -14,16 +14,19 @@
       "jsx": true
     }
   },
-  "plugins": [
-    "react",
-    "react-hooks",
-    "prettier",
-    "@typescript-eslint"
-  ],
+  "plugins": ["react", "react-hooks", "prettier", "@typescript-eslint"],
   "env": {
     "browser": true,
     "node": true,
     "es2021": true
+  },
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "paths": ["src"],
+        "extensions": [".js", ".jsx", ".ts", ".tsx"]
+      }
+    }
   },
   "rules": {
     // 인라인 스타일을 허용하려면, 아래와 같이 규칙을 수정할 수 있습니다.
@@ -36,11 +39,8 @@
     // JSX 스타일에서의 빈 객체를 허용하려면 아래와 같이 설정
     // "react/jsx-no-literals": "off",
     // "react/jsx-props-no-spreading": "off", // 필요 시 수정
-    "prettier/prettier": "error", 
-    "react/jsx-filename-extension": [
-      "warn", 
-      { "extensions": [".tsx"] }
-    ],
+    "prettier/prettier": "error",
+    "react/jsx-filename-extension": ["warn", { "extensions": [".tsx"] }],
     "import/prefer-default-export": "off",
     "react/prop-types": "off",
     "react/react-in-jsx-scope": "off",
