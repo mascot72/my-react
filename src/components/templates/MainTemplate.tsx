@@ -1,11 +1,11 @@
 import React from 'react'
-import Layout from '../organisms/CardLayout'
+// import Layout from '../organisms/CardLayout'
 import { Outlet, useNavigate } from 'react-router-dom'
 import Navbar from '../molecules/Navbar' // Navbar import 추가
 
-interface MainTemplateProps {
-  children: React.ReactNode
-}
+// interface MainTemplateProps {
+//   children: React.ReactNode
+// }
 
 const MainTemplate: React.FC = () => {
   const navigate = useNavigate()

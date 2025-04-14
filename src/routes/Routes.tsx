@@ -13,6 +13,9 @@ import Articles from '../pages/Articles'
 import Article from '../pages/Article'
 import MyPage from '../pages/MyPage'
 import WaferMapPage from '../pages/WaferMapPage'
+import Register from '../pages/Register' // 등록 페이지 컴포넌트 임포트
+import SvgPage from '../pages/SvgPage'
+import CanvasPage from '../pages/CanvasPage'
 
 function AppRouter() {
   return (
@@ -34,6 +37,9 @@ function AppRouter() {
           </Route>
           <Route path='/profiles/:username' element={<Profile />} />
           <Route path='/mypage' element={<MyPage />} />
+          <Route path='/register' element={<Register />} /> {/* 등록 경로 추가 */}
+          <Route path='/svg' element={<SvgPage />} /> {/* 등록 경로 추가 */}
+          <Route path='/canvas' element={<CanvasPage />} /> {/* 등록 경로 추가 */}
         </Route>
         <Route path='*' element={<NotFound />} />
       </Routes>

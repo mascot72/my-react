@@ -76,6 +76,12 @@ const Navbar: React.FC = () => {
         <li>
           <Link to='/mypage'>MyPage</Link>
         </li>
+        <li>
+          <Link to='/svg'>Svg</Link>
+        </li>
+        <li>
+          <Link to='/canvas'>Canvas</Link>
+        </li>
       </ul>
     </nav>
   )

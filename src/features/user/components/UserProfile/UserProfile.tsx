@@ -11,22 +11,22 @@ const UserProfile: React.FC = () => {
   return (
     <div className={styles.userProfile}>
       {data ? (
-        // <>
-        //   <h1>{data.name}</h1>
-        //   <p>Email: {data.email}</p>
-        //   <img src={data.avatarUrl} alt='User Avatar' />
-        // </>
         <>
-          <ul>
-            {data.map((item: any) => (
-              <li key={item.mission}>
-                <h2>{item.mission}</h2>
-                <p>{item.location}</p>
-              </li>
-            ))}
-          </ul>
+          <h1>{data.name}</h1>
+          <p>Email: {data.email}</p>
+          <img src={data.avatarUrl} alt='User Avatar' />
         </>
       ) : (
+        // <>
+        //   <ul>
+        //     {data.map((item: any) => (
+        //       <li key={item.mission}>
+        //         <h2>{item.mission}</h2>
+        //         <p>{item.location}</p>
+        //       </li>
+        //     ))}
+        //   </ul>
+        //  </>
         <p>No user data available</p>
       )}
     </div>

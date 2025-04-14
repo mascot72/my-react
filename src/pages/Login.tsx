@@ -1,30 +1,42 @@
 // src/pages/Login.tsx
-import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { login } from '../features/auth/slice';
+import React, { useState } from 'react'
+import { useDispatch } from 'react-redux'
+import { login } from '../store/authSlice'
+import { useNavigate } from 'react-router-dom'
 
-const Login: React.FC = () => {
-  const [token, setToken] = useState('');
-  const dispatch = useDispatch();
+export default function Login() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
 
-  const handleLogin = () => {
-    if (token) {
-      dispatch(login(token));
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    // Replace with your API call
+    const response = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    })
+    const data = await response.json()
+
+    if (response.ok) {
+      dispatch(login({ user: data.user, token: data.token }))
+      navigate('/')
+    } else {
+      alert('Login failed')
     }
-  };
+  }
 
   return (
-    <div>
+    <form onSubmit={handleSubmit}>
       <h1>Login</h1>
-      <input
-        type="text"
-        placeholder="Enter token"
-        value={token}
-        onChange={(e) => setToken(e.target.value)}
-      />
-      <button onClick={handleLogin}>Login</button>
-    </div>
-  );
-};
-
-export default Login;
+      <input type='email' placeholder='Email' value={email} onChange={(e) => setEmail(e.target.value)} />
+      <input type='password' placeholder='Password' value={password} onChange={(e) => setPassword(e.target.value)} />
+      <button type='submit'>Login</button>
+      <button type='button' onClick={() => navigate('/register')}>
+        Register
+      </button>
+    </form>
+  )
+}
