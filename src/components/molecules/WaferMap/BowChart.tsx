@@ -106,6 +106,7 @@ interface ControlOption {
   description: string
 }
 
+// controlOptions에 die map 옵션 추가
 const controlOptions: ControlOption[] = [
   {
     id: 'points',
@@ -116,6 +117,11 @@ const controlOptions: ControlOption[] = [
     id: 'values',
     label: '측정값',
     description: '각 포인트의 측정된 수치를 표시',
+  },
+  {
+    id: 'dieMap',
+    label: 'Die Map',
+    description: '웨이퍼의 die 영역을 격자로 표시',
   },
 ]
 
@@ -209,6 +215,7 @@ const BowChart: React.FC = () => {
   // 상태 추가
   const [showPoints, setShowPoints] = useState(true)
   const [showValues, setShowValues] = useState(true)
+  const [showDieMap, setShowDieMap] = useState(true)
 
   // 랜덤 포인트 생성
   const heatmapData: Point[] = React.useMemo(() => generateRandomPoints(15), [])
@@ -247,6 +254,52 @@ const BowChart: React.FC = () => {
     return `hsl(${hue}, ${saturation}%, ${lightness}%)`
   }
 
+  // die 크기 설정
+  const dieSize = 5
+
+  // die map 렌더링 함수
+  const renderDieMap = () => {
+    const dies: JSX.Element[] = []
+    const dieCount = Math.floor(90 / dieSize) // 웨이퍼 지름(90)을 die 크기로 나눔
+
+    for (let i = 0; i < dieCount; i++) {
+      for (let j = 0; j < dieCount; j++) {
+        const x = i * dieSize
+        const y = j * dieSize
+        const centerX = x + dieSize / 2
+        const centerY = y + dieSize / 2
+
+        // 원 안에 있는 die만 표시
+        const distanceFromCenter = Math.sqrt(Math.pow(centerX - 45, 2) + Math.pow(centerY - 45, 2))
+
+        if (distanceFromCenter <= 45) {
+          // die 영역 내의 점들의 평균 값 계산
+          const pointsInDie = gridPoints.filter(
+            (point) => point.x >= x && point.x < x + dieSize && point.y >= y && point.y < y + dieSize,
+          )
+
+          const avgValue =
+            pointsInDie.length > 0 ? pointsInDie.reduce((sum, p) => sum + p.value, 0) / pointsInDie.length : 0
+
+          dies.push(
+            <rect
+              key={`die-${i}-${j}`}
+              x={x}
+              y={y}
+              width={dieSize}
+              height={dieSize}
+              fill={getEnhancedColor(avgValue, minValue, maxValue)}
+              stroke='#666'
+              strokeWidth='0.2'
+              opacity='0.7'
+            />,
+          )
+        }
+      }
+    }
+    return dies
+  }
+
   return (
     <ChartContainer>
       <ControlContainer>
@@ -254,13 +307,11 @@ const BowChart: React.FC = () => {
           <CheckboxLabel key={option.id} title={option.description}>
             <input
               type='checkbox'
-              checked={option.id === 'points' ? showPoints : showValues}
+              checked={option.id === 'points' ? showPoints : option.id === 'values' ? showValues : showDieMap}
               onChange={(e) => {
-                if (option.id === 'points') {
-                  setShowPoints(e.target.checked)
-                } else {
-                  setShowValues(e.target.checked)
-                }
+                if (option.id === 'points') setShowPoints(e.target.checked)
+                else if (option.id === 'values') setShowValues(e.target.checked)
+                else setShowDieMap(e.target.checked)
               }}
             />
             {option.label}
@@ -314,6 +365,9 @@ const BowChart: React.FC = () => {
                 />
               ))}
             </g>
+
+            {/* Die Map 레이어 */}
+            {showDieMap && <g>{renderDieMap()}</g>}
 
             {/* 데이터 포인트와 값 표시 - 조건부 렌더링 */}
             {heatmapData.map((point, index) => (
