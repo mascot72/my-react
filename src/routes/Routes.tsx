@@ -39,6 +39,7 @@ function AppRouter() {
           <Route path='/mypage' element={<MyPage />} />
           <Route path='/register' element={<Register />} /> {/* 등록 경로 추가 */}
           <Route path='/svg' element={<SvgPage />} /> {/* 등록 경로 추가 */}
+          <Route path='/wafer' element={<WaferMapPage />} />
           <Route path='/canvas' element={<CanvasPage />} /> {/* 등록 경로 추가 */}
         </Route>
         <Route path='*' element={<NotFound />} />

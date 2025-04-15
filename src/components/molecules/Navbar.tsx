@@ -82,6 +82,9 @@ const Navbar: React.FC = () => {
         <li>
           <Link to='/canvas'>Canvas</Link>
         </li>
+        <li>
+          <Link to='/wafer'>Wafer Map</Link>
+        </li>
       </ul>
     </nav>
   )
