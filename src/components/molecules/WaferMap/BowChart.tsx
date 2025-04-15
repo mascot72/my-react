@@ -106,7 +106,6 @@ interface ControlOption {
   description: string
 }
 
-// controlOptions에 die 격자 옵션 추가
 const controlOptions: ControlOption[] = [
   {
     id: 'points',
@@ -117,11 +116,6 @@ const controlOptions: ControlOption[] = [
     id: 'values',
     label: '측정값',
     description: '각 포인트의 측정된 수치를 표시',
-  },
-  {
-    id: 'dies',
-    label: 'Die 격자',
-    description: '웨이퍼의 die 영역을 표시',
   },
 ]
 
@@ -210,20 +204,11 @@ const DataPointLabel = styled.text`
   pointer-events: none;
 `
 
-// Die 격자를 위한 스타일 컴포넌트 추가
-const DieGrid = styled.g`
-  stroke: #666;
-  stroke-width: 0.3;
-  stroke-dasharray: 1;
-  fill: none;
-`
-
 // BowChart 컴포넌트 수정
 const BowChart: React.FC = () => {
   // 상태 추가
   const [showPoints, setShowPoints] = useState(true)
   const [showValues, setShowValues] = useState(true)
-  const [showDies, setShowDies] = useState(true) // die 격자 표시 상태 추가
 
   // 랜덤 포인트 생성
   const heatmapData: Point[] = React.useMemo(() => generateRandomPoints(15), [])
@@ -262,40 +247,6 @@ const BowChart: React.FC = () => {
     return `hsl(${hue}, ${saturation}%, ${lightness}%)`
   }
 
-  // die 크기 설정
-  const dieSize = 10 // die의 크기
-  const dieCount = 10 // die의 개수 (가로/세로)
-
-  // die 격자 생성 함수
-  const generateDieGrid = () => {
-    const dies: JSX.Element[] = []
-    for (let i = 0; i < dieCount; i++) {
-      for (let j = 0; j < dieCount; j++) {
-        const x = i * dieSize
-        const y = j * dieSize
-        // 원 안에 있는 die만 표시
-        const centerX = x + dieSize / 2
-        const centerY = y + dieSize / 2
-        const distanceFromCenter = Math.sqrt(Math.pow(centerX - 50, 2) + Math.pow(centerY - 50, 2))
-        if (distanceFromCenter <= 45) {
-          dies.push(
-            <rect
-              key={`die-${i}-${j}`}
-              x={x}
-              y={y}
-              width={dieSize}
-              height={dieSize}
-              strokeWidth='0.3'
-              stroke='#666'
-              fill='none'
-            />,
-          )
-        }
-      }
-    }
-    return dies
-  }
-
   return (
     <ChartContainer>
       <ControlContainer>
@@ -303,14 +254,12 @@ const BowChart: React.FC = () => {
           <CheckboxLabel key={option.id} title={option.description}>
             <input
               type='checkbox'
-              checked={option.id === 'points' ? showPoints : option.id === 'values' ? showValues : showDies}
+              checked={option.id === 'points' ? showPoints : showValues}
               onChange={(e) => {
                 if (option.id === 'points') {
                   setShowPoints(e.target.checked)
-                } else if (option.id === 'values') {
-                  setShowValues(e.target.checked)
                 } else {
-                  setShowDies(e.target.checked)
+                  setShowValues(e.target.checked)
                 }
               }}
             />
@@ -365,9 +314,6 @@ const BowChart: React.FC = () => {
                 />
               ))}
             </g>
-
-            {/* Die 격자 렌더링 */}
-            {showDies && <DieGrid>{generateDieGrid()}</DieGrid>}
 
             {/* 데이터 포인트와 값 표시 - 조건부 렌더링 */}
             {heatmapData.map((point, index) => (
