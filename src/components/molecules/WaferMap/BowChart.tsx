@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import styled from 'styled-components'
 
 const ChartContainer = styled.div`
@@ -55,12 +55,69 @@ const GraphContainer = styled.div`
   margin-top: auto;
 `
 
+// 체크박스 그룹 컨테이너 스타일 수정
+const ControlContainer = styled.div`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 12px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  z-index: 3;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+`
+
+// 체크박스 라벨 스타일 개선
+const CheckboxLabel = styled.label`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #333;
+  cursor: pointer;
+  user-select: none;
+
+  input {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+  }
+
+  &:hover {
+    color: #0078d7;
+  }
+`
+
 // 데이터 타입 정의
 interface Point {
   x: number
   y: number
   value: number
 }
+
+// 라벨 텍스트를 위한 인터페이스
+interface ControlOption {
+  id: string
+  label: string
+  description: string
+}
+
+const controlOptions: ControlOption[] = [
+  {
+    id: 'points',
+    label: '측정 포인트',
+    description: '웨이퍼 상의 측정 위치를 표시',
+  },
+  {
+    id: 'values',
+    label: '측정값',
+    description: '각 포인트의 측정된 수치를 표시',
+  },
+]
 
 // 칼라 스케일 유틸리티 함수 개선
 const getColor = (value: number, min: number, max: number): string => {
@@ -89,8 +146,8 @@ const interpolateValue = (x: number, y: number, points: Point[]): number => {
 // 랜덤 포인트 생성 함수 추가
 const generateRandomPoints = (count: number): Point[] => {
   const points: Point[] = []
-  const centerPoint = { x: 50, y: 50, value: 4.18 } // 중심점은 고정
-  points.push(centerPoint)
+  // const centerPoint = { x: 50, y: 50, value: 4.18 } // 중심점은 고정
+  // points.push(centerPoint)
 
   for (let i = 0; i < count - 1; i++) {
     const angle = Math.random() * Math.PI * 2
@@ -147,7 +204,12 @@ const DataPointLabel = styled.text`
   pointer-events: none;
 `
 
+// BowChart 컴포넌트 수정
 const BowChart: React.FC = () => {
+  // 상태 추가
+  const [showPoints, setShowPoints] = useState(true)
+  const [showValues, setShowValues] = useState(true)
+
   // 랜덤 포인트 생성
   const heatmapData: Point[] = React.useMemo(() => generateRandomPoints(15), [])
 
@@ -187,6 +249,25 @@ const BowChart: React.FC = () => {
 
   return (
     <ChartContainer>
+      <ControlContainer>
+        {controlOptions.map((option) => (
+          <CheckboxLabel key={option.id} title={option.description}>
+            <input
+              type='checkbox'
+              checked={option.id === 'points' ? showPoints : showValues}
+              onChange={(e) => {
+                if (option.id === 'points') {
+                  setShowPoints(e.target.checked)
+                } else {
+                  setShowValues(e.target.checked)
+                }
+              }}
+            />
+            {option.label}
+          </CheckboxLabel>
+        ))}
+      </ControlContainer>
+
       <TopLabels>
         {Array.from({ length: 10 }).map((_, i) => (
           <span key={`top-${i}`}>{i * 10}</span>
@@ -234,13 +315,15 @@ const BowChart: React.FC = () => {
               ))}
             </g>
 
-            {/* 데이터 포인트와 값 표시 */}
+            {/* 데이터 포인트와 값 표시 - 조건부 렌더링 */}
             {heatmapData.map((point, index) => (
               <g key={`data-point-group-${index}`}>
-                <circle cx={point.x} cy={point.y} r='0.8' fill='black' opacity='0.8' />
-                <DataPointLabel x={point.x} y={point.y - 1.5} fontSize='2px'>
-                  {point.value.toFixed(2)}
-                </DataPointLabel>
+                {showPoints && <circle cx={point.x} cy={point.y} r='0.8' fill='black' opacity='0.8' />}
+                {showValues && (
+                  <DataPointLabel x={point.x} y={point.y - (showPoints ? 1.5 : 0)} fontSize='2px'>
+                    {point.value.toFixed(2)}
+                  </DataPointLabel>
+                )}
               </g>
             ))}
           </g>
