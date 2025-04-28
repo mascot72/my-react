@@ -1,10 +1,10 @@
 // src/pages/Login.tsx
 import React, { useState } from 'react'
-import axios from 'axios'
+import useAuth from '../app/UseAuth'
 
 const Login: React.FC = () => {
   const [formData, setFormData] = useState({ email: '', password: '' })
-  const [token, setToken] = useState<string | null>(null)
+  const { token, login } = useAuth()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -14,16 +14,15 @@ const Login: React.FC = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      const response = await axios.post('/api/login', formData)
-      setToken(response.data.token)
-      console.log('Logged in successfully:', response.data)
+      await login(formData.email, formData.password)
+      console.log('Logged in successfully')
     } catch (error) {
       console.error('Login failed:', error)
     }
   }
 
   const handleLogout = () => {
-    setToken(null)
+    login('', '')
     console.log('Logged out successfully')
   }
 

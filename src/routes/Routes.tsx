@@ -47,7 +47,14 @@ function AppRouter() {
           <Route path=':id' element={<Article />} />
         </Route>
         <Route path='/profiles/:username' element={<Profile />} />
-        <Route path='/mypage' element={<MyPage />} />
+        <Route
+          path='/mypage'
+          element={
+            <ProtectedRoute>
+              <MyPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path='/register' element={<Register />} /> {/* 등록 경로 추가 */}
         <Route path='/svg' element={<SvgPage />} /> {/* 등록 경로 추가 */}
         <Route path='/wafer' element={<WaferMapPage />} />

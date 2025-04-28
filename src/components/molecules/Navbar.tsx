@@ -49,6 +49,9 @@ const Navbar: React.FC = () => {
           <Link to='/login'>Login</Link>
         </li>
         <li>
+          <Link to='/protected'>Protected</Link>
+        </li>
+        <li>
           <Link to='/about'>About</Link>
         </li>
         <li>
@@ -72,6 +75,9 @@ const Navbar: React.FC = () => {
         </li>
         <li>
           <Link to='/mypage'>MyPage</Link>
+        </li>
+        <li>
+          <Link to='/todo'>Todo</Link>
         </li>
         <li>
           <Link to='/register'>Register</Link>
