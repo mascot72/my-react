@@ -1,4 +1,4 @@
-import { Outlet, useNavigate } from 'react-router-dom'
+import { Outlet, useNavigate } from 'react-router'
 import Header from '../molecules/Header'
 import styled from 'styled-components'
 import { useDispatch } from 'react-redux'
