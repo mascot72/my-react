@@ -1,6 +1,6 @@
 import React from 'react'
 // import Layout from '../organisms/CardLayout'
-import { Outlet, useNavigate } from 'react-router-dom'
+import { Outlet, useNavigate } from 'react-router'
 import Navbar from '../molecules/Navbar' // Navbar import 추가
 
 // interface MainTemplateProps {
