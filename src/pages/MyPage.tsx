@@ -1,4 +1,4 @@
-import { Navigate } from 'react-router-dom'
+import { Navigate } from 'react-router'
 import UserProfile from '../features/user/components/UserProfile/UserProfile'
 
 export default function MyPage() {

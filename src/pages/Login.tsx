@@ -1,42 +1,59 @@
 // src/pages/Login.tsx
 import React, { useState } from 'react'
-import { useDispatch } from 'react-redux'
-import { login } from '../store/authSlice'
-import { useNavigate } from 'react-router-dom'
+import axios from 'axios'
 
-export default function Login() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const dispatch = useDispatch()
-  const navigate = useNavigate()
+const Login: React.FC = () => {
+  const [formData, setFormData] = useState({ email: '', password: '' })
+  const [token, setToken] = useState<string | null>(null)
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setFormData({ ...formData, [name]: value })
+  }
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Replace with your API call
-    const response = await fetch('/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    })
-    const data = await response.json()
-
-    if (response.ok) {
-      dispatch(login({ user: data.user, token: data.token }))
-      navigate('/')
-    } else {
-      alert('Login failed')
+    try {
+      const response = await axios.post('/api/login', formData)
+      setToken(response.data.token)
+      console.log('Logged in successfully:', response.data)
+    } catch (error) {
+      console.error('Login failed:', error)
     }
   }
 
+  const handleLogout = () => {
+    setToken(null)
+    console.log('Logged out successfully')
+  }
+
   return (
-    <form onSubmit={handleSubmit}>
+    <div>
       <h1>Login</h1>
-      <input type='email' placeholder='Email' value={email} onChange={(e) => setEmail(e.target.value)} />
-      <input type='password' placeholder='Password' value={password} onChange={(e) => setPassword(e.target.value)} />
-      <button type='submit'>Login</button>
-      <button type='button' onClick={() => navigate('/register')}>
-        Register
-      </button>
-    </form>
+      {token ? (
+        <div>
+          <p>Logged in with token: {token}</p>
+          <button onClick={handleLogout}>Logout</button>
+        </div>
+      ) : (
+        <form onSubmit={handleLogin}>
+          <div>
+            <label>
+              Email:
+              <input type='email' name='email' value={formData.email} onChange={handleChange} />
+            </label>
+          </div>
+          <div>
+            <label>
+              Password:
+              <input type='password' name='password' value={formData.password} onChange={handleChange} />
+            </label>
+          </div>
+          <button type='submit'>Login</button>
+        </form>
+      )}
+    </div>
   )
 }
+
+export default Login

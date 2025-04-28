@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { Route, Routes } from 'react-router'
 // import { type RouteConfig, route } from '@react-router/dev/routes'
 
 import Login from '../pages/Login'
@@ -16,35 +16,47 @@ import WaferMapPage from '../pages/WaferMapPage'
 import Register from '../pages/Register' // 등록 페이지 컴포넌트 임포트
 import SvgPage from '../pages/SvgPage'
 import CanvasPage from '../pages/CanvasPage'
+import TodoList from '../pages/TodoList.tsx' // To-Do List 페이지 추가
+import ProtectedRoute from '../app/ProtectionRoute'
+// import { AuthProvider } from '../app/AuthProvider'
 
 function AppRouter() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route element={<Layout />}>
-          <Route path='/' element={<Home />} />
-          <Route path='/login' element={<Login />} />
-          {/* 다른 경로들을 여기에 추가 */}
-          <Route path='/about' element={<About />} />
-          <Route path='/contact' element={<Contact />} />
-          <Route path='/wafer-map' element={<WaferMapPage />} />
-        </Route>
-        <Route element={<MainTemplate />}>
-          {/* <Route path='/articles' element={<Articles />} />
+    // <BrowserRouter>
+    // <AuthProvider>
+    <Routes>
+      <Route element={<Layout />}>
+        <Route path='/' element={<Home />} />
+        <Route path='/login' element={<Login />} />
+        <Route
+          path='/protected'
+          element={
+            <ProtectedRoute>
+              <div>Protected Content</div>
+            </ProtectedRoute>
+          }
+        />
+        {/* 다른 경로들을 여기에 추가 */}
+        <Route path='/about' element={<About />} />
+        <Route path='/contact' element={<Contact />} />
+      </Route>
+      <Route element={<MainTemplate />}>
+        {/* <Route path='/articles' element={<Articles />} />
           <Route path='/articles/:id' element={<Article />} /> */}
-          <Route path='/articles' element={<Articles />}>
-            <Route path=':id' element={<Article />} />
-          </Route>
-          <Route path='/profiles/:username' element={<Profile />} />
-          <Route path='/mypage' element={<MyPage />} />
-          <Route path='/register' element={<Register />} /> {/* 등록 경로 추가 */}
-          <Route path='/svg' element={<SvgPage />} /> {/* 등록 경로 추가 */}
-          <Route path='/wafer' element={<WaferMapPage />} />
-          <Route path='/canvas' element={<CanvasPage />} /> {/* 등록 경로 추가 */}
+        <Route path='/articles' element={<Articles />}>
+          <Route path=':id' element={<Article />} />
         </Route>
-        <Route path='*' element={<NotFound />} />
-      </Routes>
-    </BrowserRouter>
+        <Route path='/profiles/:username' element={<Profile />} />
+        <Route path='/mypage' element={<MyPage />} />
+        <Route path='/register' element={<Register />} /> {/* 등록 경로 추가 */}
+        <Route path='/svg' element={<SvgPage />} /> {/* 등록 경로 추가 */}
+        <Route path='/wafer' element={<WaferMapPage />} />
+        <Route path='/canvas' element={<CanvasPage />} /> {/* 등록 경로 추가 */}
+        <Route path='/todo' element={<TodoList />} /> {/* To-Do List 경로 추가 */}
+      </Route>
+      <Route path='*' element={<NotFound />} />
+    </Routes>
+    // </AuthProvider>
   )
 }
 export default AppRouter

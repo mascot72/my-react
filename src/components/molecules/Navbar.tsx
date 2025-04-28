@@ -1,7 +1,7 @@
 import React from 'react'
 import Button, { ButtonProps } from '../atoms/Button'
 import styled, { css } from 'styled-components'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 const ButtonContainer = styled.button<{ primary?: boolean }>`
   background: transparent;
@@ -62,9 +62,6 @@ const Navbar: React.FC = () => {
           <Link to='/profiles/chanwoong1'>profile1</Link>
         </li>
         <li>
-          <Link to='/wafer-map'>Wafer Map</Link>
-        </li>
-        <li>
           <Link to='/profiles/abcd'>profile2</Link>
         </li>
         <li>
@@ -75,6 +72,9 @@ const Navbar: React.FC = () => {
         </li>
         <li>
           <Link to='/mypage'>MyPage</Link>
+        </li>
+        <li>
+          <Link to='/register'>Register</Link>
         </li>
         <li>
           <Link to='/svg'>Svg</Link>

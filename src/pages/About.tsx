@@ -1,5 +1,5 @@
 import React from 'react'
-import { useLocation, useSearchParams } from 'react-router-dom'
+import { useLocation, useSearchParams } from 'react-router'
 
 const About: React.FC = () => {
   const location = useLocation()

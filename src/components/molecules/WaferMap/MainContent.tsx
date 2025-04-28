@@ -2,7 +2,7 @@ import React from 'react'
 import styled from 'styled-components'
 import ThicknessChart from './ThicknessChart'
 import SbirChart from './SbirChart'
-import BowChart from './BowChart'
+import BowChart from './BowChartFile'
 
 const MainContentContainer = styled.div`
   display: grid;
