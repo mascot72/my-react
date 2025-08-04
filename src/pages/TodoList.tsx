@@ -39,7 +39,7 @@ const TodoList: React.FC = () => {
       <h1>Space Missions</h1>
       <input type='text' value={newTodo} onChange={(e) => setNewTodo(e.target.value)} placeholder='Add a new task' />
       <button onClick={handleAdd}>Add</button>
-      <table border='1' style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
+      <table style={{ border: '1px', width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
         <thead>
           <tr>
             <th>Mission</th>
@@ -67,10 +67,14 @@ const TodoList: React.FC = () => {
               <td>
                 {todo.text ? (
                   <>
-                    <button onClick={() => handleToggle(todo.id, todo.completed)}>
-                      {todo.completed ? 'Undo' : 'Complete'}
-                    </button>
-                    <button onClick={() => handleDelete(todo.id)}>Delete</button>
+                    {typeof todo.id === 'number' && (
+                      <>
+                        <button onClick={() => handleToggle(todo.id!, todo.completed ?? false)}>
+                          {todo.completed ? 'Undo' : 'Complete'}
+                        </button>
+                        <button onClick={() => handleDelete(todo.id!)}>Delete</button>
+                      </>
+                    )}
                   </>
                 ) : (
                   '-'

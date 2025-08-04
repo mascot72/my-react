@@ -1,5 +1,5 @@
 import React from 'react'
-import GradientCanvas from '../components/molecules/Canvas'
+import GradientCanvas from '@components/molecules/Canvas'
 
 const originalPoints = [
   { x: 200, y: 200, color: 'red' },

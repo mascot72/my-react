@@ -1,11 +1,25 @@
 {
   "compilerOptions": {
-    "baseUrl": ".", // 기본 경로를 루트로 설정
+    "baseUrl": "./src", // 기본 경로를 src로 설정
+    "target": "esnext",
     "paths": {
-      "@/*": ["src/*"] // @를 src 디렉터리로 매핑
+      "@/*": ["./*"], // @를 src 디렉터리로 매핑
+      "@components/*": ["./components/*"]
     },
     "jsx": "react-jsx",
     "strict": true,
     "esModuleInterop": true
-  }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }
+// "baseUrl": ".", // 기본 경로를 루트로 설정
+//   "paths": {
+//     "@/*": ["./src/*"], // @를 src 디렉터리로 매핑
+//     "@components/*": ["./src/components/*"]
+//   },
+//   "jsx": "react-jsx",
+//   "strict": true,
+//   "esModuleInterop": true
+// }
+// }

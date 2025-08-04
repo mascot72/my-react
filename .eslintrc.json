@@ -22,6 +22,10 @@
   },
   "settings": {
     "import/resolver": {
+      "typescript": {
+        "alwaysTryTypes": true,
+        "project": "./tsconfig.json"
+      }, // tsconfig.json 파일을 사용하여 타입스크립트 설정을 가져옵니다.
       "node": {
         "paths": ["src"],
         "extensions": [".js", ".jsx", ".ts", ".tsx"]
