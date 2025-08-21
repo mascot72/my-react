@@ -1,0 +1,94 @@
+.palette-container {
+  background: #fff;
+  border-radius: 12px;
+  padding: 32px;
+}
+.palette-search {
+  display: flex;
+  align-items: center;
+  margin-bottom: 18px;
+}
+.palette-search-label {
+  font-weight: 500;
+  margin-right: 4px;
+  color: #333;
+}
+.palette-body {
+  display: flex;
+  gap: 32px;
+}
+.palette-left {
+  width: 560px;
+}
+.palette-right {
+  flex: 1;
+  min-width: 420px;
+}
+.palette-card {
+  flex: 1 1 calc(33% - 12px);
+  min-width: 220px;
+  max-width: 440px;
+  box-sizing: border-box;
+}
+.palette-left.palette-card-grid {
+  width: 100%;
+  max-width: 720px;
+}
+.palette-card-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.palette-card.active {
+  border: 2px solid #1677ff;
+}
+.palette-card-preview {
+  display: flex;
+  align-items: center;
+  width: 100px;
+  height: 28px;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-right: 10px;
+}
+.palette-color-box {
+  width: 24px;
+  height: 100%;
+  display: inline-block;
+}
+.palette-grad-bar {
+  flex: 1;
+  height: 16px;
+  border-radius: 8px;
+  margin: 0 8px;
+}
+.palette-preview-gradation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.palette-preview-step {
+  display: flex;
+  gap: 2px;
+}
+.color-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.palette-global-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.label {
+  display: inline-block;
+  width: 90px;
+}
+.placeholder {
+  color: #aaa;
+  padding: 32px 0;
+  text-align: center;
+}

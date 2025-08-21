@@ -91,6 +91,9 @@ const Navbar: React.FC = () => {
         <li>
           <Link to='/wafer'>Wafer Map</Link>
         </li>
+        <li>
+          <Link to='/color-palette'>Color Palette</Link>
+        </li>
       </ul>
     </nav>
   )

@@ -19,6 +19,8 @@ import CanvasPage from '../pages/CanvasPage'
 import TodoList from '../pages/TodoList.tsx' // To-Do List 페이지 추가
 import ProtectedRoute from '../app/ProtectionRoute'
 // import { AuthProvider } from '../app/AuthProvider'
+// import ColorPalette from '../pages/ColorPalette.tsx' // 색상 팔레트 페이지 추가
+import ColorPalette from '../pages/PaletteManager.tsx' // 색상 팔레트 페이지 추가
 
 function AppRouter() {
   return (
@@ -61,6 +63,8 @@ function AppRouter() {
         <Route path='/canvas' element={<CanvasPage />} /> {/* 등록 경로 추가 */}
         <Route path='/todo' element={<TodoList />} /> {/* To-Do List 경로 추가 */}
       </Route>
+      <Route path='/color-palette' element={<ColorPalette />} /> {/* 색상 팔레트 경로 추가 */}
+      {/* 404 페이지 */}
       <Route path='*' element={<NotFound />} />
     </Routes>
     // </AuthProvider>
