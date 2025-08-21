@@ -245,15 +245,18 @@ const renderDieMap = (gridPoints: Point[], minValue: number, maxValue: number) =
   const dies: JSX.Element[] = []
   const dieSize = 5
   const dieCount = Math.floor(90 / dieSize)
+  // 중심 정렬을 위해 offset 추가
+  const offset = 5 // (100 - 90) / 2
 
   for (let i = 0; i < dieCount; i++) {
     for (let j = 0; j < dieCount; j++) {
-      const x = i * dieSize
-      const y = j * dieSize
+      // 좌표에 offset 적용
+      const x = offset + i * dieSize
+      const y = offset + j * dieSize
       const centerX = x + dieSize / 2
       const centerY = y + dieSize / 2
 
-      const distanceFromCenter = Math.sqrt(Math.pow(centerX - 45, 2) + Math.pow(centerY - 45, 2))
+      const distanceFromCenter = Math.sqrt(Math.pow(centerX - 50, 2) + Math.pow(centerY - 50, 2))
 
       if (distanceFromCenter <= 45) {
         // 해당 die 영역 내 평균값 계산
@@ -297,6 +300,7 @@ const BowChart: React.FC = () => {
   const gridPoints = useMemo(() => generateHeatmapGrid(heatmapData), [heatmapData])
   const minValue = Math.min(...heatmapData.map((p) => p.value))
   const maxValue = Math.max(...heatmapData.map((p) => p.value))
+  const isClip = false // 웨이퍼 외곽선 클리핑 여부
 
   return (
     <ChartContainer>
@@ -351,9 +355,11 @@ const BowChart: React.FC = () => {
           <GradientFilter />
           <defs>
             {/* 원형 클리핑 경로 (웨이퍼 외곽) */}
-            <clipPath id='waferClip'>
-              <circle cx='50' cy='50' r='45' />
-            </clipPath>
+            {isClip && (
+              <clipPath id='waferClip'>
+                <circle cx='50' cy='50' r='45' />
+              </clipPath>
+            )}
           </defs>
 
           {/* 원형 영역 내 히트맵, DieMap, 측정 포인트/값 */}
