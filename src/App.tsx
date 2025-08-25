@@ -5,13 +5,16 @@ import AppRouter from './routes/Routes.tsx' // 라우터 컴포넌트 임포트 
 import './App.css'
 import { AuthProvider } from './app/AuthProvider'
 import Navigation from './components/molecules/Navigation'
+import { PaletteProvider } from './app/usePalette'
 
 const App: React.FC = () => {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Navigation />
-        <AppRouter />
+        <PaletteProvider>
+          <Navigation />
+          <AppRouter />
+        </PaletteProvider>
       </AuthProvider>
     </BrowserRouter>
   )

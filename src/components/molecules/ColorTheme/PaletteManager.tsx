@@ -3,6 +3,7 @@ import { Select, Radio, Button, Input, Card, Space, Divider, message, Slider, In
 import { ColorPicker } from 'antd'
 import { BgColorsOutlined, BarsOutlined } from '@ant-design/icons'
 import './PaletteManager.css'
+import { usePalette } from '../../../app/usePalette'
 
 const { Option } = Select
 
@@ -14,9 +15,26 @@ type PaletteGroup = {
   stops?: { from: number; to: number }[] // Step용: 각 색상 구간
 }
 
+type PaletteManagertProps = {
+  onClose?: () => void
+}
+
 const initialGroups: PaletteGroup[] = [
   { name: 'Warm Sunset', type: 'Gradation', colors: ['#FF9800', '#FFD600'] },
   { name: 'Cool Ocean', type: 'Gradation', colors: ['#2196F3', '#00BCD4'] },
+  { name: 'Bright', type: 'Gradation', colors: ['#8BC34A', '#FFEB3B'] },
+  { name: 'Purple Dream', type: 'Gradation', colors: ['#8e24aa', '#e1bee7'] },
+  { name: 'Fire', type: 'Gradation', colors: ['#ff512f', '#dd2476'] },
+  { name: 'Aqua', type: 'Gradation', colors: ['#43cea2', '#185a9d'] },
+  { name: 'Sunrise', type: 'Gradation', colors: ['#ff512f', '#f09819'] },
+  { name: 'Night Sky', type: 'Gradation', colors: ['#232526', '#414345'] },
+  { name: 'Candy', type: 'Gradation', colors: ['#ffb347', '#ffcc33'] },
+  { name: 'Peach', type: 'Gradation', colors: ['#ed4264', '#ffedbc'] },
+  { name: 'Mint', type: 'Gradation', colors: ['#76b852', '#8DC26F'] },
+  { name: 'Ocean Blue', type: 'Gradation', colors: ['#2193b0', '#6dd5ed'] },
+  { name: 'Sunset', type: 'Gradation', colors: ['#0b486b', '#f56217'] },
+  { name: 'Rose', type: 'Gradation', colors: ['#e96443', '#904e95'] },
+  { name: 'Lime', type: 'Gradation', colors: ['#a8ff78', '#78ffd6'] },
   {
     name: 'Forest',
     type: 'Step',
@@ -65,16 +83,229 @@ const initialGroups: PaletteGroup[] = [
       { from: 50, to: 100 },
     ],
   },
-  { name: 'Bright', type: 'Gradation', colors: ['#8BC34A', '#FFEB3B'] },
+  {
+    name: 'Rainbow',
+    type: 'Step',
+    colors: ['#ff0000', '#ff9900', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#9900ff'],
+    stops: [
+      { from: 0, to: 14.28 },
+      { from: 14.29, to: 28.57 },
+      { from: 28.58, to: 42.85 },
+      { from: 42.86, to: 57.14 },
+      { from: 57.15, to: 71.42 },
+      { from: 71.43, to: 85.71 },
+      { from: 85.72, to: 100 },
+    ],
+  },
+  {
+    name: 'Earth',
+    type: 'Step',
+    colors: ['#a0522d', '#cd853f', '#deb887', '#f5deb3', '#fff8dc'],
+    stops: [
+      { from: 0, to: 20 },
+      { from: 20.01, to: 40 },
+      { from: 40.01, to: 60 },
+      { from: 60.01, to: 80 },
+      { from: 80.01, to: 100 },
+    ],
+  },
+  {
+    name: 'Ice',
+    type: 'Step',
+    colors: ['#e0f7fa', '#b2ebf2', '#80deea', '#4dd0e1', '#26c6da'],
+    stops: [
+      { from: 0, to: 20 },
+      { from: 20.01, to: 40 },
+      { from: 40.01, to: 60 },
+      { from: 60.01, to: 80 },
+      { from: 80.01, to: 100 },
+    ],
+  },
+  {
+    name: 'Fire Step',
+    type: 'Step',
+    colors: ['#ff512f', '#f09819', '#ffd700', '#ff6f00'],
+    stops: [
+      { from: 0, to: 25 },
+      { from: 25.01, to: 50 },
+      { from: 50.01, to: 75 },
+      { from: 75.01, to: 100 },
+    ],
+  },
+  {
+    name: 'Ocean Step',
+    type: 'Step',
+    colors: ['#2193b0', '#6dd5ed', '#00b4db', '#0083b0'],
+    stops: [
+      { from: 0, to: 25 },
+      { from: 25.01, to: 50 },
+      { from: 50.01, to: 75 },
+      { from: 75.01, to: 100 },
+    ],
+  },
+  {
+    name: 'Pink Step',
+    type: 'Step',
+    colors: ['#ffb6b9', '#fae3d9', '#bbded6', '#8ac6d1'],
+    stops: [
+      { from: 0, to: 25 },
+      { from: 25.01, to: 50 },
+      { from: 50.01, to: 75 },
+      { from: 75.01, to: 100 },
+    ],
+  },
+  {
+    name: 'Citrus',
+    type: 'Step',
+    colors: ['#f9d423', '#ff4e50', '#e1eec3', '#f05053'],
+    stops: [
+      { from: 0, to: 25 },
+      { from: 25.01, to: 50 },
+      { from: 50.01, to: 75 },
+      { from: 75.01, to: 100 },
+    ],
+  },
+  {
+    name: 'Sky',
+    type: 'Step',
+    colors: ['#2980b9', '#6dd5fa', '#ffffff'],
+    stops: [
+      { from: 0, to: 33.33 },
+      { from: 33.34, to: 66.66 },
+      { from: 66.67, to: 100 },
+    ],
+  },
+  {
+    name: 'Autumn',
+    type: 'Step',
+    colors: ['#ff9966', '#ff5e62', '#ffb347', '#ffcc33'],
+    stops: [
+      { from: 0, to: 25 },
+      { from: 25.01, to: 50 },
+      { from: 50.01, to: 75 },
+      { from: 75.01, to: 100 },
+    ],
+  },
+  {
+    name: 'Violet',
+    type: 'Step',
+    colors: ['#a18cd1', '#fbc2eb', '#fad0c4', '#ffd1ff'],
+    stops: [
+      { from: 0, to: 25 },
+      { from: 25.01, to: 50 },
+      { from: 50.01, to: 75 },
+      { from: 75.01, to: 100 },
+    ],
+  },
+  {
+    name: 'Lemon',
+    type: 'Step',
+    colors: ['#f9f047', '#f9d423', '#f6e27a', '#f9d423'],
+    stops: [
+      { from: 0, to: 25 },
+      { from: 25.01, to: 50 },
+      { from: 50.01, to: 75 },
+      { from: 75.01, to: 100 },
+    ],
+  },
+  {
+    name: 'Berry',
+    type: 'Step',
+    colors: ['#b721ff', '#21d4fd', '#fdbb2d', '#22c1c3'],
+    stops: [
+      { from: 0, to: 25 },
+      { from: 25.01, to: 50 },
+      { from: 50.01, to: 75 },
+      { from: 75.01, to: 100 },
+    ],
+  },
+  {
+    name: 'Moss',
+    type: 'Step',
+    colors: ['#a8e063', '#56ab2f', '#b6e064', '#8fd3f4'],
+    stops: [
+      { from: 0, to: 25 },
+      { from: 25.01, to: 50 },
+      { from: 50.01, to: 75 },
+      { from: 75.01, to: 100 },
+    ],
+  },
+  {
+    name: 'Stone',
+    type: 'Step',
+    colors: ['#757f9a', '#d7dde8', '#b7b7b7', '#757f9a'],
+    stops: [
+      { from: 0, to: 25 },
+      { from: 25.01, to: 50 },
+      { from: 50.01, to: 75 },
+      { from: 75.01, to: 100 },
+    ],
+  },
+  {
+    name: 'Sand',
+    type: 'Step',
+    colors: ['#fceabb', '#f8b500', '#fceabb', '#f8b500'],
+    stops: [
+      { from: 0, to: 25 },
+      { from: 25.01, to: 50 },
+      { from: 50.01, to: 75 },
+      { from: 75.01, to: 100 },
+    ],
+  },
+  {
+    name: 'Olive',
+    type: 'Step',
+    colors: ['#b4ec51', '#429321', '#b4ec51', '#429321'],
+    stops: [
+      { from: 0, to: 25 },
+      { from: 25.01, to: 50 },
+      { from: 50.01, to: 75 },
+      { from: 75.01, to: 100 },
+    ],
+  },
+  {
+    name: 'Coral',
+    type: 'Step',
+    colors: ['#ff9966', '#ff5e62', '#ffb347', '#ffcc33'],
+    stops: [
+      { from: 0, to: 25 },
+      { from: 25.01, to: 50 },
+      { from: 50.01, to: 75 },
+      { from: 75.01, to: 100 },
+    ],
+  },
+  {
+    name: 'Steel',
+    type: 'Step',
+    colors: ['#485563', '#29323c', '#485563', '#29323c'],
+    stops: [
+      { from: 0, to: 25 },
+      { from: 25.01, to: 50 },
+      { from: 50.01, to: 75 },
+      { from: 75.01, to: 100 },
+    ],
+  },
+  {
+    name: 'Peach',
+    type: 'Step',
+    colors: ['#ffecd2', '#fcb69f', '#ffecd2', '#fcb69f'],
+    stops: [
+      { from: 0, to: 25 },
+      { from: 25.01, to: 50 },
+      { from: 50.01, to: 75 },
+      { from: 75.01, to: 100 },
+    ],
+  },
 ]
 
-export default function PaletteManager() {
+export default function PaletteManager({ onClose }: PaletteManagertProps) {
   const [fab, setFab] = useState('fab1')
   const [share, setShare] = useState<'public' | 'private'>('public')
   const [groups, setGroups] = useState<PaletteGroup[]>(initialGroups)
   const [groupFilter, setGroupFilter] = useState('')
   const [selectedGroup, setSelectedGroup] = useState<PaletteGroup | null>(null)
-  const [mode, setMode] = useState<'view' | 'add' | 'edit'>('view')
+  const [mode, setMode] = useState<'view' | 'add' | 'edit' | undefined>('view')
+  const { setAppliedPalette } = usePalette()
 
   // 신규/수정 입력 상태
   const [editName, setEditName] = useState('')
@@ -84,9 +315,6 @@ export default function PaletteManager() {
     { from: 0, to: 49.99 },
     { from: 50, to: 100 },
   ])
-
-  // 그룹 필터링
-  // const filteredGroups = groups.filter((g) => !groupFilter || g.name.toLowerCase().includes(groupFilter.toLowerCase()))
 
   // 그룹명 목록 추출
   const groupNames = Array.from(new Set(groups.map((g) => g.name)))
@@ -268,6 +496,17 @@ export default function PaletteManager() {
     setEditStops(arr)
   }
 
+  // Apply 버튼 클릭 시 현재 선택된 팔레트 적용
+  const handleApply = () => {
+    if (selectedGroup) {
+      setAppliedPalette(selectedGroup)
+      message.success(`팔레트 "${selectedGroup.name}"이(가) 적용되었습니다.`)
+      if (onClose) onClose()
+    } else {
+      message.warning('적용할 팔레트를 선택하세요.')
+    }
+  }
+
   // 상세 패널 렌더링
   const renderDetailPanel = () => {
     // 조회 모드 (disabled)
@@ -291,7 +530,7 @@ export default function PaletteManager() {
                 <span className='palette-color-box' style={{ background: selectedGroup.colors[1] }} />
               </div>
             ) : (
-              <div>
+              <div className='palette-preview-step'>
                 {selectedGroup.colors.map((c, i) => (
                   <div className='color-row' key={i}>
                     <span style={{ width: 24, textAlign: 'center', color: '#888' }}>{i + 1}</span>
@@ -332,7 +571,7 @@ export default function PaletteManager() {
               Delete
             </Button>
             <Button disabled>Save</Button>
-            <Button onClick={() => setMode('view')}>Cancel</Button>
+            <Button onClick={() => setMode(undefined)}>Cancel</Button>
           </Space>
         </Card>
       )
@@ -401,7 +640,7 @@ export default function PaletteManager() {
                   </span>
                 </div>
               ) : (
-                <div>
+                <div className='palette-preview-step'>
                   {editColors.map((color, idx) => (
                     <div className='color-row' key={idx}>
                       <span style={{ width: 24, textAlign: 'center', color: '#888' }}>{idx + 1}</span>
@@ -492,7 +731,7 @@ export default function PaletteManager() {
                 </>
               )}
               <Button type='primary' onClick={handleSave}>
-                Save
+                {(mode === 'add' && 'Regist') || 'Save'}
               </Button>
               <Button onClick={() => setMode('view')}>Cancel</Button>
             </Space>
@@ -558,31 +797,6 @@ export default function PaletteManager() {
                 style={{ marginBottom: 8, cursor: 'pointer', minWidth: 0 }}
                 bodyStyle={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 {/* 팔레트 미리보기 */}
-                {/* {group.type === 'Gradation' ? (
-                  <span
-                    className='palette-card-preview'
-                    // style={{
-                      background: `linear-gradient(90deg, ${group.colors[0]}, ${group.colors[1]})`,
-                    }}
-                  />
-                ) : (
-                  <span className='palette-card-preview'>
-                    {group.colors.map((c, i) => (
-                      <span key={i} className='palette-color-box' style={{ background: c }} />
-                    ))}
-                  </span>
-                )}
-                <div>
-                  <div className='palette-card-title'>{group.name}</div>
-                  <div className='palette-card-type'>Type: {group.type}</div>
-                </div> */}
-
-                {/* <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  {getTypeIcon(group.type)}
-                  <div>
-                    <div className='palette-card-title'>{group.name}</div>
-                  </div>
-                </div> */}
 
                 <div style={{ width: '100%' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -622,10 +836,10 @@ export default function PaletteManager() {
       {/* 하단 글로벌 버튼 */}
       <Divider />
       <div className='palette-global-actions'>
-        <Button type='primary' style={{ marginRight: 8 }}>
+        <Button type='primary' style={{ marginRight: 8 }} onClick={handleApply}>
           Apply
         </Button>
-        <Button>Close</Button>
+        <Button onClick={onClose}>Close</Button>
       </div>
     </div>
   )

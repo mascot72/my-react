@@ -20,7 +20,8 @@ import TodoList from '../pages/TodoList.tsx' // To-Do List 페이지 추가
 import ProtectedRoute from '../app/ProtectionRoute'
 // import { AuthProvider } from '../app/AuthProvider'
 // import ColorPalette from '../pages/ColorPalette.tsx' // 색상 팔레트 페이지 추가
-import ColorPalette from '../pages/PaletteManager.tsx' // 색상 팔레트 페이지 추가
+import ColorPalette from '../components/molecules/ColorTheme/PaletteManager.tsx' // 색상 팔레트 페이지 추가
+import WaferHeatMap from '../components/molecules/WaferMap/WaferHeatMap.tsx'
 
 function AppRouter() {
   return (
@@ -62,8 +63,9 @@ function AppRouter() {
         <Route path='/wafer' element={<WaferMapPage />} />
         <Route path='/canvas' element={<CanvasPage />} /> {/* 등록 경로 추가 */}
         <Route path='/todo' element={<TodoList />} /> {/* To-Do List 경로 추가 */}
+        <Route path='/color-palette' element={<ColorPalette />} /> {/* 색상 팔레트 경로 추가 */}
+        <Route path='/wafer-heatmap' element={<WaferHeatMap />} /> {/* Wafer 맵 페이지 추가 */}
       </Route>
-      <Route path='/color-palette' element={<ColorPalette />} /> {/* 색상 팔레트 경로 추가 */}
       {/* 404 페이지 */}
       <Route path='*' element={<NotFound />} />
     </Routes>

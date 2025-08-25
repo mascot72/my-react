@@ -1,101 +1,149 @@
-import React from 'react'
-import Button, { ButtonProps } from '../atoms/Button'
-import styled, { css } from 'styled-components'
+import React, { useState } from 'react'
+import styled from 'styled-components'
 import { Link } from 'react-router'
 
-const ButtonContainer = styled.button<{ primary?: boolean }>`
-  background: transparent;
-  border-radius: 3px;
-  border: 2px solid #bf4f74;
-  color: #bf4f74;
-  margin: 0.5em 1em;
-  padding: 0.25em 1em;
-
-  ${(props) =>
-    props.primary &&
-    css`
-      background: #bf4f74;
-      color: white;
-    `}
+const Nav = styled.nav`
+  background: #fff;
+  border-bottom: 1px solid #eee;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  padding: 0 24px;
+`
+const NavList = styled.ul`
+  display: flex;
+  gap: 2rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  align-items: center;
+  height: 56px;
+`
+const NavItem = styled.li`
+  position: relative;
+  &:hover > ul {
+    display: block;
+  }
+`
+const NavLink = styled(Link)`
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+  padding: 8px 0;
+  transition: color 0.2s;
+  &:hover {
+    color: #bf4f74;
+  }
+`
+const Dropdown = styled.ul`
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 180px;
+  background: #fff;
+  border: 1px solid #eee;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  list-style: none;
+  margin: 0;
+  padding: 8px 0;
+  z-index: 10;
+`
+const DropdownItem = styled.li`
+  padding: 0;
+  &:hover > a {
+    background: #f5f5f5;
+    color: #bf4f74;
+  }
+`
+const DropdownLink = styled(Link)`
+  display: block;
+  padding: 8px 20px;
+  color: #333;
+  text-decoration: none;
+  font-size: 15px;
+  transition:
+    background 0.2s,
+    color 0.2s;
+  &:hover {
+    background: #f5f5f5;
+    color: #bf4f74;
+  }
 `
 
-const styles = {
-  nav: {
-    display: 'flex',
-    justifyContent: 'center',
-    gap: '1rem',
-    padding: '1rem',
-    // backgroundColor: 'lightgray',
-    listStyle: 'none',
-  },
-}
-
-const data: ButtonProps = {
-  children: 'Click me',
-  onClick: () => {
-    console.log('Button clicked')
-  },
-}
-
 const Navbar: React.FC = () => {
-  console.log(data)
+  // 2단계 메뉴 구조
   return (
-    <nav>
-      <ul style={styles.nav}>
-        <li>
-          <Link to='/'>Home</Link>
-        </li>
-        <li>
-          <Link to='/login'>Login</Link>
-        </li>
-        <li>
-          <Link to='/protected'>Protected</Link>
-        </li>
-        <li>
-          <Link to='/about'>About</Link>
-        </li>
-        <li>
-          <Link to='/contact'>Contact</Link>
-        </li>
-        <li>
-          <ButtonContainer>Play ground</ButtonContainer>
-          <Button onClick={data.onClick}>Hello</Button>
-        </li>
-        <li>
-          <Link to='/profiles/chanwoong1'>profile1</Link>
-        </li>
-        <li>
-          <Link to='/profiles/abcd'>profile2</Link>
-        </li>
-        <li>
-          <Link to='/profiles/void'>존재하지 않는 프로필</Link>
-        </li>
-        <li>
-          <Link to='/articles'>게시글</Link>
-        </li>
-        <li>
-          <Link to='/mypage'>MyPage</Link>
-        </li>
-        <li>
-          <Link to='/todo'>Todo</Link>
-        </li>
-        <li>
-          <Link to='/register'>Register</Link>
-        </li>
-        <li>
-          <Link to='/svg'>Svg</Link>
-        </li>
-        <li>
-          <Link to='/canvas'>Canvas</Link>
-        </li>
-        <li>
-          <Link to='/wafer'>Wafer Map</Link>
-        </li>
-        <li>
-          <Link to='/color-palette'>Color Palette</Link>
-        </li>
-      </ul>
-    </nav>
+    <Nav>
+      <NavList>
+        <NavItem>
+          <NavLink to='/'>Home</NavLink>
+        </NavItem>
+        <NavItem>
+          <NavLink to='#'>Pages ▾</NavLink>
+          <Dropdown>
+            <DropdownItem>
+              <DropdownLink to='/about'>About</DropdownLink>
+            </DropdownItem>
+            <DropdownItem>
+              <DropdownLink to='/contact'>Contact</DropdownLink>
+            </DropdownItem>
+            <DropdownItem>
+              <DropdownLink to='/login'>Login</DropdownLink>
+            </DropdownItem>
+            <DropdownItem>
+              <DropdownLink to='/register'>Register</DropdownLink>
+            </DropdownItem>
+            <DropdownItem>
+              <DropdownLink to='/mypage'>MyPage</DropdownLink>
+            </DropdownItem>
+            <DropdownItem>
+              <DropdownLink to='/todo'>Todo</DropdownLink>
+            </DropdownItem>
+          </Dropdown>
+        </NavItem>
+        <NavItem>
+          <NavLink to='#'>Profile ▾</NavLink>
+          <Dropdown>
+            <DropdownItem>
+              <DropdownLink to='/profiles/chanwoong1'>Profile 1</DropdownLink>
+            </DropdownItem>
+            <DropdownItem>
+              <DropdownLink to='/profiles/abcd'>Profile 2</DropdownLink>
+            </DropdownItem>
+            <DropdownItem>
+              <DropdownLink to='/profiles/void'>Not Exist</DropdownLink>
+            </DropdownItem>
+          </Dropdown>
+        </NavItem>
+        <NavItem>
+          <NavLink to='#'>Demo ▾</NavLink>
+          <Dropdown>
+            <DropdownItem>
+              <DropdownLink to='/articles'>게시글</DropdownLink>
+            </DropdownItem>
+            <DropdownItem>
+              <DropdownLink to='/svg'>SVG</DropdownLink>
+            </DropdownItem>
+            <DropdownItem>
+              <DropdownLink to='/canvas'>Canvas</DropdownLink>
+            </DropdownItem>
+          </Dropdown>
+        </NavItem>
+        <NavItem>
+          <NavLink to='#'>Map ▾</NavLink>
+          <Dropdown>
+            <DropdownItem>
+              <DropdownLink to='/wafer'>Wafer Map</DropdownLink>
+            </DropdownItem>
+            <DropdownItem>
+              <DropdownLink to='/wafer-heatmap'>Wafer Heat Map</DropdownLink>
+            </DropdownItem>
+            <DropdownItem>
+              <DropdownLink to='/color-palette'>Color Palette</DropdownLink>
+            </DropdownItem>
+          </Dropdown>
+        </NavItem>
+      </NavList>
+    </Nav>
   )
 }
 
