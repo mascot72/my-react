@@ -19,7 +19,6 @@ import CanvasPage from '../pages/CanvasPage'
 import TodoList from '../pages/TodoList.tsx' // To-Do List 페이지 추가
 import ProtectedRoute from '../app/ProtectionRoute'
 // import { AuthProvider } from '../app/AuthProvider'
-// import ColorPalette from '../pages/ColorPalette.tsx' // 색상 팔레트 페이지 추가
 import ColorPalette from '../components/molecules/ColorTheme/PaletteManager.tsx' // 색상 팔레트 페이지 추가
 import WaferHeatMap from '../components/molecules/WaferMap/WaferHeatMap.tsx'
 

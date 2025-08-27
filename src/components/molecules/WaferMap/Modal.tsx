@@ -5,6 +5,7 @@ type ModalProps = {
   onClose?: () => void
   children: React.ReactNode
   title?: string
+  containerWidth?: string
 }
 
 const modalStyle: React.CSSProperties = {
@@ -31,14 +32,14 @@ const overlayStyle: React.CSSProperties = {
   zIndex: 1000,
 }
 
-const Modal: React.FC<ModalProps> = ({ open, onClose, children, title }) => {
+const Modal: React.FC<ModalProps> = ({ open, onClose, children, title, containerWidth = '1200px' }) => {
   if (!open) return null
   return (
     <>
       <div style={overlayStyle} onClick={onClose} />
       <div style={modalStyle}>
         {title && <h3 style={{ marginTop: 0 }}>{title}</h3>}
-        <div>{children}</div>
+        <div style={{ width: containerWidth }}>{children}</div>
       </div>
     </>
   )

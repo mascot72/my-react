@@ -582,19 +582,20 @@ export default function PaletteManager({ onClose }: PaletteManagertProps) {
       return (
         <Card title={mode === 'add' ? 'New Palette' : 'Edit Palette'}>
           <Space direction='vertical' style={{ width: '100%' }}>
-            <div>
+            <div className='form-item'>
               <span className='label'>Group Name</span>
               <Input
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
                 status={isGroupNameError ? 'error' : ''}
                 placeholder='필수 입력'
+                style={{ width: '380px' }}
               />
               {isGroupNameError && (
                 <div style={{ color: '#ff4d4f', fontSize: 12, marginTop: 2 }}>Group Name은 필수입니다.</div>
               )}
             </div>
-            <div>
+            <div className='form-item'>
               <span className='label'>Type</span>
               <Radio.Group
                 value={editType}
@@ -640,7 +641,7 @@ export default function PaletteManager({ onClose }: PaletteManagertProps) {
                   </span>
                 </div>
               ) : (
-                <div className='palette-preview-step'>
+                <div className='palette-preview-step color-box'>
                   {editColors.map((color, idx) => (
                     <div className='color-row' key={idx}>
                       <span style={{ width: 24, textAlign: 'center', color: '#888' }}>{idx + 1}</span>
@@ -794,7 +795,7 @@ export default function PaletteManager({ onClose }: PaletteManagertProps) {
                 size='small'
                 className={`palette-card ${selectedGroup?.name === group.name ? 'active' : ''}`}
                 onClick={() => handleCardClick(group)}
-                style={{ marginBottom: 8, cursor: 'pointer', minWidth: 0 }}
+                style={{ marginBottom: 8, cursor: 'pointer' }}
                 bodyStyle={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 {/* 팔레트 미리보기 */}
 

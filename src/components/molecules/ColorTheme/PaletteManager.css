@@ -27,6 +27,7 @@
 }
 .palette-left {
   width: 560px;
+  border-radius: 8px;
 }
 .palette-right {
   flex: 1;
@@ -58,16 +59,19 @@
   width: 100%;
   max-width: 620px; /* 카드 영역 최대 너비 고정 */
   min-width: 220px;
-  height: 520px; /* 높이 고정 (필요시 조정) */
+  /* height: 520px; /* 높이 고정 (필요시 조정) */
   overflow-y: auto; /* 세로 스크롤 활성화 */
   overflow-x: hidden;
-  background: #fafbfc;
-  border-right: 1px solid #eee;
+  /* background: #fafbfc; */
+  border: 1px solid #eee;
   padding-right: 8px;
   box-sizing: border-box;
 }
 .palette-card-list {
   display: flex;
+  height: 400px; /* 높이 고정 (필요시 조정) */
+  overflow-y: auto; /* 세로 스크롤 활성화 */
+  overflow-x: hidden;
   /* flex-direction: column; 세로 정렬 */
   flex-wrap: wrap;
   gap: 12px;
@@ -106,6 +110,10 @@
   flex-direction: column;
   gap: 2px;
 }
+.color-box {
+  max-height: 510px;
+  overflow: auto;
+}
 .color-row {
   display: flex;
   align-items: center;
@@ -131,4 +139,9 @@
   color: #aaa;
   padding: 32px 0;
   text-align: center;
+}
+.form-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
