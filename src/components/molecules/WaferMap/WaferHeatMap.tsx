@@ -1,4 +1,3 @@
-// React 및 ECharts for React 임포트
 import React, { useState } from 'react'
 import ReactECharts from 'echarts-for-react'
 import { usePalette } from '../../../app/usePalette'
@@ -19,29 +18,20 @@ import PaletteManager from '../ColorTheme/PaletteManager'
  * 5. x/y축, 툴팁, 강조 효과 등 시각적 요소 설정
  */
 
-// 웨이퍼(원) 지름 및 반지름
 const diameter = 20
 const radius = diameter / 2
-
-// x/y축 라벨: 0~19
 const xLabels = Array.from({ length: diameter }, (_, i) => i.toString())
 const yLabels = Array.from({ length: diameter }, (_, i) => i.toString())
-
-// 20x20 난수 데이터 생성, 원 밖은 null 처리
-// [x, y, value|null] 형태의 배열 반환
 type WaferCell = [number, number, number | null]
 function generateWaferData(): WaferCell[] {
   const data: WaferCell[] = []
   for (let y = 0; y < diameter; y++) {
     for (let x = 0; x < diameter; x++) {
-      // 셀 중심이 원 반지름 내에 있으면 값 할당, 아니면 null
       const dx = x + 0.5 - radius
       const dy = y + 0.5 - radius
       if (dx * dx + dy * dy <= radius * radius) {
-        // 원 내부: 0~100 난수값
         data.push([x, y, Math.floor(Math.random() * 101)])
       } else {
-        // 원 외부: null(투명)
         data.push([x, y, null])
       }
     }
@@ -49,7 +39,7 @@ function generateWaferData(): WaferCell[] {
   return data
 }
 
-function getPaletteColors(palette: any): string[] {
+function getPaletteColors(palette: unknown): string[] {
   if (!palette) {
     // 기본 팔레트
     return [
@@ -90,11 +80,42 @@ function getPaletteColors(palette: any): string[] {
  * - option 객체에 모든 시각화 옵션 포함
  */
 const WaferHeatMap = () => {
+  // 중심 정렬 및 cell 크기 일치
+  const diameterPx = 480 // 전체 차트 크기
+  const gridLeft = 40
+  const gridTop = 40
+  const gridSize = diameterPx
+  const waferRadiusPx = gridSize / 2
+  // 셀별 die-map 경계선 계산 함수
+  // die-map 경계선 굵게, grid 얇게, 원 외부 완전 마스킹
+  function getCellBorder(x: number, y: number, rowSize: number, colSize: number) {
+    let borderTop = 0.5,
+      borderBottom = 0.5,
+      borderLeft = 0.5,
+      borderRight = 0.5
+    let borderColor = '#fff'
+    if (y % rowSize === 0) borderTop = 4
+    if ((y + 1) % rowSize === 0 || y === diameter - 1) borderBottom = 4
+    if (x % colSize === 0) borderLeft = 4
+    if ((x + 1) % colSize === 0 || x === diameter - 1) borderRight = 4
+    borderColor = borderTop === 4 || borderBottom === 4 || borderLeft === 4 || borderRight === 4 ? '#000' : '#fff'
+    const dx = x + 0.5 - radius
+    const dy = y + 0.5 - radius
+    if (dx * dx + dy * dy > radius * radius) {
+      borderTop = borderBottom = borderLeft = borderRight = 0
+      borderColor = '#888'
+    }
+    return {
+      borderWidth: `${borderTop}px ${borderRight}px ${borderBottom}px ${borderLeft}px`,
+      borderColor: borderColor,
+    }
+  }
   const { appliedPalette } = usePalette()
   const [modalOpen, setModalOpen] = useState(false)
   // 추가: 격자선 표시 여부, die-map 크기
   const [showGridLine, setShowGridLine] = useState(true)
-  const [dieMapSize, setDieMapSize] = useState(4) // 4x4 기본
+  const [dieMapRowSize, setDieMapRowSize] = useState(4) // 4x4 기본
+  const [dieMapColSize, setDieMapColSize] = useState(4)
 
   // 실제 히트맵 데이터
   const data = generateWaferData()
@@ -102,22 +123,9 @@ const WaferHeatMap = () => {
   // 팔레트 적용
   const paletteColors = getPaletteColors(appliedPalette)
 
-  // die-map markArea 생성 함수
-  function getDieMapMarkAreas(size: number) {
-    const areas = []
-    for (let y = 0; y < diameter; y += size) {
-      for (let x = 0; x < diameter; x += size) {
-        areas.push([
-          { xAxis: x, yAxis: y },
-          { xAxis: Math.min(x + size - 1, diameter - 1), yAxis: Math.min(y + size - 1, diameter - 1) },
-        ])
-      }
-    }
-    return areas
-  }
-
   // ECharts 옵션 객체: 시각화 설정
   const option = {
+    backgroundColor: '#222',
     // 차트 타이틀
     title: {
       text: 'Wafer Map Demonstration',
@@ -136,11 +144,33 @@ const WaferHeatMap = () => {
     },
     // 플롯 영역 위치/크기
     grid: {
-      left: 60,
-      right: 80,
-      top: 50,
+      left: gridLeft,
+      right: 40,
+      top: gridTop,
       bottom: 40,
+      width: gridSize,
+      height: gridSize,
+      backgroundColor: '#222',
+      containLabel: false,
     },
+    graphic: [
+      {
+        type: 'circle',
+        left: gridLeft,
+        top: gridTop,
+        shape: {
+          cx: waferRadiusPx,
+          cy: waferRadiusPx,
+          r: waferRadiusPx,
+        },
+        style: {
+          stroke: '#888',
+          lineWidth: 8,
+          fill: 'rgba(0,0,0,0)',
+        },
+        z: 10,
+      },
+    ],
     // x축: 0~19, 카테고리, 스타일 지정
     xAxis: {
       type: 'category',
@@ -148,10 +178,10 @@ const WaferHeatMap = () => {
       name: '',
       nameTextStyle: { fontWeight: 'bold', fontSize: 12 },
       axisLabel: { fontWeight: 'bold', fontSize: 10 },
-      splitArea: { show: true },
+      splitArea: { show: false },
       axisTick: { alignWithLabel: true },
       offset: 0,
-      splitLine: showGridLine ? { show: true, lineStyle: { type: 'solid', color: '#333', width: 1 } } : { show: false },
+      splitLine: { show: false },
     },
     yAxis: {
       type: 'category',
@@ -159,10 +189,10 @@ const WaferHeatMap = () => {
       name: '',
       nameTextStyle: { fontWeight: 'bold', fontSize: 12 },
       axisLabel: { fontWeight: 'bold', fontSize: 10 },
-      splitArea: { show: true },
+      splitArea: { show: false },
       axisTick: { alignWithLabel: true },
       offset: 0,
-      splitLine: showGridLine ? { show: true, lineStyle: { type: 'solid', color: '#333', width: 1 } } : { show: false },
+      splitLine: { show: false },
     },
     // 컬러바(visualMap): 값-색상 매핑, 15단계 색상, 위치/폰트 등
     visualMap: {
@@ -188,24 +218,33 @@ const WaferHeatMap = () => {
         type: 'heatmap',
         data: data,
         label: { show: false },
-        // null 값(원 밖)은 투명하게 처리
         itemStyle: {
-          opacity: (params: any) => (params.data[2] == null ? 0 : 1),
-          borderColor: '#ccc', // 셀 테두리 색상
-          borderWidth: 0.5, // 셀 테두리 두께
+          color: (params: { data: [number, number, number | null] }) => {
+            const [x, y] = params.data
+            const dx = x + 0.5 - radius
+            const dy = y + 0.5 - radius
+            if (dx * dx + dy * dy > radius * radius) return '#888'
+            return undefined
+          },
           borderType: 'solid',
+          borderColor: (params: { data: [number, number, number | null] }) => {
+            const [x, y] = params.data
+            const { borderColor } = getCellBorder(x, y, dieMapRowSize, dieMapColSize)
+            return borderColor
+          },
+          borderWidth: (params: { data: [number, number, number | null] }) => {
+            const [x, y] = params.data
+            const dx = x + 0.5 - radius
+            const dy = y + 0.5 - radius
+            if (dx * dx + dy * dy > radius * radius) return 0
+            const { borderWidth } = getCellBorder(x, y, dieMapRowSize, dieMapColSize)
+            return parseFloat(borderWidth.split(' ')[0])
+          },
         },
-        // die-map은 markArea 대신, die-map 경계 셀만 두꺼운 테두리로 표시
-        // 아래에서 customBorderMap을 통해 die-map 경계 셀에만 borderWidth/borderColor를 다르게 적용
         emphasis: {
           itemStyle: {
             borderColor: '#222',
-            borderWidth: (params: any) => {
-              // die-map 경계 셀만 두껍게
-              const x = params.data[0]
-              const y = params.data[1]
-              return x % dieMapSize === 0 || y % dieMapSize === 0 ? 2 : 0.5
-            },
+            borderWidth: 2,
             borderType: 'solid',
             shadowBlur: 10,
             shadowColor: 'rgba(0, 0, 0, 0.5)',
@@ -223,14 +262,25 @@ const WaferHeatMap = () => {
             <input type='checkbox' checked={showGridLine} onChange={(e) => setShowGridLine(e.target.checked)} />
             격자선 표시
           </label>
-          <label>
-            die-map size:
+          <label style={{ marginRight: 16 }}>
+            die-map 행 크기:
             <input
               type='number'
               min={1}
               max={diameter}
-              value={dieMapSize}
-              onChange={(e) => setDieMapSize(Number(e.target.value))}
+              value={dieMapRowSize}
+              onChange={(e) => setDieMapRowSize(Number(e.target.value))}
+              style={{ width: 40, marginLeft: 4 }}
+            />
+          </label>
+          <label>
+            die-map 열 크기:
+            <input
+              type='number'
+              min={1}
+              max={diameter}
+              value={dieMapColSize}
+              onChange={(e) => setDieMapColSize(Number(e.target.value))}
               style={{ width: 40, marginLeft: 4 }}
             />
           </label>
