@@ -203,3 +203,28 @@ export function drawHeatmap(
 
 // 5. 샘플 데이터 및 연결 예시
 // (아래 코드는 React 컴포넌트에서 사용 예시로 활용)
+
+// --- useCoordinateMap.js의 변환 함수 import ---
+import { convertSampleDataForHeatmap } from './useCoordinateMap'
+
+/**
+ * drawHeatmapWithConvertedSample
+ * - 40개 포인트 기준 변환된 샘플 데이터를 drawHeatmap으로 렌더링
+ * - canvas, config를 받아 내부에서 변환 및 렌더링
+ */
+/**
+ * drawHeatmapWithConvertedSample
+ * - 40개 포인트 기준 변환된 샘플 데이터를 drawHeatmap으로 렌더링
+ * - canvas, config를 받아 내부에서 변환 및 렌더링
+ */
+export async function drawHeatmapWithConvertedSample(
+  canvas: HTMLCanvasElement,
+  config: typeof heatmapConfig = heatmapConfig,
+): Promise<void> {
+  // 1. 변환된 샘플 데이터 생성 (40개 포인트)
+  const converted = await convertSampleDataForHeatmap(40, canvas.width, canvas.height)
+  // 2. drawHeatmap으로 렌더링
+  //    변환 결과는 [[x, y, value], ...] 배열이므로, {x, y, value} 객체로 변환
+  const data = converted.map(([x, y, value]) => ({ x, y, value }))
+  drawHeatmap(canvas, data, config)
+}
