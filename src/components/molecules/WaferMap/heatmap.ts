@@ -1,3 +1,52 @@
+/**
+ * drawHeatmapWithPoints
+ * - originData 기반으로 heatmap을 그리고, 동일 좌표에 검정색 점(point)도 함께 표시
+ * - points: [[x, y, value], ...] 또는 OriginDataTuple[]
+ * - drawHeatmap으로 히트맵 렌더링 후, canvas에 직접 점을 그림
+ */
+import type { OriginDataTuple } from './useCoordinateMap'
+/**
+ * drawHeatmapWithPoints
+ * - originData 기반으로 heatmap을 그리고, 동일 좌표에 검정색 점(point)을 표시
+ * - pointOnTop: true면 점이 heatmap 위에, false면 아래에 그림
+ * - showPoints: true면 점 표시, false면 점 숨김
+ */
+export function drawHeatmapWithPoints(
+  canvas: HTMLCanvasElement,
+  originData: OriginDataTuple[],
+  config: typeof heatmapConfig = heatmapConfig,
+  options?: { pointOnTop?: boolean; showPoints?: boolean },
+): void {
+  const { pointOnTop = true, showPoints = true } = options || {}
+  // 1. originData를 [x, y, value] 형태로 변환
+  const points = originData.map((d) => ({ x: d[2], y: d[3], value: d[4] }))
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+  // 2. 점이 밑에 오게 할 경우 먼저 그림
+  if (!pointOnTop && showPoints) {
+    ctx.save()
+    ctx.fillStyle = '#000'
+    points.forEach((p) => {
+      ctx.beginPath()
+      ctx.arc(p.x, p.y, 3, 0, Math.PI * 2)
+      ctx.fill()
+    })
+    ctx.restore()
+  }
+  // 3. 히트맵 렌더링
+  drawHeatmap(canvas, points, config)
+  // 4. 점이 위에 오게 할 경우 나중에 그림
+  if (pointOnTop && showPoints) {
+    ctx.save()
+    ctx.fillStyle = '#000'
+    points.forEach((p) => {
+      ctx.beginPath()
+      ctx.arc(p.x, p.y, 3, 0, Math.PI * 2)
+      ctx.fill()
+    })
+    ctx.restore()
+  }
+}
 // heatmap.ts - 캔버스 기반 동적 히트맵 생성 및 렌더링
 // 주요 기능:
 // 1. heatmapConfig: 히트맵 팔레트/파라미터 설정
