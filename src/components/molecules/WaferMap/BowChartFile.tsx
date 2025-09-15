@@ -233,17 +233,18 @@ const generateHeatmapGrid = (heatmapData: Point[]): Point[] => {
 
 // 값에 따라 색상(hsl) 반환 (강조 효과, 밝기/채도 변화)
 const getEnhancedColor = (value: number, min: number, max: number): string => {
-  const ratio = (value - min) / (max - min)
-  const hue = ((1 - ratio) * 240).toString(10)
-  const saturation = 85 + Math.sin(ratio * Math.PI) * 15
-  const lightness = 50 + Math.cos(ratio * Math.PI) * 10
-  return `hsl(${hue}, ${saturation}%, ${lightness}%)`
+  const ratio = (value - min) / (max - min) // 최대 최소값에 대한 상대적 위치
+  // 채도와 밝기를 변화시켜 더 선명한 색상 표현 (중간값 강조)
+  const hue = ((1 - ratio) * 240).toString(10) // 파랑(240)~빨강(0)
+  const saturation = 85 + Math.sin(ratio * Math.PI) * 15 // 70%~100%
+  const lightness = 50 + Math.cos(ratio * Math.PI) * 10 // 40%~60%
+  return `hsl(${hue}, ${saturation}%, ${lightness}%)` // 채도와 밝기 변화
 }
 
 // DieMap(격자) 렌더 함수 (원형 영역 내 사각형 격자)
 const renderDieMap = (gridPoints: Point[], minValue: number, maxValue: number) => {
   const dies: JSX.Element[] = []
-  const dieSize = 5
+  const dieSize = 5 // 각 die의 크기 (pixels)
   const dieCount = Math.floor(90 / dieSize)
   // 중심 정렬을 위해 offset 추가
   const offset = 5 // (100 - 90) / 2
@@ -251,19 +252,19 @@ const renderDieMap = (gridPoints: Point[], minValue: number, maxValue: number) =
   for (let i = 0; i < dieCount; i++) {
     for (let j = 0; j < dieCount; j++) {
       // 좌표에 offset 적용
-      const x = offset + i * dieSize
+      const x = offset + i * dieSize // 각 die의 좌측 상단 좌표
       const y = offset + j * dieSize
-      const centerX = x + dieSize / 2
+      const centerX = x + dieSize / 2 // 각 die의 중심 좌표
       const centerY = y + dieSize / 2
 
       const distanceFromCenter = Math.sqrt(Math.pow(centerX - 50, 2) + Math.pow(centerY - 50, 2))
 
       if (distanceFromCenter <= 45) {
-        // 해당 die 영역 내 평균값 계산
+        // 해당 die 영역 내 포인트 필터링
         const pointsInDie = gridPoints.filter(
           (point) => point.x >= x && point.x < x + dieSize && point.y >= y && point.y < y + dieSize,
         )
-
+        // 포인트들의 평균 구하기(die 영역 내)
         const avgValue =
           pointsInDie.length > 0 ? pointsInDie.reduce((sum, p) => sum + p.value, 0) / pointsInDie.length : 0
 

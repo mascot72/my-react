@@ -138,6 +138,9 @@ const Navbar: React.FC = () => {
               <DropdownLink to='/wafer-heatmap'>Wafer Heat Map</DropdownLink>
             </DropdownItem>
             <DropdownItem>
+              <DropdownLink to='/wafer-shotmap'>Wafer Shot Map</DropdownLink>
+            </DropdownItem>
+            <DropdownItem>
               <DropdownLink to='/color-palette'>Color Palette</DropdownLink>
             </DropdownItem>
           </Dropdown>

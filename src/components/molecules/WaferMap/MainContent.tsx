@@ -3,7 +3,7 @@ import styled from 'styled-components'
 import ThicknessChart from './ThicknessChart'
 import SbirChart from './SbirChart'
 import BowChart from './BowChartFile'
-import { drawHeatmap, generateWaferSampleData, heatmapConfig } from './heatmap'
+import { drawHeatmap, generateSampleData, generateWaferSampleData, heatmapConfig } from './heatmap'
 
 const MainContentContainer = styled.div`
   display: grid;
@@ -45,7 +45,7 @@ const WarpChart: React.FC = () => {
     if (canvas) {
       canvas.width = canvas.offsetWidth
       canvas.height = canvas.offsetHeight
-      const sampleData = generateWaferSampleData(count, canvas.width, canvas.height)
+      const sampleData = generateSampleData(count, canvas.width, canvas.height)
       drawHeatmap(canvas, sampleData, {
         ...heatmapConfig,
         radius,

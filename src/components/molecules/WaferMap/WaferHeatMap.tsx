@@ -39,9 +39,9 @@ function generateWaferData(): WaferCell[] {
   return data
 }
 
+type PaletteType = { type: string; colors: string[] }
 function getPaletteColors(palette: unknown): string[] {
-  if (!palette) {
-    // 기본 팔레트
+  if (!palette || typeof palette !== 'object') {
     return [
       '#f7fbff',
       '#deebf7',
@@ -60,14 +60,30 @@ function getPaletteColors(palette: unknown): string[] {
       '#045a8d',
     ]
   }
-  if (palette.type === 'Gradation') {
-    // 15단계 그라데이션 생성
-    const [from, to] = palette.colors
-    // 간단한 그라데이션 생성 (echarts가 알아서 보간)
-    return [from, to]
+  const p = palette as PaletteType
+  if (p.type === 'Gradation' && p.colors.length >= 2) {
+    return [p.colors[0], p.colors[1]]
   }
-  // Step 팔레트: 색상 배열 그대로
-  return palette.colors
+  if (Array.isArray(p.colors)) {
+    return p.colors
+  }
+  return [
+    '#f7fbff',
+    '#deebf7',
+    '#c6dbef',
+    '#9ecae1',
+    '#6baed6',
+    '#4292c6',
+    '#2171b5',
+    '#08519c',
+    '#08306b',
+    '#f1eef6',
+    '#d0d1e6',
+    '#a6bddb',
+    '#74a9cf',
+    '#2b8cbe',
+    '#045a8d',
+  ]
 }
 
 /**
@@ -136,9 +152,8 @@ const WaferHeatMap = () => {
     // 마우스 오버 시 툴팁
     tooltip: {
       position: 'top',
-      // 값이 null(원 밖)이면 툴팁 미표시
-      formatter: (params: any) => {
-        if (params.data[2] == null) return ''
+      formatter: (params: { data?: [number, number, number | null] }) => {
+        if (!params.data || params.data[2] == null) return ''
         return `X: ${params.data[0]}, Y: ${params.data[1]}<br/>Value: ${params.data[2]}`
       },
     },
