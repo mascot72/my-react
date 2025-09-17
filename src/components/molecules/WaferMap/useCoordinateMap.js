@@ -11,15 +11,16 @@ import { generateSampleData } from './heatmap.ts'
  * - shotXSize/shotYSize에 따라 분기 처리(비율 보정)
  * - 반환: [[x, y, value], ...] 배열
  *
- * originData: [[xIndex, yIndex, xAxis, yAxis, value], ...]
- * shotOffset: shot 간격(px)
+ * originData: [[chipIndexX, chipIndexY, xAxis, yAxis, value], ...]
+ * shotBasePixel: shot 간격(px), 1개의 shot width pixels 크기: 예) 32.103515625
  * shotMin/shotMax: 값 정규화용 min/max
- * shotXSize/shotYSize: shot 배열 크기
+ * shotXSize/shotYSize: shot 배열 크기 13 / 11
  * chipXMin/chipXMax, chipYMin/chipYMax: chip 좌표 범위
  */
+
 export const convertOriginHeatmapDataToHDSHeatmapDataAsync = async (
   originData,
-  shotOffset,
+  shotBasePixel,
   shotMin,
   shotMax,
   shotXSize,
@@ -29,42 +30,37 @@ export const convertOriginHeatmapDataToHDSHeatmapDataAsync = async (
   chipXMax,
   chipYMax,
 ) => {
-  const promise = new Promise((resolve, reject) => {
-    try {
-      // shotXSize <= shotYSize: Y축 기준 비율 보정
-      if (shotXSize <= shotYSize) {
-        return resolve(
-          originData?.map((data) => {
-            // x 좌표 변환: shotIndex + chip 상대좌표 비율 보정
-            const x =
-              (data[0] * shotOffset * shotYSize) / shotXSize +
-              (((data[2] - chipXMin) / (chipXMax - chipXMin)) * shotOffset * shotYSize) / shotXSize
-            // y 좌표 변환: shotIndex + chip 상대좌표 비율 보정
-            const y =
-              data[1] * shotOffset + ((data[3] - chipYMin) / (chipYMax - chipYMin)) * shotOffset - shotOffset / 2
-            // value 정규화
-            const value = (data[4] - shotMin) / (shotMax - shotMin)
-            return [x, y, value]
-          }),
-        )
-      }
-      // shotXSize > shotYSize: X축 기준 비율 보정
-      resolve(
-        originData?.map((data) => {
-          const x = data[0] * shotOffset + ((data[2] - chipXMin) / (chipXMax - chipXMin)) * shotOffset
-          const y =
-            (data[1] * shotOffset * shotXSize) / shotYSize +
-            (((data[3] - chipYMin) / (chipYMax - chipYMin)) * shotOffset * shotXSize) / shotYSize -
-            (shotOffset * shotXSize) / shotYSize / 2
-          const value = (data[4] - shotMin) / (shotMax - shotMin)
-          return [x, y, value]
-        }),
-      )
-    } catch (e) {
-      reject(e)
+  // shotXSize와 shotYSize의 비율에 따라 보정값 결정
+  const xRatio = shotXSize > shotYSize ? 1 : shotYSize / shotXSize
+  const yRatio = shotXSize > shotYSize ? shotXSize / shotYSize : 1
+
+  const result = originData?.map((data) => {
+    // data: [chipIndexX, chipIndexY, xAxis, yAxis, value]
+    // chipIndexX, chipIndexY: shot 배열 내 인덱스
+    // xAxis, yAxis: chip 좌표값
+    // value: 측정값
+
+    // x 좌표 변환 (공통)
+    let x = data[0] * shotBasePixel + ((data[2] - chipXMin) / (chipXMax - chipXMin)) * shotBasePixel
+    x *= xRatio
+
+    // y 좌표 변환 (공통)
+    let y = data[1] * shotBasePixel + ((data[3] - chipYMin) / (chipYMax - chipYMin)) * shotBasePixel
+    y *= yRatio
+
+    // 중앙 보정 (shot 배열 비정방일 때만 적용)
+    if (shotXSize > shotYSize) {
+      y -= (shotBasePixel * shotXSize) / shotYSize / 2
+    } else if (shotXSize < shotYSize) {
+      x -= (shotBasePixel * shotYSize) / shotXSize / 2
+    } else {
+      // 정방 shot 배열일 때는 중앙 보정 없음
     }
+
+    // value 정규화
+    const value = (data[4] - shotMin) / (shotMax - shotMin)
+    return [x, y, value]
   })
-  const result = await promise.then((res) => res)
   return result
 }
 
@@ -82,7 +78,7 @@ export async function convertSampleDataForHeatmap(count = 100, width = 512, heig
   // 3. 변환 함수 호출 (임의 파라미터)
   const result = await convertOriginHeatmapDataToHDSHeatmapDataAsync(
     originData,
-    10, // shotOffset
+    10, // shotBasePixel
     0, // shotMin
     2, // shotMax
     10, // shotXSize
