@@ -18,6 +18,8 @@ import { generateSampleData } from './heatmap.ts'
  * chipXMin/chipXMax, chipYMin/chipYMax: chip 좌표 범위
  */
 
+// shotIndex 계산: chipIndexX, chipIndexY를 shotIndex로 사용
+// 결과에 shotIndex 추가
 export const convertOriginHeatmapDataToHDSHeatmapDataAsync = async (
   originData,
   shotBasePixel,
@@ -48,6 +50,9 @@ export const convertOriginHeatmapDataToHDSHeatmapDataAsync = async (
     let y = data[1] * shotBasePixel + ((data[3] - chipYMin) / (chipYMax - chipYMin)) * shotBasePixel
     y *= yRatio
 
+    // shotIndex 계산 (chipIndexX, chipIndexY)
+    const shotIndex = { x: data[0], y: data[1] }
+
     // 중앙 보정 (shot 배열 비정방일 때만 적용)
     if (shotXSize > shotYSize) {
       y -= (shotBasePixel * shotXSize) / shotYSize / 2
@@ -59,9 +64,63 @@ export const convertOriginHeatmapDataToHDSHeatmapDataAsync = async (
 
     // value 정규화
     const value = (data[4] - shotMin) / (shotMax - shotMin)
-    return [x, y, value]
+    return { x, y, value, shotIndex }
   })
   return result
+}
+
+// die별 그룹화 및 min/max 좌표 계산 함수
+export const groupDieMinMax = (dieDataArr) => {
+  // dieDataArr: addDieInfoToOriginData 결과 배열
+  // dieXIndex, dieYIndex 기준으로 그룹화 후 각 그룹의 min/max 계산
+  const group = {}
+  dieDataArr.forEach((row) => {
+    const key = `${row.dieXIndex},${row.dieYIndex}`
+    if (!group[key]) {
+      group[key] = {
+        minX: row.x,
+        maxX: row.x,
+        minY: row.y,
+        maxY: row.y,
+        data: [],
+      }
+    }
+    group[key].minX = Math.min(group[key].minX, row.x)
+    group[key].maxX = Math.max(group[key].maxX, row.x)
+    group[key].minY = Math.min(group[key].minY, row.y)
+    group[key].maxY = Math.max(group[key].maxY, row.y)
+    group[key].data.push(row)
+  })
+  return group // { '0,0': {minX, maxX, minY, maxY, data: [...]}, ... }
+}
+
+export const addDieInfoToOriginData = (originData, dieCountX, dieCountY, shotXMin, shotXMax, shotYMin, shotYMax) => {
+  const dieWidth = (shotXMax - shotXMin) / dieCountX
+  const dieHeight = (shotYMax - shotYMin) / dieCountY
+  return originData.map((row, i) => {
+    const [x, y, ...rest] = row
+    const dieXIndex = Math.floor((x - shotXMin) / dieWidth)
+    const dieYIndex = Math.floor((y - shotYMin) / dieHeight)
+    // 절대좌표 계산
+    const dieAbsX = shotXMin + dieXIndex * dieWidth
+    const dieAbsY = shotYMin + dieYIndex * dieHeight
+    // dataIndex: wafer 전체에서 좌상단부터 우하단까지
+    const dataIndex = dieYIndex * dieCountX + dieXIndex
+    // seqIndex: y축으로 증가, 맨 위까지 올라가면 x축 오른쪽으로 이동
+    const seqIndex = dieXIndex * dieCountY + dieYIndex
+    // shotIndex: x, y 좌표를 die 기준으로 역산
+    const shotIndex = { x: Math.floor((x - shotXMin) / dieWidth), y: Math.floor((y - shotYMin) / dieHeight) }
+    return {
+      ...row,
+      dieXIndex,
+      dieYIndex,
+      dieAbsX,
+      dieAbsY,
+      dataIndex,
+      seqIndex,
+      shotIndex,
+    }
+  })
 }
 
 /**
