@@ -96,8 +96,10 @@ function getPaletteColors(palette: unknown): string[] {
  * - option 객체에 모든 시각화 옵션 포함
  */
 const WaferHeatMap = () => {
+  // 확대/축소 배율 상태
+  const [scale, setScale] = useState(1)
   // 중심 정렬 및 cell 크기 일치
-  const diameterPx = 480 // 전체 차트 크기
+  const diameterPx = 480 * scale // 전체 차트 크기 (확대/축소 적용)
   const gridLeft = 40
   const gridTop = 40
   const gridSize = diameterPx
@@ -269,6 +271,19 @@ const WaferHeatMap = () => {
     ],
   }
 
+  // wafer 확대/축소 마우스 휠 핸들러
+  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    if (e.ctrlKey || e.metaKey) return // 브라우저 기본 확대 방지
+    e.preventDefault()
+    const delta = e.deltaY
+    setScale((prev) => {
+      let next = prev - delta * 0.0015
+      if (next < 0.5) next = 0.5
+      if (next > 2.0) next = 2.0
+      return Math.round(next * 100) / 100
+    })
+  }
+
   return (
     <div style={{ width: 520, height: 520 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
@@ -288,7 +303,7 @@ const WaferHeatMap = () => {
               style={{ width: 40, marginLeft: 4 }}
             />
           </label>
-          <label>
+          <label style={{ marginRight: 16 }}>
             die-map 열 크기:
             <input
               type='number'
@@ -298,6 +313,19 @@ const WaferHeatMap = () => {
               onChange={(e) => setDieMapColSize(Number(e.target.value))}
               style={{ width: 40, marginLeft: 4 }}
             />
+          </label>
+          <label style={{ marginRight: 16 }}>
+            확대/축소:
+            <input
+              type='range'
+              min={0.5}
+              max={2.0}
+              step={0.01}
+              value={scale}
+              onChange={(e) => setScale(Number(e.target.value))}
+              style={{ width: 120, marginLeft: 8 }}
+            />
+            <span style={{ marginLeft: 8 }}>{(scale * 100).toFixed(0)}%</span>
           </label>
         </div>
         <button
@@ -314,8 +342,10 @@ const WaferHeatMap = () => {
           팔레트 선택/관리
         </button>
       </div>
-      {/* ECharts 히트맵 렌더링 */}
-      <ReactECharts option={option} style={{ width: '100%', height: 480 }} />
+      {/* wafer 확대/축소: 마우스 휠은 wafer 영역에서만 동작 */}
+      <div style={{ width: '100%', height: 480, overflow: 'hidden', borderRadius: 12 }} onWheel={handleWheel}>
+        <ReactECharts option={option} style={{ width: '100%', height: 480 }} />
+      </div>
       <Modal open={modalOpen} title='컬러 팔레트 관리'>
         <PaletteManager onClose={() => setModalOpen(false)} />
       </Modal>
