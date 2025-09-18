@@ -84,7 +84,7 @@ export const heatmapConfig = {
   power: 5,
   minOpacity: 0.2, // 보완: 최소 투명도 조정
   maxOpacity: 1,
-  distance: 30,
+  distance: 100,
   radius: 300,
 }
 
