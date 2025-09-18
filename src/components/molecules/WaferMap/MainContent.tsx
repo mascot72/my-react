@@ -1,229 +1,41 @@
-import React, { useEffect, useRef, useState } from 'react'
+const MainContentContainer = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  grid-template-rows: repeat(2, minmax(320px, 1fr));
+  gap: 24px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 16px;
+  box-sizing: border-box;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+`
+
+const Chart = styled.div`
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+  padding: 24px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
+  max-height: 420px;
+  overflow: auto;
+  transition: box-shadow 0.2s;
+  &:hover {
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px) scale(1.01);
+  }
+`
+import React from 'react'
 import styled from 'styled-components'
 import ThicknessChart from './ThicknessChart'
 import SbirChart from './SbirChart'
 import BowChart from './BowChartFile'
-import { drawHeatmap, generateSampleData, heatmapConfig } from './heatmap'
-
-const MainContentContainer = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-  width: 100%;
-  height: 100%;
-`
-
-const Chart = styled.div`
-  background-color: white;
-  border: 1px solid #ccc;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 1.2rem;
-  width: 100%;
-  height: 350px;
-`
-
-const ControlPanel = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 8px;
-  font-size: 0.95rem;
-`
-
-const WarpChart: React.FC = () => {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [radius, setRadius] = useState(heatmapConfig.radius)
-  const [power, setPower] = useState(heatmapConfig.power)
-  const [minOpacity, setMinOpacity] = useState(heatmapConfig.minOpacity)
-  const [maxOpacity, setMaxOpacity] = useState(heatmapConfig.maxOpacity)
-  const [count, setCount] = useState(30)
-  const [showPoints, setShowPoints] = useState(true)
-  const [pointOnTop, setPointOnTop] = useState(true)
-  const [dieX, setDieX] = useState(8)
-  const [dieY, setDieY] = useState(8)
-  const [showGrid, setShowGrid] = useState(true)
-  const [isDark, setIsDark] = useState(false)
-  useEffect(() => {
-    const mq = window.matchMedia('(prefers-color-scheme: dark)')
-    setIsDark(mq.matches)
-    const handler = (e: MediaQueryListEvent) => setIsDark(e.matches)
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [])
-
-  // 바둑판 격자 그리기 함수
-  function drawGrid(ctx: CanvasRenderingContext2D, width: number, height: number, nx: number, ny: number) {
-    ctx.save()
-    ctx.strokeStyle = isDark ? '#888' : '#444'
-    ctx.lineWidth = 1
-    for (let i = 0; i <= nx; i++) {
-      const x = (width / nx) * i
-      ctx.beginPath()
-      ctx.moveTo(x, 0)
-      ctx.lineTo(x, height)
-      ctx.stroke()
-    }
-    for (let j = 0; j <= ny; j++) {
-      const y = (height / ny) * j
-      ctx.beginPath()
-      ctx.moveTo(0, y)
-      ctx.lineTo(width, y)
-      ctx.stroke()
-    }
-    ctx.restore()
-  }
-
-  // 검정색 포인트 그리기 함수
-  function drawPoints(ctx: CanvasRenderingContext2D, points: { x: number; y: number }[], top: boolean) {
-    if (!points.length) return
-    if (!top) ctx.save()
-    ctx.fillStyle = '#000'
-    points.forEach((p) => {
-      ctx.beginPath()
-      ctx.arc(p.x, p.y, 3, 0, Math.PI * 2)
-      ctx.fill()
-    })
-    if (!top) ctx.restore()
-  }
-
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (canvas) {
-      // 부모 크기 기준으로 canvas 크기 설정 (clip)
-      const parent = canvas.parentElement
-      const w = parent ? parent.offsetWidth : 400
-      const h = parent ? parent.offsetHeight : 400
-      canvas.width = w
-      canvas.height = h
-      // 샘플 데이터 생성
-      const sampleData: { x: number; y: number; value: number }[] = generateSampleData(count, w, h)
-      // 1. heatmap clip (canvas 영역만)
-      const ctx = canvas.getContext('2d')
-      if (!ctx) return
-      ctx.save()
-      ctx.beginPath()
-      ctx.rect(0, 0, w, h)
-      ctx.clip()
-      // 2. 포인트 레이어 (아래)
-      if (showPoints && !pointOnTop) drawPoints(ctx, sampleData, false)
-      // 3. heatmap 레이어
-      drawHeatmap(canvas, sampleData, {
-        ...heatmapConfig,
-        radius,
-        power,
-        minOpacity,
-        maxOpacity,
-      })
-      // 4. 포인트 레이어 (위)
-      if (showPoints && pointOnTop) drawPoints(ctx, sampleData, true)
-      // 5. 격자 레이어 (맨 위)
-      if (showGrid) drawGrid(ctx, w, h, dieX, dieY)
-      ctx.restore()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [radius, power, minOpacity, maxOpacity, count, showPoints, pointOnTop, dieX, dieY, showGrid, isDark])
-
-  return (
-    <div style={{ width: '100%', height: '100%' }}>
-      <ControlPanel style={{ color: isDark ? '#eee' : '#222' }}>
-        <label>
-          반경(radius):&nbsp;
-          <input type='range' min={10} max={400} value={radius} onChange={(e) => setRadius(Number(e.target.value))} />
-          {radius}
-        </label>
-        <label>
-          영향력(power):&nbsp;
-          <input type='range' min={1} max={20} value={power} onChange={(e) => setPower(Number(e.target.value))} />
-          {power}
-        </label>
-        <label>
-          최소 투명도(minOpacity):&nbsp;
-          <input
-            type='range'
-            min={0}
-            max={1}
-            step={0.01}
-            value={minOpacity}
-            onChange={(e) => setMinOpacity(Number(e.target.value))}
-          />
-          {minOpacity}
-        </label>
-        <label>
-          최대 투명도(maxOpacity):&nbsp;
-          <input
-            type='range'
-            min={0.1}
-            max={1}
-            step={0.01}
-            value={maxOpacity}
-            onChange={(e) => setMaxOpacity(Number(e.target.value))}
-          />
-          {maxOpacity}
-        </label>
-        <label>
-          데이터 개수:&nbsp;
-          <input type='number' min={5} max={200} value={count} onChange={(e) => setCount(Number(e.target.value))} />
-        </label>
-        <label>
-          <input type='checkbox' checked={showPoints} onChange={(e) => setShowPoints(e.target.checked)} /> 포인트 표시
-        </label>
-        <label>
-          <input type='checkbox' checked={pointOnTop} onChange={(e) => setPointOnTop(e.target.checked)} /> 포인트를 위에
-          표시
-        </label>
-        <label>
-          가로 die:&nbsp;
-          <input
-            type='number'
-            min={1}
-            max={32}
-            value={dieX}
-            onChange={(e) => setDieX(Number(e.target.value))}
-            style={{ width: 40 }}
-          />
-        </label>
-        <label>
-          세로 die:&nbsp;
-          <input
-            type='number'
-            min={1}
-            max={32}
-            value={dieY}
-            onChange={(e) => setDieY(Number(e.target.value))}
-            style={{ width: 40 }}
-          />
-        </label>
-        <label>
-          <input type='checkbox' checked={showGrid} onChange={(e) => setShowGrid(e.target.checked)} /> 격자(바둑판) 표시
-        </label>
-      </ControlPanel>
-      <div
-        style={{
-          width: '100%',
-          height: 'calc(100% - 80px)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          background: isDark ? '#222' : '#fff',
-          overflow: 'hidden',
-        }}>
-        <canvas
-          ref={canvasRef}
-          style={{
-            border: isDark ? '1px solid #444' : '1px solid #eee',
-            width: '100%',
-            height: '100%',
-            maxWidth: '100%',
-            maxHeight: '100%',
-            display: 'block',
-          }}
-        />
-      </div>
-    </div>
-  )
-}
+import WarpChart from './WarpChart'
 
 const MainContent: React.FC = () => {
   return (
