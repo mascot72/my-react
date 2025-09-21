@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import ReactECharts from 'echarts-for-react'
+import React, { useState, useRef, useEffect } from 'react'
+import * as echarts from 'echarts/core'
 import { usePalette } from '../../../app/usePalette'
 import Modal from './Modal'
 import PaletteManager from '../ColorTheme/PaletteManager'
@@ -146,136 +146,151 @@ const WaferHeatMap = () => {
   const paletteColors = getPaletteColors(appliedPalette)
 
   // ECharts 옵션 객체: 시각화 설정
-  const option = {
-    backgroundColor: '#222',
-    // 차트 타이틀
-    title: {
-      text: 'Wafer Map Demonstration',
-      left: 'center',
-      top: 10,
-      textStyle: { fontWeight: 'bold', fontSize: 15 },
-    },
-    // 마우스 오버 시 툴팁
-    tooltip: {
-      position: 'top',
-      formatter: (params: { data?: [number, number, number | null] }) => {
-        if (!params.data || params.data[2] == null) return ''
-        return `X: ${params.data[0]}, Y: ${params.data[1]}<br/>Value: ${params.data[2]}`
-      },
-    },
-    // 플롯 영역 위치/크기
-    grid: {
-      left: gridLeft,
-      right: gridRight,
-      top: gridTop,
-      bottom: gridBottom,
-      width: gridSize,
-      height: gridSize,
+  const option = React.useMemo(
+    () => ({
       backgroundColor: '#222',
-      containLabel: false,
-    },
-    graphic: [
-      {
-        type: 'circle',
+      // 차트 타이틀
+      title: {
+        text: 'Wafer Map Demonstration',
+        left: 'center',
+        top: 10,
+        textStyle: { fontWeight: 'bold', fontSize: 15 },
+      },
+      // 마우스 오버 시 툴팁
+      tooltip: {
+        position: 'top',
+        formatter: (params: { data?: [number, number, number | null] }) => {
+          if (!params.data || params.data[2] == null) return ''
+          return `X: ${params.data[0]}, Y: ${params.data[1]}<br/>Value: ${params.data[2]}`
+        },
+      },
+      // 플롯 영역 위치/크기
+      grid: {
         left: gridLeft,
+        right: gridRight,
         top: gridTop,
-        shape: {
-          cx: gridSize / 2,
-          cy: gridSize / 2,
-          r: waferRadiusPx,
-        },
-        style: {
-          stroke: '#888',
-          lineWidth: 8,
-          fill: 'rgba(0,0,0,0)',
-        },
-        z: 10,
+        bottom: gridBottom,
+        width: gridSize,
+        height: gridSize,
+        backgroundColor: '#222',
+        containLabel: false,
       },
-    ],
-    // x축: 0~19, 카테고리, 스타일 지정
-    xAxis: {
-      type: 'category',
-      data: xLabels,
-      name: '',
-      nameTextStyle: { fontWeight: 'bold', fontSize: 12 },
-      axisLabel: { fontWeight: 'bold', fontSize: 10 },
-      splitArea: { show: false },
-      axisTick: { alignWithLabel: true },
-      offset: 0,
-      splitLine: { show: false },
-    },
-    yAxis: {
-      type: 'category',
-      data: yLabels,
-      name: '',
-      nameTextStyle: { fontWeight: 'bold', fontSize: 12 },
-      axisLabel: { fontWeight: 'bold', fontSize: 10 },
-      splitArea: { show: false },
-      axisTick: { alignWithLabel: true },
-      offset: 0,
-      splitLine: { show: false },
-    },
-    // 컬러바(visualMap): 값-색상 매핑, 15단계 색상, 위치/폰트 등
-    visualMap: {
-      min: 0,
-      max: 100,
-      calculable: true,
-      orient: 'vertical',
-      right: 10,
-      top: 'center',
-      text: ['High', 'Low'],
-      inRange: {
-        // 15단계 색상 그라데이션 (파랑~보라~빨강 계열 예시)
-        color: paletteColors,
-      },
-      textStyle: { fontWeight: 'bold', fontSize: 10 },
-      // null 값은 색상 미지정(투명)
-      show: true,
-    },
-    // 히트맵 시리즈: 데이터, 강조 효과, null 투명 처리 등
-    series: [
-      {
-        name: 'Wafer Heat Map',
-        type: 'heatmap',
-        data: data,
-        label: { show: false },
-        itemStyle: {
-          color: (params: { data: [number, number, number | null] }) => {
-            const [x, y] = params.data
-            const dx = x + 0.5 - radius
-            const dy = y + 0.5 - radius
-            if (dx * dx + dy * dy > radius * radius) return '#888'
-            return undefined
+      graphic: [
+        {
+          type: 'circle',
+          left: gridLeft,
+          top: gridTop,
+          shape: {
+            cx: gridSize / 2,
+            cy: gridSize / 2,
+            r: waferRadiusPx,
           },
-          borderType: 'solid',
-          borderColor: (params: { data: [number, number, number | null] }) => {
-            const [x, y] = params.data
-            const { borderColor } = getCellBorder(x, y, dieMapRowSize, dieMapColSize)
-            return borderColor
+          style: {
+            stroke: '#888',
+            lineWidth: 8,
+            fill: 'rgba(0,0,0,0)',
           },
-          borderWidth: (params: { data: [number, number, number | null] }) => {
-            const [x, y] = params.data
-            const dx = x + 0.5 - radius
-            const dy = y + 0.5 - radius
-            if (dx * dx + dy * dy > radius * radius) return 0
-            const { borderWidth } = getCellBorder(x, y, dieMapRowSize, dieMapColSize)
-            return parseFloat(borderWidth.split(' ')[0])
-          },
+          z: 10,
         },
-        emphasis: {
+      ],
+      // x축: 0~19, 카테고리, 스타일 지정
+      xAxis: {
+        type: 'category',
+        data: xLabels,
+        name: '',
+        nameTextStyle: { fontWeight: 'bold', fontSize: 12 },
+        axisLabel: { fontWeight: 'bold', fontSize: 10 },
+        splitArea: { show: false },
+        axisTick: { alignWithLabel: true },
+        offset: 0,
+        splitLine: { show: false },
+      },
+      yAxis: {
+        type: 'category',
+        data: yLabels,
+        name: '',
+        nameTextStyle: { fontWeight: 'bold', fontSize: 12 },
+        axisLabel: { fontWeight: 'bold', fontSize: 10 },
+        splitArea: { show: false },
+        axisTick: { alignWithLabel: true },
+        offset: 0,
+        splitLine: { show: false },
+      },
+      // 컬러바(visualMap): 값-색상 매핑, 15단계 색상, 위치/폰트 등
+      visualMap: {
+        min: 0,
+        max: 100,
+        calculable: true,
+        orient: 'vertical',
+        right: 10,
+        top: 'center',
+        text: ['High', 'Low'],
+        inRange: {
+          // 15단계 색상 그라데이션 (파랑~보라~빨강 계열 예시)
+          color: paletteColors,
+        },
+        textStyle: { fontWeight: 'bold', fontSize: 10 },
+        // null 값은 색상 미지정(투명)
+        show: true,
+      },
+      // 히트맵 시리즈: 데이터, 강조 효과, null 투명 처리 등
+      series: [
+        {
+          name: 'Wafer Heat Map',
+          type: 'heatmap',
+          data: data,
+          label: { show: false },
           itemStyle: {
-            borderColor: '#222',
-            borderWidth: 2,
+            color: (params: { data: [number, number, number | null] }) => {
+              const [x, y] = params.data
+              const dx = x + 0.5 - radius
+              const dy = y + 0.5 - radius
+              if (dx * dx + dy * dy > radius * radius) return '#888'
+              return undefined
+            },
             borderType: 'solid',
-            shadowBlur: 10,
-            shadowColor: 'rgba(0, 0, 0, 0.5)',
+            borderColor: (params: { data: [number, number, number | null] }) => {
+              const [x, y] = params.data
+              const { borderColor } = getCellBorder(x, y, dieMapRowSize, dieMapColSize)
+              return borderColor
+            },
+            borderWidth: (params: { data: [number, number, number | null] }) => {
+              const [x, y] = params.data
+              const dx = x + 0.5 - radius
+              const dy = y + 0.5 - radius
+              if (dx * dx + dy * dy > radius * radius) return 0
+              const { borderWidth } = getCellBorder(x, y, dieMapRowSize, dieMapColSize)
+              return parseFloat(borderWidth.split(' ')[0])
+            },
+          },
+          emphasis: {
+            itemStyle: {
+              borderColor: '#222',
+              borderWidth: 2,
+              borderType: 'solid',
+              shadowBlur: 10,
+              shadowColor: 'rgba(0, 0, 0, 0.5)',
+            },
           },
         },
-      },
+      ],
+    }),
+    [
+      gridLeft,
+      gridRight,
+      gridTop,
+      gridBottom,
+      gridSize,
+      waferRadiusPx,
+      paletteColors,
+      data,
+      dieMapRowSize,
+      dieMapColSize,
     ],
-  }
+  )
 
   // wafer 확대/축소 마우스 휠 핸들러
+  const chartRef = useRef<HTMLDivElement>(null)
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
     if (e.ctrlKey || e.metaKey) return // 브라우저 기본 확대 방지
     e.preventDefault()
@@ -287,6 +302,22 @@ const WaferHeatMap = () => {
       return Math.round(next * 100) / 100
     })
   }
+
+  // ECharts 직접 사용: 차트 생성/옵션 적용/resize/cleanup
+  useEffect(() => {
+    if (!chartRef.current) return
+    let chart: echarts.ECharts | null = echarts.getInstanceByDom(chartRef.current) || null
+    if (!chart) {
+      chart = echarts.init(chartRef.current)
+    }
+    chart.setOption(option)
+    chart.resize()
+    return () => {
+      if (chart) {
+        chart.dispose()
+      }
+    }
+  }, [option, diameterPx])
 
   return (
     <div style={{ width: 520, height: 520 }}>
@@ -361,10 +392,7 @@ const WaferHeatMap = () => {
           background: '#222',
         }}
         onWheel={handleWheel}>
-        <ReactECharts
-          option={option}
-          style={{ width: `${diameterPx}px`, height: `${diameterPx}px`, transition: 'width 0.2s, height 0.2s' }}
-        />
+        <div ref={chartRef} style={{ width: `${diameterPx}px`, height: `${diameterPx}px` }} />
       </div>
       <Modal open={modalOpen} title='컬러 팔레트 관리'>
         <PaletteManager onClose={() => setModalOpen(false)} />
