@@ -100,9 +100,13 @@ const WaferHeatMap = () => {
   const [scale, setScale] = useState(1)
   // 중심 정렬 및 cell 크기 일치
   const diameterPx = 480 * scale // 전체 차트 크기 (확대/축소 적용)
-  const gridLeft = 40
-  const gridTop = 40
-  const gridSize = diameterPx
+  // 패딩 및 위치 보정값 (circle이 grid와 완전히 중심 맞추기)
+  const padding = 32 * scale
+  const gridLeft = padding
+  const gridTop = padding
+  const gridRight = padding
+  const gridBottom = padding
+  const gridSize = diameterPx - padding * 2
   const waferRadiusPx = gridSize / 2
   // 셀별 die-map 경계선 계산 함수
   // die-map 경계선 굵게, grid 얇게, 원 외부 완전 마스킹
@@ -162,9 +166,9 @@ const WaferHeatMap = () => {
     // 플롯 영역 위치/크기
     grid: {
       left: gridLeft,
-      right: 40,
+      right: gridRight,
       top: gridTop,
-      bottom: 40,
+      bottom: gridBottom,
       width: gridSize,
       height: gridSize,
       backgroundColor: '#222',
@@ -176,8 +180,8 @@ const WaferHeatMap = () => {
         left: gridLeft,
         top: gridTop,
         shape: {
-          cx: waferRadiusPx,
-          cy: waferRadiusPx,
+          cx: gridSize / 2,
+          cy: gridSize / 2,
           r: waferRadiusPx,
         },
         style: {
@@ -343,8 +347,24 @@ const WaferHeatMap = () => {
         </button>
       </div>
       {/* wafer 확대/축소: 마우스 휠은 wafer 영역에서만 동작 */}
-      <div style={{ width: '100%', height: 480, overflow: 'hidden', borderRadius: 12 }} onWheel={handleWheel}>
-        <ReactECharts option={option} style={{ width: '100%', height: 480 }} />
+      <div
+        style={{
+          width: `${diameterPx}px`,
+          height: `${diameterPx}px`,
+          overflow: 'hidden',
+          borderRadius: '50%',
+          transition: 'width 0.2s, height 0.2s',
+          margin: '0 auto',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#222',
+        }}
+        onWheel={handleWheel}>
+        <ReactECharts
+          option={option}
+          style={{ width: `${diameterPx}px`, height: `${diameterPx}px`, transition: 'width 0.2s, height 0.2s' }}
+        />
       </div>
       <Modal open={modalOpen} title='컬러 팔레트 관리'>
         <PaletteManager onClose={() => setModalOpen(false)} />
