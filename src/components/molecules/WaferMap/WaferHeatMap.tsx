@@ -138,6 +138,7 @@ const WaferHeatMap = () => {
   const [showGridLine, setShowGridLine] = useState(true)
   const [dieMapRowSize, setDieMapRowSize] = useState(4) // 4x4 기본
   const [dieMapColSize, setDieMapColSize] = useState(4)
+  const [showPoints, setShowPoints] = useState(true)
 
   // 실제 히트맵 데이터
   const data = generateWaferData()
@@ -273,7 +274,21 @@ const WaferHeatMap = () => {
             },
           },
         },
-      ],
+        showPoints
+          ? {
+              name: 'Points',
+              type: 'scatter',
+              data: data.filter((d) => d[2] !== null).map(([x, y]) => [x, y]),
+              symbol: 'circle',
+              symbolSize: 8,
+              itemStyle: {
+                color: '#888',
+                opacity: 0.7,
+              },
+              z: 20,
+            }
+          : null,
+      ].filter(Boolean),
     }),
     [
       gridLeft,
@@ -286,6 +301,7 @@ const WaferHeatMap = () => {
       data,
       dieMapRowSize,
       dieMapColSize,
+      showPoints,
     ],
   )
 
@@ -361,6 +377,10 @@ const WaferHeatMap = () => {
               style={{ width: 120, marginLeft: 8 }}
             />
             <span style={{ marginLeft: 8 }}>{(scale * 100).toFixed(0)}%</span>
+          </label>
+          <label style={{ marginRight: 16 }}>
+            <input type='checkbox' checked={showPoints} onChange={(e) => setShowPoints(e.target.checked)} />
+            포인트(dot) 표시
           </label>
         </div>
         <button
