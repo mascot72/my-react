@@ -1,7 +1,8 @@
 const MainContentContainer = styled.div`
   display: grid;
+  // grid-template-columns: repeat(2, 1fr);
   grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-  grid-template-rows: repeat(2, minmax(320px, 1fr));
+  // grid-template-rows: repeat(2, minmax(320px, 1fr));
   gap: 24px;
   width: 100%;
   max-width: 1200px;
@@ -35,7 +36,7 @@ import styled from 'styled-components'
 import ThicknessChart from './ThicknessChart'
 import SbirChart from './SbirChart'
 import BowChart from './BowChartFile'
-import WarpChart from './WarpChart'
+import WarpChart from '../HeatMap/WarpChart'
 
 const MainContent: React.FC = () => {
   return (
@@ -49,7 +50,7 @@ const MainContent: React.FC = () => {
       <Chart>
         <BowChart />
       </Chart>
-      <Chart>
+      <Chart style={{ width: '550px' }}>
         <WarpChart />
       </Chart>
     </MainContentContainer>

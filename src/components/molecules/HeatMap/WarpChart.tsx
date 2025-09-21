@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { drawHeatmap, generateSampleData, heatmapConfig } from './heatmap'
+import { drawHeatmap, generateSampleData, generateWaferSampleData, heatmapConfig } from './heatmap'
 import styled from 'styled-components'
 
 const ControlPanel = styled.div`
@@ -13,6 +13,7 @@ const ControlPanel = styled.div`
 const WarpChart: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [radius, setRadius] = useState(heatmapConfig.radius)
+  const [distance, setDistance] = useState(heatmapConfig.distance)
   const [power, setPower] = useState(heatmapConfig.power)
   const [minOpacity, setMinOpacity] = useState(heatmapConfig.minOpacity)
   const [maxOpacity, setMaxOpacity] = useState(heatmapConfig.maxOpacity)
@@ -77,7 +78,7 @@ const WarpChart: React.FC = () => {
     if (canvas) {
       // 부모 크기 기준으로 canvas 크기 설정 (clip)
       const parent = canvas.parentElement
-      const w = parent ? parent.offsetWidth : 400
+      const w = parent ? parent.offsetWidth : 344
       const h = parent ? parent.offsetHeight : 400
       canvas.width = w
       canvas.height = h
@@ -94,6 +95,7 @@ const WarpChart: React.FC = () => {
       drawHeatmap(canvas, sampleData, {
         ...heatmapConfig,
         radius,
+        distance,
         power,
         minOpacity,
         maxOpacity,
@@ -113,15 +115,26 @@ const WarpChart: React.FC = () => {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [radius, power, minOpacity, maxOpacity, showPoints, pointOnTop, dieX, dieY, showGrid, isDark])
+  }, [radius, distance, power, minOpacity, maxOpacity, showPoints, pointOnTop, dieX, dieY, showGrid, isDark])
 
   return (
-    <div style={{ width: '100%', height: '100%' }}>
+    <div style={{ display: 'flex', gap: '4px' }}>
       <ControlPanel style={{ color: isDark ? '#eee' : '#222' }}>
         <label>
           반경(radius):&nbsp;
           <input type='range' min={10} max={400} value={radius} onChange={(e) => setRadius(Number(e.target.value))} />
           {radius}
+        </label>
+        <label>
+          거리(distance):&nbsp;
+          <input
+            type='range'
+            min={10}
+            max={300}
+            value={distance}
+            onChange={(e) => setDistance(Number(e.target.value))}
+          />
+          {distance}
         </label>
         <label>
           영향력(power):&nbsp;
@@ -192,7 +205,8 @@ const WarpChart: React.FC = () => {
       <div
         style={{
           width: '100%',
-          height: 'calc(100% - 80px)',
+          // height: 'calc(100% - 80px)',
+          height: '400px',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',

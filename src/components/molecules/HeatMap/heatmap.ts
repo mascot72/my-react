@@ -100,7 +100,7 @@ export function generateSampleData(count: number, width: number, height: number)
     arr.push({
       x: Math.floor(Math.random() * width),
       y: Math.floor(Math.random() * height),
-      value: Math.random() * 2,
+      value: Math.random() * 17,
     })
   }
   return arr
