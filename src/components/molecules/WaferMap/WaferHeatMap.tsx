@@ -139,6 +139,8 @@ const WaferHeatMap = () => {
   const [dieMapRowSize, setDieMapRowSize] = useState(4) // 4x4 기본
   const [dieMapColSize, setDieMapColSize] = useState(4)
   const [showPoints, setShowPoints] = useState(true)
+  const [showValues, setShowValues] = useState(false)
+  const [showColor, setShowColor] = useState(false)
 
   // 실제 히트맵 데이터
   const [data] = useState(() => generateWaferData())
@@ -278,12 +280,33 @@ const WaferHeatMap = () => {
           ? {
               name: 'Points',
               type: 'scatter',
-              data: data.filter((d) => d[2] !== null).map(([x, y]) => [x, y]),
+              data: data.filter((d) => d[2] !== null).map(([x, y, value]) => [x, y, value]),
               symbol: 'circle',
-              symbolSize: 8,
+              symbolSize: 1,
               itemStyle: {
                 color: '#888',
-                opacity: 0.7,
+                opacity: 1,
+              },
+              label: {
+                show: showValues || showColor,
+                formatter: (params: { data: [number, number, number] }) => {
+                  const value = params.data[2]
+                  let label = showValues ? String(value) : ''
+                  if (showColor) {
+                    // 컬러바에서 value에 해당하는 색상 추출
+                    const colorScale = paletteColors
+                    const min = 0,
+                      max = 100
+                    const idx = Math.round(((value - min) / (max - min)) * (colorScale.length - 1))
+                    const color = colorScale[idx]
+                    label += showValues ? `\n${color}` : color
+                  }
+                  return label
+                },
+                color: '#444',
+                fontSize: 10,
+                position: 'right',
+                distance: 2,
               },
               z: 20,
             }
@@ -302,6 +325,8 @@ const WaferHeatMap = () => {
       dieMapRowSize,
       dieMapColSize,
       showPoints,
+      showValues,
+      showColor,
     ],
   )
 
@@ -381,6 +406,14 @@ const WaferHeatMap = () => {
           <label style={{ marginRight: 16 }}>
             <input type='checkbox' checked={showPoints} onChange={(e) => setShowPoints(e.target.checked)} />
             포인트(dot) 표시
+          </label>
+          <label style={{ marginRight: 16 }}>
+            <input type='checkbox' checked={showValues} onChange={(e) => setShowValues(e.target.checked)} />
+            포인트 값 표시
+          </label>
+          <label style={{ marginRight: 16 }}>
+            <input type='checkbox' checked={showColor} onChange={(e) => setShowColor(e.target.checked)} />
+            포인트 컬러(hex) 표시
           </label>
         </div>
         <button
