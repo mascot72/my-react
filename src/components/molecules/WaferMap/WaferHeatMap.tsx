@@ -141,7 +141,7 @@ const WaferHeatMap = () => {
   const [showPoints, setShowPoints] = useState(true)
 
   // 실제 히트맵 데이터
-  const data = generateWaferData()
+  const [data] = useState(() => generateWaferData())
 
   // 팔레트 적용
   const paletteColors = getPaletteColors(appliedPalette)
