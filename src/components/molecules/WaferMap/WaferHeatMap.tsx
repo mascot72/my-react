@@ -308,7 +308,7 @@ const WaferHeatMap = () => {
                 position: 'right',
                 distance: 2,
               },
-              z: 20,
+              z: 40,
             }
           : null,
       ].filter(Boolean),

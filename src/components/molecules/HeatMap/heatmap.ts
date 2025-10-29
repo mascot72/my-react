@@ -100,7 +100,7 @@ export function generateSampleData(count: number, width: number, height: number)
     arr.push({
       x: Math.floor(Math.random() * width),
       y: Math.floor(Math.random() * height),
-      value: Math.random() * 17,
+      value: Math.random() * 1.7,
     })
   }
   return arr
@@ -224,7 +224,7 @@ export function drawHeatmap(
     const idx = Math.floor(Math.max(0, Math.min(alpha, 255))) * 4
     const j = i * 4
     // 값이 너무 낮으면 완전히 투명하게 처리
-    if (pixelData[i] < 0.01) {
+    if (pixelData[i] < 0.0001) {
       imageData.data[j + 3] = 0
       continue
     }

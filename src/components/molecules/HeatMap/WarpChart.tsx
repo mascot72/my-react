@@ -119,9 +119,9 @@ const WarpChart: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', gap: '4px' }}>
-      <ControlPanel style={{ color: isDark ? '#eee' : '#222' }}>
+      <ControlPanel style={{ color: isDark ? '#4a4a4aff' : '#d9d8d8ff' }}>
         <label>
-          반경(radius):&nbsp;
+          WrapChart.tsx 반경(radius):&nbsp;
           <input type='range' min={10} max={400} value={radius} onChange={(e) => setRadius(Number(e.target.value))} />
           {radius}
         </label>

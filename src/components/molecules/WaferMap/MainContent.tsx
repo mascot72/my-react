@@ -50,7 +50,8 @@ const MainContent: React.FC = () => {
       <Chart>
         <BowChart />
       </Chart>
-      <Chart style={{ width: '550px' }}>
+      <Chart style={{ width: '550px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div>WarpChart</div>
         <WarpChart />
       </Chart>
     </MainContentContainer>

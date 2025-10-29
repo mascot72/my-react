@@ -23,6 +23,11 @@ import ColorPalette from '../components/molecules/ColorTheme/PaletteManager.tsx'
 import WaferHeatMap from '../components/molecules/WaferMap/WaferHeatMap.tsx'
 import WaferShotMap from '../components/molecules/DieMap/ShotMap'
 
+import FieldMap from '../components/atoms/fieldmap/FieldMap.tsx'
+import FieldMapRect from '../components/atoms/fieldmap/FieldMapRectVer.tsx'
+import FieldMapSvg from '../components/atoms/fieldmap/FieldMapSvg.tsx'
+import WaferFieldCDURealistic from '../components/atoms/fieldmap/WaferFieldCDURealisticV6.tsx'
+
 function AppRouter() {
   return (
     // <BrowserRouter>
@@ -66,6 +71,10 @@ function AppRouter() {
         <Route path='/color-palette' element={<ColorPalette />} /> {/* 색상 팔레트 경로 추가 */}
         <Route path='/wafer-heatmap' element={<WaferHeatMap />} /> {/* Wafer 맵 페이지 추가 */}
         <Route path='/wafer-shotmap' element={<WaferShotMap />} /> {/* Shot 맵 페이지 추가 */}
+        <Route path='/fieldmap' element={<FieldMap />} /> {/* Field 맵 페이지 추가 */}
+        <Route path='/fieldmap-rect' element={<FieldMapRect />} /> {/* Field 맵 Rect Version 페이지 추가 */}
+        <Route path='/fieldmap-svg' element={<FieldMapSvg />} /> {/* Field Map Svg 페이지 추가 */}
+        <Route path='/wafer-fieldmap' element={<WaferFieldCDURealistic />} /> {/* WaferField 맵 페이지 추가 */}
       </Route>
       {/* 404 페이지 */}
       <Route path='*' element={<NotFound />} />
