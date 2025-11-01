@@ -232,7 +232,7 @@ const WaferFieldCDU_V6: React.FC = () => {
   // drawing helpers: mm -> px coords
   const mm2px = (mm: number) => mm * scale
 
-  // Render SVG
+  // # SVG 렌더링
   return (
     <svg
       width={svgWidthPx}
@@ -240,7 +240,7 @@ const WaferFieldCDU_V6: React.FC = () => {
       viewBox={`${-svgWidthPx / 2} ${-svgWidthPx / 2} ${svgWidthPx} ${svgWidthPx + 140}`}
       style={{ background: 'white', display: 'block', margin: 'auto' }}>
       {/* wafer outline */}
-      <circle cx={0} cy={0} r={mm2px(waferRadius)} stroke='#666' strokeWidth={1} fill='none' />
+      {/* <circle cx={0} cy={0} r={mm2px(waferRadius)} stroke='#666' strokeWidth={1} fill='none' /> */}
 
       {/* fields & dies */}
       {fieldRenderItems.map((item, fi) => {
@@ -297,8 +297,8 @@ const WaferFieldCDU_V6: React.FC = () => {
                   y={mm2px(d.y - dieHeight / 2)}
                   width={mm2px(dieWidth)}
                   height={mm2px(dieHeight)}
-                  fill={cduToColor(d.cdu)}
-                  stroke={d.cdu == null ? '#ddd' : 'rgba(0,0,0,0.25)'}
+                  fill={d.cdu == null ? '#fff' : cduToColor(d.cdu)}
+                  stroke={d.cdu == null ? '#ddddddff' : 'rgba(0,0,0,0.25)'}
                   strokeWidth={0.5}
                 />
                 {d.cdu != null && (
@@ -341,6 +341,8 @@ const WaferFieldCDU_V6: React.FC = () => {
       <text x={mm2px(waferRadius) * 0.44} y={mm2px(waferRadius) + 60} fontSize={14} fill='#333'>
         (+)
       </text>
+
+      <circle cx={0} cy={0} r={mm2px(waferRadius)} stroke='#666' strokeWidth={1} fill='none' />
     </svg>
   )
 }
