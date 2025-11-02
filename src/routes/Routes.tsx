@@ -28,6 +28,7 @@ import FieldMapRect from '../components/atoms/fieldmap/FieldMapRectVer.tsx'
 import FieldMapSvg from '../components/atoms/fieldmap/FieldMapSvg.tsx'
 import WaferFieldCDURealistic from '../components/atoms/fieldmap/WaferFieldCDURealisticV6.tsx'
 import WaferFieldCDURealisticV7 from '../components/atoms/fieldmap/WaferFieldCDURealisticV7.tsx'
+import RnD from '../components/atoms/fieldmap/RnD'
 
 function AppRouter() {
   return (
@@ -77,6 +78,7 @@ function AppRouter() {
         <Route path='/fieldmap-svg' element={<FieldMapSvg />} /> {/* Field Map Svg 페이지 추가 */}
         <Route path='/wafer-fieldmap' element={<WaferFieldCDURealistic />} /> {/* WaferField 맵 페이지 추가 */}
         <Route path='/wafer-fieldmapv7' element={<WaferFieldCDURealisticV7 />} /> {/* WaferField 맵 페이지 추가 */}
+        <Route path='/rnd' element={<RnD />} /> {/* Field 맵 페이지 추가 */}
       </Route>
       {/* 404 페이지 */}
       <Route path='*' element={<NotFound />} />
