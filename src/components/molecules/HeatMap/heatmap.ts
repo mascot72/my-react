@@ -274,6 +274,6 @@ export async function drawHeatmapWithConvertedSample(
   const converted = await convertSampleDataForHeatmap(40, canvas.width, canvas.height)
   // 2. drawHeatmap으로 렌더링
   //    변환 결과는 [[x, y, value], ...] 배열이므로, {x, y, value} 객체로 변환
-  const data = converted.map(([x, y, value]) => ({ x, y, value }))
+  const data = converted.map(([x, y, value]: [number, number, number]) => ({ x, y, value }))
   drawHeatmap(canvas, data, config)
 }

@@ -4,6 +4,13 @@
 
 // heatmap 샘플 데이터 생성 함수 import (연동용)
 import { generateSampleData } from './heatmap.ts'
+
+// 값 정규화 비율 계산 함수
+export const getRatio = (value, min, max) => {
+  if (max === min) return 0 // 분모 0 방지
+  return (value - min) / (max - min)
+}
+
 /**
  * convertOriginHeatmapDataToHDSHeatmapDataAsync
  * - 원본 데이터(shot/chip 좌표, 값)를 히트맵용 [x, y, value]로 변환
@@ -37,21 +44,22 @@ export const convertOriginHeatmapDataToHDSHeatmapDataAsync = async (
   const yRatio = shotXSize > shotYSize ? shotXSize / shotYSize : 1
 
   const result = originData?.map((data) => {
-    // data: [chipIndexX, chipIndexY, xAxis, yAxis, value]
+    // data: [chipIndexX, chipIndexY, x, y, value]
     // chipIndexX, chipIndexY: shot 배열 내 인덱스
     // xAxis, yAxis: chip 좌표값
     // value: 측정값
+    const [chipIndexX, chipIndexY, chipX, chipY, pointValue] = data
 
     // x 좌표 변환 (공통)
-    let x = data[0] * shotBasePixel + ((data[2] - chipXMin) / (chipXMax - chipXMin)) * shotBasePixel
+    let x = chipIndexX * shotBasePixel + getRatio(chipX, chipXMin, chipXMax) * shotBasePixel
     x *= xRatio
 
     // y 좌표 변환 (공통)
-    let y = data[1] * shotBasePixel + ((data[3] - chipYMin) / (chipYMax - chipYMin)) * shotBasePixel
+    let y = chipIndexY * shotBasePixel + getRatio(chipY, chipYMin, chipYMax) * shotBasePixel
     y *= yRatio
 
     // shotIndex 계산 (chipIndexX, chipIndexY)
-    const shotIndex = { x: data[0], y: data[1] }
+    const shotIndex = { x: chipIndexX, y: chipIndexY }
 
     // 중앙 보정 (shot 배열 비정방일 때만 적용)
     if (shotXSize > shotYSize) {
@@ -63,7 +71,7 @@ export const convertOriginHeatmapDataToHDSHeatmapDataAsync = async (
     }
 
     // value 정규화
-    const value = (data[4] - shotMin) / (shotMax - shotMin)
+    const value = getRatio(pointValue, shotMin,)
     return { x, y, value, shotIndex }
   })
   return result

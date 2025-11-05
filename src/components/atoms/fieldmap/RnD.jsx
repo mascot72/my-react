@@ -43,9 +43,9 @@ const pointData = [{
   siteSeq: 27,
   value: -0.47,
   imageYn: 'Y',
-  lotId: 'TH10174',
+  lotId: 'YTQ0114',
   wfId: '14',
-  prmtNm: '999_BLC_OVL_Y_TIS_180',
+  prmtNm: 'ADB_BBC_OVL_HHS_810',
 }]
 
 // Shot 통계 데이타
@@ -105,11 +105,26 @@ const result = new Map()
 // dieMap: Map<dieKey, Array<point>>: '0,0' => [point, point, ...]
 // shotGroups: Map<shotKey, Array<point>>: '-5, 0' => [{chipX, chipY, value, siteSeq}, ...]
 // result: Map<shotKey, dieMap>: '-5,0' => dieMap['dieKey' => [point, point, ...]]
+
+// 전체 샷 좌표 범위 계산
+console.log('shotGroups entries:', shotGroups.entries())
+const chipXList = shotGroups.entries().flatMap(([_, samples]) => samples.map(p => p.chipX))
+console.log('shotGroups chipXList:', chipXList)
+const chipYList = shotGroups.entries().flatMap(([_, samples]) => samples.map(p => p.chipY))
+const shotXMin = Math.min(...chipXList)
+const shotXMax = Math.max(...chipXList)
+const shotYMin = Math.min(...chipYList)
+const shotYMax = Math.max(...chipYList)
+const deltaX = shotXMax > shotXMin ? shotXMax - shotXMin : 1
+const deltaY = shotYMax > shotYMin ? shotYMax - shotYMin : 1
+
+// 각 샷 그룹별로 다이그리드 맵 생성
 shotGroups.forEach((samples, shotKey)=> {
   const minX = Math.min(...samples.map(p => p.chipX))
   const maxX = Math.max(...samples.map(p => p.chipX))
   const minY = Math.min(...samples.map(p => p.chipY))
   const maxY = Math.max(...samples.map(p => p.chipY))
+  const shotAvgValue = samples.reduce((s, p) => s + p.value, 0) / samples.length
   const deltaX = maxX > minX ? maxX - minX : 1
   const deltaY = maxY > minY ? maxY - minY : 1
   const dieMap = new Map()
@@ -120,21 +135,26 @@ shotGroups.forEach((samples, shotKey)=> {
     const normX = (p.chipX - minX) / deltaX
     const normY = (p.chipY - minY) / deltaY
 
-    // const dieX = Math.floor(normX * GRID.x - 0.000001) // GRIDx,y = 샷내부 die 분할수
-    // const dieY = Math.floor(normY * GRID.y - 0.000001)
-    const clampedX = Math.min(Math.max(normX, 0), 0.999999)
-    const clampedY = Math.min(Math.max(normY, 0), 0.999999)
+    const clampedX = Math.min(Math.max(normX, 0), 0.999999) // const dieX = Math.floor(normX * GRID.x - 0.000001) // GRIDx,y = 샷내부 die 분할수
+    const clampedY = Math.min(Math.max(normY, 0), 0.999999) // const dieY = Math.floor(normY * GRID.y - 0.000001)
     const dieX = Math.floor(clampedX * GRID.x)// 다이 인덱스 계산
     const dieY = Math.floor(clampedY * GRID.y)
 
     const dieKey = `${dieX},${dieY}`
     console.log(idx, ' normX:', normX, 'normY:', normY, '-> dieKey', dieKey)
     const point = { ...p, value: p.value ?? 0 }
-    if (!dieMap.has(dieKey)) dieMap.set(dieKey, [])
+    if (!dieMap.has(dieKey)) dieMap.set(dieKey, { points: [], avgValue: 0 })
     dieMap.get(dieKey).push(point)
+    //'0,0': { points: [{chipX, chipY, value, siteSeq }, ...], avgValue}
+    const currentDie = dieMap.get(dieKey)
+    currentDie.points.push(point)
+    const totalValue = currentDie.reduce((s, pt) => s + pt.value, 0)
+    const avgValue = totalValue / currentDie.length
+    dieMap.set(dieKey, { points: currentDie, avgValue })
   })
 
-  result.set(shotKey, dieMap)
+  // '-5,0' => { dieMap, avgValue }
+  result.set(shotKey, { dieMap, avgValue: shotAvgValue })
 })
 
 console.log('RnD V1 shotGroups:', shotGroups)
