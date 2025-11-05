@@ -110,7 +110,7 @@ const WaferFieldCDU_V7: React.FC = () => {
       })
     }
     return pts
-  }, [dieCols, dieRows, fieldWidth_mm, fieldHeight_mm, shotCols, shotRows])
+  }, [fieldWidth_mm, fieldHeight_mm, shotCols, shotRows])
 
   // ---------------------------
   // Build shot grid and aggregate points into shots/dies
