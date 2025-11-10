@@ -153,10 +153,13 @@ const Navbar: React.FC = () => {
               <DropdownLink to='/fieldmap-rect'>Field Map Rect</DropdownLink>
             </DropdownItem>
             <DropdownItem>
-              <DropdownLink to='/wafer-fieldmap'>Wafer Field Map</DropdownLink>
+              <DropdownLink to='/wafer-fieldmapv6'>Wafer Field Map V6</DropdownLink>
             </DropdownItem>
             <DropdownItem>
               <DropdownLink to='/wafer-fieldmapv7'>Wafer Field Map V7</DropdownLink>
+            </DropdownItem>
+            <DropdownItem>
+              <DropdownLink to='/wafer-fieldmapv8'>Wafer Field Map V8</DropdownLink>
             </DropdownItem>
             <DropdownItem>
               <DropdownLink to='/rnd'>RnD V1</DropdownLink>

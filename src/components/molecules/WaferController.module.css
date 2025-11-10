@@ -1,0 +1,75 @@
+.panel {
+  position: relative;
+  width: 220px;
+  background: rgba(255,255,255,0.9);
+  border-radius: 12px;
+  border: 1px solid rgba(200,200,210,0.6);
+  box-shadow: 0 8px 24px rgba(30,40,60,0.08);
+  padding: 14px;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+  cursor: default;
+  backdrop-filter: saturate(120%) blur(6px);
+}
+
+.inner {
+  transition: transform 220ms cubic-bezier(.2,.8,.2,1);
+}
+
+.title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #222;
+}
+
+.label {
+  display: block;
+  font-size: 12px;
+  color: #444;
+  margin-bottom: 6px;
+}
+
+.rangeWrapper {
+  width: 100%;
+}
+
+.rangeScale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-top: 6px;
+  color: #666;
+}
+
+.toggleRow {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.caption {
+  margin-left: 8px;
+  font-size: 13px;
+  color: #333;
+}
+
+.note {
+  margin-top: 12px;
+  font-size: 12px;
+  color: #666;
+}
+
+/* responsive: on small screens make the panel full width and dock to bottom */
+@media (max-width: 680px) {
+  .panel {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    width: auto;
+    z-index: 10000;
+  }
+}

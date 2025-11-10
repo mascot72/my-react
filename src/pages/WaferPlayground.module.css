@@ -1,0 +1,58 @@
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #f4f6fb;
+  padding: 32px;
+  box-sizing: border-box;
+  font-family: Inter, Roboto, system-ui, -apple-system, "Segoe UI", Arial;
+}
+
+.content {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.waferContainer {
+  width: 940px;
+  height: 940px;
+  overflow: auto;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(20,30,60,0.06);
+  padding: 12px;
+}
+
+.waferInner {
+  width: 900px;
+  height: 900px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 220ms cubic-bezier(.2,.8,.2,1), box-shadow 220ms ease;
+}
+
+.controllerWrapper {
+  align-self: flex-start;
+}
+
+/* Responsive: on small screens stack vertically and make wafer full width */
+@media (max-width: 900px) {
+  .content {
+    flex-direction: column;
+    align-items: center;
+  }
+  .waferContainer {
+    width: 100%;
+    height: 60vh;
+  }
+  .waferInner {
+    width: 100%;
+    height: 100%;
+  }
+  .controllerWrapper {
+    width: 100%;
+  }
+}

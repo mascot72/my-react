@@ -30,9 +30,19 @@ interface WaferFieldCDU_V6Props {
    * 예: [cdu0, cdu1, ...] (null 허용)
    */
   cduData?: (number | null)[]
+  // 줌 배율 (1 = 원래 크기)
+  zoom?: number
+  // 다이/병합값 표시 여부
+  showValues?: boolean
+  /**
+   * 필드 hover 콜백: 마우스가 필드(rect) 위에 올라가면 호출됨
+   * info === null 일 때는 hover 해제
+   * clientX, clientY는 이벤트의 브라우저 좌표로 툴팁 위치 계산에 사용
+   */
+  onFieldHover?: (info: { id: string; avgCdu: number | null; cx: number; cy: number } | null, clientX?: number, clientY?: number) => void
 }
 
-const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({ cduSeed, cduData }) => {
+const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({ cduSeed, cduData, zoom = 1, showValues = true, onFieldHover }) => {
   // Parameters
   const waferRadius = 150 // mm
   const fieldWidth = 20 // mm
@@ -81,6 +91,10 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({ cduSeed, cduData })
   type Die = { x: number; y: number; cdu: number | null; mergeGroup?: number | null }
   type Field = { cx: number; cy: number; dies: Die[] }
 
+  // 마우스 오버된 필드 상태 관리
+  const [hoverField, setHoverField] = React.useState<string | null>(null)
+
+  // fields 배열 생성
   const fields: Field[] = React.useMemo(() => {
     const arr: Field[] = []
     // cduData가 있으면 그 값을 순서대로 사용, 없으면 seed 기반 난수 생성
@@ -204,6 +218,7 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({ cduSeed, cduData })
     fieldRect: { x: number; y: number; w: number; h: number } // for outline drawing (always draw)
     singleDies: Die[] // dies that are not merged (mergeGroup null) and cdu != null
     mergeGroups: MergeGroup[] // merged groups bounding boxes with representative cdu
+    fieldAvgCdu: number | null // 필드(모든 다이)의 평균 CDU
   }[] = []
 
   for (const f of fields) {
@@ -238,29 +253,97 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({ cduSeed, cduData })
       mergeGroups.push({ id, xMin, xMax, yMin, yMax, cdu: isFinite(avgCdu) ? avgCdu : null })
     }
 
-    fieldRenderItems.push({ fieldRect, singleDies, mergeGroups })
+    // 필드 전체 평균 (null 제외)
+    const vals = f.dies.map((d) => d.cdu).filter((v) => v != null) as number[]
+    const fieldAvg = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null
+
+    fieldRenderItems.push({ fieldRect, singleDies, mergeGroups, fieldAvgCdu: fieldAvg })
   }
 
   // drawing helpers: mm -> px coords
-  const mm2px = (mm: number) => mm * scale
+  // mm 단위를 px로 변환할 때 zoom을 반영
+  const mm2px = (mm: number) => mm * scale * zoom
 
   // # SVG 렌더링
-  return (
-    <svg
-      width={svgWidthPx}
-      height={svgWidthPx + 140}
-      viewBox={`${-svgWidthPx / 2} ${-svgWidthPx / 2} ${svgWidthPx} ${svgWidthPx + 140}`}
-      style={{ background: 'white', display: 'block', margin: 'auto' }}>
-      {/* wafer outline */}
-      {/* <circle cx={0} cy={0} r={mm2px(waferRadius)} stroke='#666' strokeWidth={1} fill='none' /> */}
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const [containerSize, setContainerSize] = React.useState({ width: 0, height: 0 });
 
-      {/* fields & dies */}
-      {fieldRenderItems.map((item, fi) => {
+  // 컨테이너 크기 감지
+  React.useEffect(() => {
+    const updateSize = () => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        setContainerSize({
+          width: rect.width,
+          height: rect.height
+        });
+      }
+    };
+    
+    updateSize();
+    const observer = new ResizeObserver(updateSize);
+    const currentRef = containerRef.current;
+    
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, []);
+
+  // SVG 크기 계산
+  const svgSize = {
+    width: svgWidthPx * zoom,
+    height: (svgWidthPx + 140) * zoom
+  };
+
+  // 스크롤이 필요한지 확인
+  const needsScroll = 
+    (containerSize.width > 0 && svgSize.width > containerSize.width) || 
+    (containerSize.height > 0 && svgSize.height > containerSize.height);
+
+  // 컨테이너 스타일
+  const containerStyle: React.CSSProperties = {
+    width: '100%',
+    height: '100%',
+    minHeight: '400px',
+    overflow: needsScroll ? 'auto' : 'hidden',
+    position: 'relative',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center'
+  };
+
+  return (
+    <div ref={containerRef} style={containerStyle}>
+      <div style={{
+        minWidth: svgSize.width,
+        minHeight: svgSize.height,
+        position: 'relative'
+      }}>
+        <svg
+          width={svgSize.width}
+          height={svgSize.height}
+          viewBox={`${-svgWidthPx / 2} ${-svgWidthPx / 2} ${svgWidthPx} ${svgWidthPx + 140}`}
+          style={{ 
+            background: 'white',
+            display: 'block'
+          }}>
+          {/* wafer outline */}
+          {/* <circle cx={0} cy={0} r={mm2px(waferRadius)} stroke='#666' strokeWidth={1} fill='none' /> */}
+
+          {/* fields & dies */}
+          {fieldRenderItems.map((item, fi) => {
         const fx = item.fieldRect.x
         const fy = item.fieldRect.y
         const fw = item.fieldRect.w
         const fh = item.fieldRect.h
 
+        const fieldKey = `field-${fi}-${item.fieldRect.x}-${item.fieldRect.y}`
         return (
           <g key={fi}>
             {/* draw field outline even if some dies are out (as requested) */}
@@ -270,8 +353,30 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({ cduSeed, cduData })
               width={mm2px(fw)}
               height={mm2px(fh)}
               fill='none'
-              stroke='#999'
-              strokeWidth={0.8}
+              stroke={hoverField === fieldKey ? '#ff4da6' : '#c1c6cc'}
+              strokeWidth={hoverField === fieldKey ? 1.6 : 0.9}
+              style={{ transition: 'stroke 0.2s, stroke-width 0.2s' }}
+              onMouseEnter={(e) => {
+                setHoverField(fieldKey);
+                if (onFieldHover) {
+                  onFieldHover(
+                    { 
+                      id: fieldKey, 
+                      avgCdu: item.fieldAvgCdu, 
+                      cx: item.fieldRect.x, 
+                      cy: item.fieldRect.y 
+                    }, 
+                    e.clientX, 
+                    e.clientY
+                  );
+                }
+              }}
+              onMouseLeave={(e) => {
+                setHoverField(null);
+                if (onFieldHover) {
+                  onFieldHover(null, e.clientX, e.clientY);
+                }
+              }}
             />
 
             {/* merged groups drawn as single rects (no internal borders) */}
@@ -286,7 +391,7 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({ cduSeed, cduData })
                   stroke='none'
                 />
                 {/* text at center of merged bbox */}
-                {g.cdu != null && (
+                {g.cdu != null && showValues && (
                   <text
                     x={mm2px((g.xMin + g.xMax) / 2)}
                     y={mm2px((g.yMin + g.yMax) / 2)}
@@ -313,7 +418,7 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({ cduSeed, cduData })
                   stroke={d.cdu == null ? '#ddddddff' : 'rgba(0,0,0,0.25)'}
                   strokeWidth={0.5}
                 />
-                {d.cdu != null && (
+                {d.cdu != null && showValues && (
                   <text
                     x={mm2px(d.x)}
                     y={mm2px(d.y)}
@@ -354,9 +459,11 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({ cduSeed, cduData })
         (+)
       </text>
 
-      <circle cx={0} cy={0} r={mm2px(waferRadius)} stroke='#666' strokeWidth={1} fill='none' />
-    </svg>
-  )
+            <circle cx={0} cy={0} r={mm2px(waferRadius)} stroke='#666' strokeWidth={1} fill='none' />
+        </svg>
+      </div>
+    </div>
+  );
 }
 
 export default WaferFieldCDU_V6
