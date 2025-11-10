@@ -25,7 +25,7 @@ const WaferFieldCDU_V6: React.FC = () => {
   // scale: mm -> px
   const waferDiameterPx = svgWidthPx * (1 - marginRatio * 2)
   const scale = waferDiameterPx / (waferRadius * 2)
-  const waferRadiusPx = waferRadius * scale
+  // waferRadiusPx는 사용하지 않으므로 선언을 제거함
 
   // derived sizes (mm -> px when drawing)
   const dieWidth = fieldWidth / dieCols
@@ -60,131 +60,113 @@ const WaferFieldCDU_V6: React.FC = () => {
   type Die = { x: number; y: number; cdu: number | null; mergeGroup?: number | null }
   type Field = { cx: number; cy: number; dies: Die[] }
 
-  const fields: Field[] = []
-
-  // generate fields based on die centers presence (improved inclusion logic)
-  for (let fy = -range; fy <= range; fy++) {
-    for (let fx = -range; fx <= range; fx++) {
-      const cx = fx * fieldStepX
-      const cy = fy * fieldStepY
-
-      // produce die centers for this field (in mm)
-      const dies: Die[] = []
-      for (let j = 0; j < dieRows; j++) {
-        for (let i = 0; i < dieCols; i++) {
-          const dx = cx - fieldWidth / 2 + (i + 0.5) * dieWidth
-          const dy = cy - fieldHeight / 2 + (j + 0.5) * dieHeight
-
-          // die center distance
-          const centerDist = Math.hypot(dx, dy)
-
-          // determine if die would be "eligible" (center inside wafer)
-          // we will later check full-corner inside to draw die; but for deciding to draw field,
-          // we include the field if at least one die center is inside waferRadius (so fields with partial die inside are shown)
-          const centerInside = centerDist <= waferRadius + 1e-9
-
-          // simulate presence of CDU reading sometimes missing (null)
-          const hasCdu = Math.random() > 0.1
-          const cdu = hasCdu ? generateCDU(dx, dy) : null
-
-          dies.push({ x: dx, y: dy, cdu, mergeGroup: null })
+  const fields: Field[] = React.useMemo(() => {
+    const arr: Field[] = []
+    for (let fy = -range; fy <= range; fy++) {
+      for (let fx = -range; fx <= range; fx++) {
+        const cx = fx * fieldStepX
+        const cy = fy * fieldStepY
+        const dies: Die[] = []
+        for (let j = 0; j < dieRows; j++) {
+          for (let i = 0; i < dieCols; i++) {
+            const dx = cx - fieldWidth / 2 + (i + 0.5) * dieWidth
+            const dy = cy - fieldHeight / 2 + (j + 0.5) * dieHeight
+            // CDU 값이 없는 경우를 시뮬레이션 (10% 확률로 누락)
+            const hasCdu = Math.random() > 0.1
+            const cdu = hasCdu ? generateCDU(dx, dy) : null
+            dies.push({ x: dx, y: dy, cdu, mergeGroup: null })
+          }
         }
-      }
-
-      // decide to include field in drawing: if ANY die center is inside wafer radius
-      const anyDieCenterInside = dies.some((d) => Math.hypot(d.x, d.y) <= waferRadius)
-
-      if (!anyDieCenterInside) {
-        // skip drawing this field entirely (it's fully outside)
-        continue
-      }
-
-      // For each die, determine if its full rectangle is inside wafer.
-      // If not fully inside, we mark as excluded by setting cdu = null (visual empty)
-      for (const d of dies) {
-        const halfW = dieWidth / 2
-        const halfH = dieHeight / 2
-        const corners = [
-          [d.x - halfW, d.y - halfH],
-          [d.x + halfW, d.y - halfH],
-          [d.x - halfW, d.y + halfH],
-          [d.x + halfW, d.y + halfH],
-        ]
-        const allCornersInside = corners.every(([cx_, cy_]) => Math.hypot(cx_, cy_) <= waferRadius + 1e-9)
-        if (!allCornersInside) {
-          // mark as absent => render transparent gap
-          d.cdu = null
+        // decide to include field in drawing: if ANY die center is inside wafer radius
+        const anyDieCenterInside = dies.some((d) => Math.hypot(d.x, d.y) <= waferRadius)
+        if (!anyDieCenterInside) {
+          continue
         }
+        // For each die, determine if its full rectangle is inside wafer.
+        // If not fully inside, we mark as excluded by setting cdu = null (visual empty)
+        for (const d of dies) {
+          const halfW = dieWidth / 2
+          const halfH = dieHeight / 2
+          const corners = [
+            [d.x - halfW, d.y - halfH],
+            [d.x + halfW, d.y - halfH],
+            [d.x - halfW, d.y + halfH],
+            [d.x + halfW, d.y + halfH],
+          ]
+          const allCornersInside = corners.every(([cx_, cy_]) => Math.hypot(cx_, cy_) <= waferRadius + 1e-9)
+          if (!allCornersInside) {
+            d.cdu = null
+          }
+        }
+        arr.push({ cx, cy, dies })
       }
-
-      fields.push({ cx, cy, dies })
     }
-  }
+    return arr
+  }, [waferRadius, fieldStepX, fieldStepY, dieRows, dieCols, fieldWidth, fieldHeight, dieWidth, dieHeight, range])
 
-  // Merge grouping: adjacency + similar cdu
-  // We'll assign mergeGroup ids where adjacent dies (sharing an edge) within same field
-  // have non-null cdu and small difference (< threshold).
+  // 필드 간 병합(인접 필드의 다이도 병합 그룹으로 묶기)
+  // 모든 다이를 flat하게 모아 인접성(좌우, 상하, 필드 경계 포함)으로 병합
   const mergeThreshold = 0.05
   let mergeId = 1
-  for (const f of fields) {
-    const dies = f.dies
-    const n = dies.length
-    // simple adjacency: dies on same field form a grid dieRows x dieCols in insertion order
-    // map index = j*dieCols + i
-    for (let idx = 0; idx < n; idx++) {
-      const a = dies[idx]
-      if (a.cdu == null) continue
-      // try right neighbor and down neighbor
-      const j = Math.floor(idx / dieCols)
-      const i = idx % dieCols
-      // right neighbor index
-      if (i + 1 < dieCols) {
-        const rIdx = idx + 1
-        const b = dies[rIdx]
-        if (b && b.cdu != null && Math.abs((a.cdu ?? 0) - (b.cdu ?? 0)) < mergeThreshold) {
-          // unify group ids
-          if (!a.mergeGroup && !b.mergeGroup) {
-            a.mergeGroup = b.mergeGroup = mergeId++
-          } else if (a.mergeGroup && !b.mergeGroup) {
-            b.mergeGroup = a.mergeGroup
-          } else if (!a.mergeGroup && b.mergeGroup) {
-            a.mergeGroup = b.mergeGroup
-          } else {
-            // both have groups: unify smaller into larger (not needed for small grids)
-            if (a.mergeGroup !== b.mergeGroup) {
-              const old = b.mergeGroup
-              const neu = a.mergeGroup
-              dies.forEach((z) => {
-                if (z.mergeGroup === old) z.mergeGroup = neu
-              })
-            }
-          }
-        }
-      }
-      // down neighbor
-      if (j + 1 < dieRows) {
-        const dIdx = idx + dieCols
-        const b = dies[dIdx]
-        if (b && b.cdu != null && Math.abs((a.cdu ?? 0) - (b.cdu ?? 0)) < mergeThreshold) {
-          if (!a.mergeGroup && !b.mergeGroup) {
-            a.mergeGroup = b.mergeGroup = mergeId++
-          } else if (a.mergeGroup && !b.mergeGroup) {
-            b.mergeGroup = a.mergeGroup
-          } else if (!a.mergeGroup && b.mergeGroup) {
-            a.mergeGroup = b.mergeGroup
-          } else {
-            if (a.mergeGroup !== b.mergeGroup) {
-              const old = b.mergeGroup
-              const neu = a.mergeGroup
-              dies.forEach((z) => {
-                if (z.mergeGroup === old) z.mergeGroup = neu
-              })
-            }
+  // 다이 전체를 2차원 배열로 저장 (필드별, 다이별)
+  // 각 다이의 전역 인덱스: [fieldIndex, dieIndex]
+  // 병합 처리를 위해 flat 배열로 변환
+  type DieWithField = Die & { fieldIndex: number; dieIndex: number; gridX: number; gridY: number }
+  const allDies: DieWithField[] = []
+  // 필드의 위치를 빠르게 찾기 위한 맵
+  const fieldMap = new Map<string, { field: Field; fieldIndex: number }>()
+  fields.forEach((f, fieldIndex) => {
+    // 필드의 grid 좌표 계산 (fx, fy)
+    // cx = fx * fieldStepX, cy = fy * fieldStepY
+    const fx = Math.round(f.cx / fieldStepX)
+    const fy = Math.round(f.cy / fieldStepY)
+    fieldMap.set(`${fx},${fy}`, { field: f, fieldIndex })
+    f.dies.forEach((d, dieIndex) => {
+      // 다이의 grid 내 좌표 (i, j)
+      const j = Math.floor(dieIndex / dieCols)
+      const i = dieIndex % dieCols
+      // 전역 grid 좌표: (fx * dieCols + i, fy * dieRows + j)
+      allDies.push({ ...d, fieldIndex, dieIndex, gridX: fx * dieCols + i, gridY: fy * dieRows + j })
+    })
+  })
+  // 병합 그룹 할당
+  for (let idx = 0; idx < allDies.length; idx++) {
+    const a = allDies[idx]
+    if (a.cdu == null) continue
+    // 인접 다이 후보: 좌, 우, 상, 하
+    const neighbors = [
+      [a.gridX - 1, a.gridY],
+      [a.gridX + 1, a.gridY],
+      [a.gridX, a.gridY - 1],
+      [a.gridX, a.gridY + 1],
+    ]
+    for (const [nx, ny] of neighbors) {
+      const b = allDies.find((d) => d.gridX === nx && d.gridY === ny)
+      if (!b || b.cdu == null) continue
+      if (Math.abs((a.cdu ?? 0) - (b.cdu ?? 0)) < mergeThreshold) {
+        // 그룹 병합
+        if (!a.mergeGroup && !b.mergeGroup) {
+          a.mergeGroup = b.mergeGroup = mergeId++
+        } else if (a.mergeGroup && !b.mergeGroup) {
+          b.mergeGroup = a.mergeGroup
+        } else if (!a.mergeGroup && b.mergeGroup) {
+          a.mergeGroup = b.mergeGroup
+        } else {
+          if (a.mergeGroup !== b.mergeGroup) {
+            const old = b.mergeGroup
+            const neu = a.mergeGroup
+            allDies.forEach((z) => {
+              if (z.mergeGroup === old) z.mergeGroup = neu
+            })
           }
         }
       }
     }
   }
+  // 병합 결과를 원래 필드 구조에 반영
+  allDies.forEach((d) => {
+    fields[d.fieldIndex].dies[d.dieIndex].mergeGroup = d.mergeGroup
+  })
 
   // Build merged groups bounding boxes per field
   type MergeGroup = { id: number; xMin: number; xMax: number; yMin: number; yMax: number; cdu: number | null }
