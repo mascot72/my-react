@@ -11,7 +11,28 @@ import React from 'react'
  * 3) merge 그룹은 bounding rect로 합쳐서 그려 경계선 제거 (시각적 merge)
  * 4) text: 각 die(또는 merge-bbox)의 중앙에 vertical+horizontal center 정렬로 배치
  */
-const WaferFieldCDU_V6: React.FC = () => {
+// seed 기반 난수 생성기 (간단한 LCG)
+function mulberry32(seed: number) {
+  let t = seed
+  return function () {
+    t += 0x6d2b79f5
+    let r = Math.imul(t ^ (t >>> 15), 1 | t)
+    r ^= r + Math.imul(r ^ (r >>> 7), 61 | r)
+    return ((r ^ (r >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+
+interface WaferFieldCDU_V6Props {
+  cduSeed?: number
+  /**
+   * 완전히 외부에서 주입하는 CDU 값 배열 (필드별 다이별 flat 1차원 배열)
+   * 예: [cdu0, cdu1, ...] (null 허용)
+   */
+  cduData?: (number | null)[]
+}
+
+const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({ cduSeed, cduData }) => {
   // Parameters
   const waferRadius = 150 // mm
   const fieldWidth = 20 // mm
@@ -62,6 +83,9 @@ const WaferFieldCDU_V6: React.FC = () => {
 
   const fields: Field[] = React.useMemo(() => {
     const arr: Field[] = []
+    // cduData가 있으면 그 값을 순서대로 사용, 없으면 seed 기반 난수 생성
+    let cduIdx = 0
+    const rand = mulberry32(typeof cduSeed === 'number' ? cduSeed : 123456789)
     for (let fy = -range; fy <= range; fy++) {
       for (let fx = -range; fx <= range; fx++) {
         const cx = fx * fieldStepX
@@ -71,9 +95,15 @@ const WaferFieldCDU_V6: React.FC = () => {
           for (let i = 0; i < dieCols; i++) {
             const dx = cx - fieldWidth / 2 + (i + 0.5) * dieWidth
             const dy = cy - fieldHeight / 2 + (j + 0.5) * dieHeight
-            // CDU 값이 없는 경우를 시뮬레이션 (10% 확률로 누락)
-            const hasCdu = Math.random() > 0.1
-            const cdu = hasCdu ? generateCDU(dx, dy) : null
+            let cdu: number | null
+            if (Array.isArray(cduData)) {
+              // 외부에서 주입된 값 사용
+              cdu = cduData[cduIdx++] ?? null
+            } else {
+              // CDU 값이 없는 경우를 시뮬레이션 (10% 확률로 누락)
+              const hasCdu = rand() > 0.1
+              cdu = hasCdu ? generateCDU(dx, dy) : null
+            }
             dies.push({ x: dx, y: dy, cdu, mergeGroup: null })
           }
         }
@@ -102,7 +132,7 @@ const WaferFieldCDU_V6: React.FC = () => {
       }
     }
     return arr
-  }, [waferRadius, fieldStepX, fieldStepY, dieRows, dieCols, fieldWidth, fieldHeight, dieWidth, dieHeight, range])
+  }, [waferRadius, fieldStepX, fieldStepY, dieRows, dieCols, fieldWidth, fieldHeight, dieWidth, dieHeight, range, cduSeed, cduData])
 
   // 필드 간 병합(인접 필드의 다이도 병합 그룹으로 묶기)
   // 모든 다이를 flat하게 모아 인접성(좌우, 상하, 필드 경계 포함)으로 병합
