@@ -338,128 +338,128 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({ cduSeed, cduData, z
 
           {/* fields & dies */}
           {fieldRenderItems.map((item, fi) => {
-        const fx = item.fieldRect.x
-        const fy = item.fieldRect.y
-        const fw = item.fieldRect.w
-        const fh = item.fieldRect.h
+            const fx = item.fieldRect.x
+            const fy = item.fieldRect.y
+            const fw = item.fieldRect.w
+            const fh = item.fieldRect.h
 
-        const fieldKey = `field-${fi}-${item.fieldRect.x}-${item.fieldRect.y}`
-        return (
-          <g key={fi}>
-            {/* draw field outline even if some dies are out (as requested) */}
-            <rect
-              x={mm2px(fx)}
-              y={mm2px(fy)}
-              width={mm2px(fw)}
-              height={mm2px(fh)}
-              fill='none'
-              stroke={hoverField === fieldKey ? '#ff4da6' : '#c1c6cc'}
-              strokeWidth={hoverField === fieldKey ? 1.6 : 0.9}
-              style={{ transition: 'stroke 0.2s, stroke-width 0.2s' }}
-              onMouseEnter={(e) => {
-                setHoverField(fieldKey);
-                if (onFieldHover) {
-                  onFieldHover(
-                    { 
-                      id: fieldKey, 
-                      avgCdu: item.fieldAvgCdu, 
-                      cx: item.fieldRect.x, 
-                      cy: item.fieldRect.y 
-                    }, 
-                    e.clientX, 
-                    e.clientY
-                  );
-                }
-              }}
-              onMouseLeave={(e) => {
-                setHoverField(null);
-                if (onFieldHover) {
-                  onFieldHover(null, e.clientX, e.clientY);
-                }
-              }}
-            />
-
-            {/* merged groups drawn as single rects (no internal borders) */}
-            {item.mergeGroups.map((g) => (
-              <g key={`mg-${g.id}`}>
+            const fieldKey = `field-${fi}-${item.fieldRect.x}-${item.fieldRect.y}`
+            return (
+              <g key={fi}>
+                {/* draw field outline even if some dies are out (as requested) */}
                 <rect
-                  x={mm2px(g.xMin)}
-                  y={mm2px(g.yMin)}
-                  width={mm2px(g.xMax - g.xMin)}
-                  height={mm2px(g.yMax - g.yMin)}
-                  fill={cduToColor(g.cdu)}
-                  stroke='none'
+                  x={mm2px(fx)}
+                  y={mm2px(fy)}
+                  width={mm2px(fw)}
+                  height={mm2px(fh)}
+                  fill='none'
+                  stroke={hoverField === fieldKey ? '#ff4da6' : '#c1c6cc'}
+                  strokeWidth={hoverField === fieldKey ? 1.6 : 0.9}
+                  style={{ transition: 'stroke 0.2s, stroke-width 0.2s' }}
+                  onMouseEnter={(e) => {
+                    setHoverField(fieldKey);
+                    if (onFieldHover) {
+                      onFieldHover(
+                        { 
+                          id: fieldKey, 
+                          avgCdu: item.fieldAvgCdu, 
+                          cx: item.fieldRect.x, 
+                          cy: item.fieldRect.y 
+                        }, 
+                        e.clientX, 
+                        e.clientY
+                      );
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    setHoverField(null);
+                    if (onFieldHover) {
+                      onFieldHover(null, e.clientX, e.clientY);
+                    }
+                  }}
                 />
-                {/* text at center of merged bbox */}
-                {g.cdu != null && showValues && (
-                  <text
-                    x={mm2px((g.xMin + g.xMax) / 2)}
-                    y={mm2px((g.yMin + g.yMax) / 2)}
-                    textAnchor='middle'
-                    alignmentBaseline='middle'
-                    fontSize={12}
-                    fill='#111'
-                    style={{ userSelect: 'none' }}>
-                    {g.cdu.toFixed(2)}
-                  </text>
-                )}
+
+                {/* merged groups drawn as single rects (no internal borders) */}
+                {item.mergeGroups.map((g) => (
+                  <g key={`mg-${g.id}`}>
+                    <rect
+                      x={mm2px(g.xMin)}
+                      y={mm2px(g.yMin)}
+                      width={mm2px(g.xMax - g.xMin)}
+                      height={mm2px(g.yMax - g.yMin)}
+                      fill={cduToColor(g.cdu)}
+                      stroke='none'
+                    />
+                    {/* text at center of merged bbox */}
+                    {g.cdu != null && showValues && (
+                      <text
+                        x={mm2px((g.xMin + g.xMax) / 2)}
+                        y={mm2px((g.yMin + g.yMax) / 2)}
+                        textAnchor='middle'
+                        alignmentBaseline='middle'
+                        fontSize={12}
+                        fill='#111'
+                        style={{ userSelect: 'none' }}>
+                        {g.cdu.toFixed(2)}
+                      </text>
+                    )}
+                  </g>
+                ))}
+
+                {/* single dies (non-merged). If cdu==null -> transparent gap (rect not filled) */}
+                {item.singleDies.map((d, di) => (
+                  <g key={`d-${fi}-${di}`}>
+                    <rect
+                      x={mm2px(d.x - dieWidth / 2)}
+                      y={mm2px(d.y - dieHeight / 2)}
+                      width={mm2px(dieWidth)}
+                      height={mm2px(dieHeight)}
+                      fill={d.cdu == null ? '#fff' : cduToColor(d.cdu)}
+                      stroke={d.cdu == null ? '#ddddddff' : 'rgba(0, 0, 0, 0.1)'}
+                      strokeWidth={0.3}
+                    />
+                    {d.cdu != null && showValues && (
+                      <text
+                        x={mm2px(d.x)}
+                        y={mm2px(d.y)}
+                        textAnchor='middle'
+                        alignmentBaseline='middle'
+                        fontSize={10}
+                        fill='#111'>
+                        {d.cdu.toFixed(2)}
+                      </text>
+                    )}
+                  </g>
+                ))}
               </g>
-            ))}
+            )
+          })}
 
-            {/* single dies (non-merged). If cdu==null -> transparent gap (rect not filled) */}
-            {item.singleDies.map((d, di) => (
-              <g key={`d-${fi}-${di}`}>
-                <rect
-                  x={mm2px(d.x - dieWidth / 2)}
-                  y={mm2px(d.y - dieHeight / 2)}
-                  width={mm2px(dieWidth)}
-                  height={mm2px(dieHeight)}
-                  fill={d.cdu == null ? '#fff' : cduToColor(d.cdu)}
-                  stroke={d.cdu == null ? '#ddddddff' : 'rgba(0,0,0,0.25)'}
-                  strokeWidth={0.5}
-                />
-                {d.cdu != null && showValues && (
-                  <text
-                    x={mm2px(d.x)}
-                    y={mm2px(d.y)}
-                    textAnchor='middle'
-                    alignmentBaseline='middle'
-                    fontSize={10}
-                    fill='#111'>
-                    {d.cdu.toFixed(2)}
-                  </text>
-                )}
-              </g>
-            ))}
-          </g>
-        )
-      })}
+          {/* color bar (beneath wafer, not clipped) */}
+          <defs>
+            <linearGradient id='cduBarV6' x1='0' y1='0' x2='1' y2='0'>
+              <stop offset='0%' stopColor='#00f' />
+              <stop offset='50%' stopColor='#0f0' />
+              <stop offset='100%' stopColor='#f00' />
+            </linearGradient>
+          </defs>
+          <rect
+            x={-mm2px(waferRadius) * 0.45}
+            y={mm2px(waferRadius) + 30}
+            width={mm2px(waferRadius) * 0.9}
+            height={16}
+            fill='url(#cduBarV6)'
+            stroke='#999'
+            strokeWidth={0.6}
+          />
+          <text x={-mm2px(waferRadius) * 0.48} y={mm2px(waferRadius) + 60} fontSize={14} fill='#333'>
+            CDU (-)
+          </text>
+          <text x={mm2px(waferRadius) * 0.44} y={mm2px(waferRadius) + 60} fontSize={14} fill='#333'>
+            (+)
+          </text>
 
-      {/* color bar (beneath wafer, not clipped) */}
-      <defs>
-        <linearGradient id='cduBarV6' x1='0' y1='0' x2='1' y2='0'>
-          <stop offset='0%' stopColor='#00f' />
-          <stop offset='50%' stopColor='#0f0' />
-          <stop offset='100%' stopColor='#f00' />
-        </linearGradient>
-      </defs>
-      <rect
-        x={-mm2px(waferRadius) * 0.45}
-        y={mm2px(waferRadius) + 30}
-        width={mm2px(waferRadius) * 0.9}
-        height={16}
-        fill='url(#cduBarV6)'
-        stroke='#999'
-        strokeWidth={0.6}
-      />
-      <text x={-mm2px(waferRadius) * 0.48} y={mm2px(waferRadius) + 60} fontSize={14} fill='#333'>
-        CDU (-)
-      </text>
-      <text x={mm2px(waferRadius) * 0.44} y={mm2px(waferRadius) + 60} fontSize={14} fill='#333'>
-        (+)
-      </text>
-
-            <circle cx={0} cy={0} r={mm2px(waferRadius)} stroke='#666' strokeWidth={1} fill='none' />
+          <circle cx={0} cy={0} r={mm2px(waferRadius)} stroke='#666' strokeWidth={1} fill='none' />
         </svg>
       </div>
     </div>
