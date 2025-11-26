@@ -30,7 +30,7 @@ function generateWaferData(): WaferCell[] {
       const dx = x + 0.5 - radius
       const dy = y + 0.5 - radius
       if (dx * dx + dy * dy <= radius * radius) {
-        data.push([x, y, Math.floor(Math.random() * 101)])
+        data.push([x, y, Math.floor(Math.random() * 2-1)])
       } else {
         data.push([x, y, null])
       }
@@ -43,21 +43,21 @@ type PaletteType = { type: string; colors: string[] }
 function getPaletteColors(palette: unknown): string[] {
   if (!palette || typeof palette !== 'object') {
     return [
-      '#f7fbff',
-      '#deebf7',
-      '#c6dbef',
-      '#9ecae1',
-      '#6baed6',
-      '#4292c6',
-      '#2171b5',
-      '#08519c',
-      '#08306b',
-      '#f1eef6',
-      '#d0d1e6',
-      '#a6bddb',
-      '#74a9cf',
-      '#2b8cbe',
-      '#045a8d',
+    '#e35b4fff',
+    '#f3ce89ff',
+    '#eff297ff',
+    '#9dedb5ff',
+    '#4ae480ff',
+    '#4292c6',
+    '#2171b5',
+    '#08519c',
+    '#08306b',
+    '#768deaff',
+    '#d49cebff',
+    '#7f50cbff',
+    '#c969d0ff',
+    '#be2b99ff',
+    '#8d040dff',
     ]
   }
   const p = palette as PaletteType
@@ -68,21 +68,21 @@ function getPaletteColors(palette: unknown): string[] {
     return p.colors
   }
   return [
-    '#f7fbff',
-    '#deebf7',
-    '#c6dbef',
-    '#9ecae1',
-    '#6baed6',
+    '#e35b4fff',
+    '#f3ce89ff',
+    '#eff297ff',
+    '#9dedb5ff',
+    '#4ae480ff',
     '#4292c6',
     '#2171b5',
     '#08519c',
     '#08306b',
-    '#f1eef6',
-    '#d0d1e6',
-    '#a6bddb',
-    '#74a9cf',
-    '#2b8cbe',
-    '#045a8d',
+    '#768deaff',
+    '#d49cebff',
+    '#7f50cbff',
+    '#c969d0ff',
+    '#be2b99ff',
+    '#8d040dff',
   ]
 }
 

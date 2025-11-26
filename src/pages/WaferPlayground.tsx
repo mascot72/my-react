@@ -5,6 +5,12 @@ import WaferController from '../components/molecules/WaferController'
 const WaferPlayground: React.FC = () => {
   const [zoom, setZoom] = useState(1)
   const [showValues, setShowValues] = useState(true)
+  const [showFullGrid, setShowFullGrid] = useState(false)
+  const [viewDieSequence, setViewDieSequence] = useState(false)
+  const [viewDieIndex, setViewDieIndex] = useState(false)
+  const [fieldArraySize, setFieldArraySize] = useState<[number, number]>([10, 10])
+  const [offsetMicrometers, setOffsetMicrometers] = useState<[number, number]>([0, 0])
+  const [fieldSizeMicrometers, setFieldSizeMicrometers] = useState<[number, number]>([20000, 30000])
   const [seed] = useState<number>(20251110)
 
   const containerStyle: React.CSSProperties = {
@@ -55,7 +61,7 @@ const WaferPlayground: React.FC = () => {
             style={{
               ...waferInnerWrapStyle,
             }}>
-            <WaferFieldCDU_V6 cduSeed={seed} zoom={zoom} showValues={showValues} />
+            <WaferFieldCDU_V6 cduSeed={seed} zoom={zoom} showValues={showValues} showFullGrid={showFullGrid} viewDieSequence={viewDieSequence} viewDieIndex={viewDieIndex} fieldArraySize={fieldArraySize} offsetMicrometers={offsetMicrometers} fieldSizeMicrometers={fieldSizeMicrometers} />
           </div>
         </div>
 
@@ -65,6 +71,18 @@ const WaferPlayground: React.FC = () => {
             onZoomChange={(z) => setZoom(z)}
             showValues={showValues}
             onShowValuesChange={(v) => setShowValues(v)}
+            showFullGrid={showFullGrid}
+            onShowFullGridChange={(v) => setShowFullGrid(v)}
+            viewDieSequence={viewDieSequence}
+            onViewDieSequenceChange={(v) => setViewDieSequence(v)}
+            viewDieIndex={viewDieIndex}
+            onViewDieIndexChange={(v) => setViewDieIndex(v)}
+            fieldArraySize={fieldArraySize}
+            onFieldArraySizeChange={setFieldArraySize}
+            offsetMicrometers={offsetMicrometers}
+            onOffsetMicrometersChange={setOffsetMicrometers}
+            fieldSizeMicrometers={fieldSizeMicrometers}
+            onFieldSizeMicrometersChange={setFieldSizeMicrometers}
           />
         </div>
       </div>

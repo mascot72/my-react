@@ -210,14 +210,17 @@ const matCells = useMemo(() => {
   })
 
   // 3. 행/열 병합(rowShift, colShift)
-  let colCount = Math.max(...cells.map(c => c.MAT_X)) + 1
-  let rowCount = Math.max(...cells.map(c => c.MAT_Y)) + 1
+  // [2,0]. [1,0]
+  // [1,1]. [0,1]
+  // [0,1]. [0,1]
+  let colCount = Math.max(...cells.map(c => c.MAT_X)) + 1 // 2
+  let rowCount = Math.max(...cells.map(c => c.MAT_Y)) + 1 // 3
 
   for (let xr = 1; xr < colCount; xr++) {
-    const pre = cells.filter(c => c.MAT_X === xr -1)
-    const cur = cells.filter(c => c.MAT_X === xr)
-    const preIdx = new Set(pre.map(c => c.MAT_Y))
-    const curIdx = cur.map(c => c.MAT_Y)
+    const pre = cells.filter(c => c.MAT_X === xr -1)  // [0,1]
+    const cur = cells.filter(c => c.MAT_X === xr) // [1,1]
+    const preIdx = new Set(pre.map(c => c.MAT_Y)) // [0,1]
+    const curIdx = cur.map(c => c.MAT_Y)  // 1
     const noOverlap = curIdx.every(idx => !preIdx.has(idx))
     const sum = pre.length + cur.lengthh
     if (pre.length && sum <= rowCount && noOverlap) {
@@ -226,7 +229,7 @@ const matCells = useMemo(() => {
   }
 
   for (let yr = 1; yr < rowCount; yr++) {
-    const pre = cells.filter(c => c.MAT_Y === yr -1)
+    const pre = cells.filter(c => c.MAT_Y === yr -1)  // [2,0]
     const cur = cells.filter(c => c.MAT_Y === yr)
     const preIdx = new Set(pre.map(c => c.MAT_X))
     const curIdx = cur.map(c => c.MAT_X)

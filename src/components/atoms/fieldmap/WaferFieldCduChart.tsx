@@ -109,7 +109,7 @@ const WaferFieldCDUChart: React.FC<WaferFieldCDUChartProps> = ({ mode: propMode 
   const waferRadius = 100;
 
   // grid binning 파라미터
-  const gridCount = 10;
+  const gridCount = 14;
 
   // generate sample CDU data (memoized)
   const rawData = useMemo(() => {
@@ -123,9 +123,19 @@ const WaferFieldCDUChart: React.FC<WaferFieldCDUChartProps> = ({ mode: propMode 
   }, [waferRadius]);
 
   // 격자화(binning) 처리 (heatmap용)
-  const { data: binnedData, xLabels, yLabels, minValue, maxValue } = useMemo(() => {
+  const { data: binnedData, minValue, maxValue } = useMemo(() => {
     return binGrid(rawData, gridCount, -waferRadius - 10, waferRadius + 10);
   }, [rawData, gridCount, waferRadius]);
+
+  // heatmap 축 라벨: 가운데(중심) 셀을 0으로 하고, 한 칸씩 이동할 때마다 +-1씩 증가/감소하도록 생성
+  const xLabels = useMemo(() => {
+    const center = Math.floor(gridCount / 2);
+    return Array.from({ length: gridCount }, (_, i) => String(i - center));
+  }, [gridCount]);
+  const yLabels = useMemo(() => {
+    const center = Math.floor(gridCount / 2);
+    return Array.from({ length: gridCount }, (_, i) => String(i - center));
+  }, [gridCount]);
 
   const option = useMemo<ECOption>(() => {
     // helper: interpolate color from stops
@@ -156,7 +166,7 @@ const WaferFieldCDUChart: React.FC<WaferFieldCDUChartProps> = ({ mode: propMode 
 
     const commonGrid = { left: 40, right: 40, top: 30, bottom: 40 };
 
-  const cfg: ECOption & Record<string, unknown> = {
+    const cfg: ECOption & Record<string, unknown> = {
       backgroundColor: '#111',
       title: { text: `Field CDU Map (${mode === 'heatmap' ? 'Heatmap' : mode === 'scatter' ? 'Scatter' : 'Both'})`, left: 'center', textStyle: { color: '#fff' } },
       tooltip: { show: true },
@@ -170,16 +180,15 @@ const WaferFieldCDUChart: React.FC<WaferFieldCDUChartProps> = ({ mode: propMode 
           type: 'custom',
           // allow any here because echarts renderItem API types are verbose and project linter
           // disallows explicit any in most places — keep this narrow exemption
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          renderItem: (_: any, api: any) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          renderItem: (_: unknown, api: unknown) => {
+            const apiTyped = api as { coord: (v: number[]) => number[] | undefined };
             const children: unknown[] = [];
             // heatmap rects (grid indices)
             if (mode === 'heatmap' || mode === 'both') {
               for (const [gx, gy, val] of binnedData) {
                 // center positions using fractional indices
-                const p1 = api.coord([gx - 0.5, gy - 0.5]);
-                const p2 = api.coord([gx + 0.5, gy + 0.5]);
+                const p1 = apiTyped.coord([gx - 0.5, gy - 0.5]);
+                const p2 = apiTyped.coord([gx + 0.5, gy + 0.5]);
                 if (!p1 || !p2) continue;
                 const x = Math.min(p1[0], p2[0]);
                 const y = Math.min(p1[1], p2[1]);
@@ -187,7 +196,7 @@ const WaferFieldCDUChart: React.FC<WaferFieldCDUChartProps> = ({ mode: propMode 
                 const h = Math.abs(p2[1] - p1[1]);
                 children.push({
                   type: 'rect',
-                  shape: { x, y, width: w, height: h },
+                  shape: { x:x-12, y:y+12, width: w, height: h },
                   style: { fill: valueToColor(val, Math.min(minValue, ...rawData.map((d) => d[2])), Math.max(maxValue, ...rawData.map((d) => d[2]))), stroke: 'rgba(0,0,0,0.2)' },
                 });
               }
@@ -196,7 +205,7 @@ const WaferFieldCDUChart: React.FC<WaferFieldCDUChartProps> = ({ mode: propMode 
             if (mode === 'scatter' || mode === 'both') {
               const symbolSize = 8;
               for (const [xv, yv, val] of rawData) {
-                const c = api.coord([xv, yv]);
+                const c = apiTyped.coord([xv, yv]);
                 if (!c) continue;
                 children.push({ type: 'circle', shape: { cx: c[0], cy: c[1], r: symbolSize / 2 }, style: { fill: valueToColor(val, Math.min(minValue, ...rawData.map((d) => d[2])), Math.max(maxValue, ...rawData.map((d) => d[2]))), stroke: '#222' } });
               }
@@ -209,20 +218,20 @@ const WaferFieldCDUChart: React.FC<WaferFieldCDUChartProps> = ({ mode: propMode 
         ({
           name: 'WaferOutline',
           type: 'custom',
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          renderItem: (_: any, api: any) => {
+          renderItem: (_: unknown, api: unknown) => {
             // Compute center and radius symmetrically so the circle is centered the same
             // in both category (heatmap) and value (scatter) axis modes.
+            const apiTyped = api as { coord: (v: number[]) => number[] | undefined };
             const center = mode === 'heatmap'
-              ? api.coord([(gridCount - 1) / 2, (gridCount - 1) / 2])
-              : api.coord([0, 0]);
+              ? apiTyped.coord([(gridCount - 1) / 2, (gridCount - 1) / 2])
+              : apiTyped.coord([0, 0]);
 
             const left = mode === 'heatmap'
-              ? api.coord([0, (gridCount - 1) / 2])
-              : api.coord([-waferRadius, 0]);
+              ? apiTyped.coord([0, (gridCount - 1) / 2])
+              : apiTyped.coord([-waferRadius, 0]);
             const right = mode === 'heatmap'
-              ? api.coord([gridCount - 1, (gridCount - 1) / 2])
-              : api.coord([waferRadius, 0]);
+              ? apiTyped.coord([gridCount - 1, (gridCount - 1) / 2])
+              : apiTyped.coord([waferRadius, 0]);
 
             const radius = left && right ? Math.abs(right[0] - left[0]) / 2 : 0;
             const children: unknown[] = [];
@@ -237,8 +246,27 @@ const WaferFieldCDUChart: React.FC<WaferFieldCDUChartProps> = ({ mode: propMode 
 
     // axis setup depending on mode
     if (mode === 'heatmap') {
-      cfg.xAxis = { type: 'category', data: xLabels, show: true, splitLine: { show: false } };
-      cfg.yAxis = { type: 'category', data: yLabels, show: true, splitLine: { show: false } };
+      // For heatmap we want the numeric labels to appear in the center of each grid cell
+      // while keeping the grid lines (drawn by rects) unchanged. Use category axis
+      // with boundaryGap so categories align as bands and enable tick alignment.
+      cfg.xAxis = {
+        type: 'category',
+        data: xLabels,
+        show: true,
+        splitLine: { show: false },
+        boundaryGap: true,
+        axisTick: { alignWithLabel: true },
+        axisLabel: { interval: 0 },
+      };
+      cfg.yAxis = {
+        type: 'category',
+        data: yLabels,
+        show: true,
+        splitLine: { show: false },
+        boundaryGap: true,
+        axisTick: { alignWithLabel: true },
+        axisLabel: { interval: 0 },
+      };
     } else {
       cfg.xAxis = { type: 'value', min: -waferRadius - 10, max: waferRadius + 10, show: true, splitLine: { show: true } };
       cfg.yAxis = { type: 'value', min: -waferRadius - 10, max: waferRadius + 10, show: true, splitLine: { show: true } };
