@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react'
 import type { WaferFieldCDU_V6Props } from './types'
 import { useCDUData, useMergeGroups, useFieldRenderItems } from './hooks'
-import { WaferOutline, ColorBar, FieldGroup } from './components'
+import { WaferOutline, ColorBar, FieldGroup, CoordinateGrid } from './components'
 
 const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
   cduSeed,
@@ -267,6 +267,9 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
               showShotSequence={viewShotSequence}
             />
           ))}
+
+          {/* 좌표 눈금 */}
+          <CoordinateGrid fieldArraySize={memoFieldArraySize} fieldStepX={fieldStepX} fieldStepY={fieldStepY} mm2px={mm2px} svgWidthPx={svgWidthPx} />
 
           {/* 컬러바 */}
           <ColorBar waferRadius={waferRadius} mm2px={mm2px} />
