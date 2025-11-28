@@ -66,6 +66,8 @@ export interface WaferFieldCDU_V6Props {
   onViewDieSequenceChange?: (v: boolean) => void
   viewDieIndex?: boolean
   onViewDieIndexChange?: (v: boolean) => void
+  viewShotSequence?: boolean
+  onViewShotSequenceChange?: (v: boolean) => void
   // Field array size and offset controls
   fieldArraySize?: [number, number] // [x, y] count
   onFieldArraySizeChange?: (size: [number, number]) => void

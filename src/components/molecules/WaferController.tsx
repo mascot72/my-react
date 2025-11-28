@@ -4,11 +4,15 @@ import styles from './WaferController.module.css'
 interface WaferControllerProps {
   zoom: number
   onZoomChange: (z: number) => void
+  onZoomDragStart?: () => void
+  onZoomDragEnd?: () => void
   showValues: boolean
   onShowValuesChange: (v: boolean) => void
   // Wafer display controls
   showFullGrid?: boolean
   onShowFullGridChange?: (v: boolean) => void
+  viewShotSequence?: boolean
+  onViewShotSequenceChange?: (v: boolean) => void
   viewDieSequence?: boolean
   onViewDieSequenceChange?: (v: boolean) => void
   viewDieIndex?: boolean
@@ -26,10 +30,14 @@ interface WaferControllerProps {
 const WaferController: React.FC<WaferControllerProps> = ({
   zoom,
   onZoomChange,
+  onZoomDragStart,
+  onZoomDragEnd,
   showValues,
   onShowValuesChange,
   showFullGrid = false,
   onShowFullGridChange,
+  viewShotSequence = false,
+  onViewShotSequenceChange,
   viewDieSequence = false,
   onViewDieSequenceChange,
   viewDieIndex = false,
@@ -58,9 +66,13 @@ const WaferController: React.FC<WaferControllerProps> = ({
             type='range'
             min={0.2}
             max={2}
-            step={0.05}
+            step={0.01}
             value={zoom}
             onChange={(e) => onZoomChange(Number(e.target.value))}
+            onInput={(e: React.FormEvent<HTMLInputElement>) => onZoomChange(Number((e.currentTarget as HTMLInputElement).value))}
+            onPointerDown={() => onZoomDragStart && onZoomDragStart()}
+            onPointerUp={() => onZoomDragEnd && onZoomDragEnd()}
+            onPointerCancel={() => onZoomDragEnd && onZoomDragEnd()}
             style={{ width: '100%' }}
           />
           <div className={styles.rangeScale}>
@@ -81,6 +93,13 @@ const WaferController: React.FC<WaferControllerProps> = ({
           <input id='show-full-grid' type='checkbox' checked={showFullGrid} onChange={(e) => onShowFullGridChange && onShowFullGridChange(e.target.checked)} />
           <label htmlFor='show-full-grid' className={styles.caption}>
             전체 사각형 표시
+          </label>
+        </div>
+
+        <div className={styles.toggleRow}>
+          <input id='view-shot-seq' type='checkbox' checked={viewShotSequence} onChange={(e) => onViewShotSequenceChange && onViewShotSequenceChange(e.target.checked)} />
+          <label htmlFor='view-shot-seq' className={styles.caption}>
+            view shot sequence
           </label>
         </div>
 

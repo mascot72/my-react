@@ -12,13 +12,13 @@ function mulberry32(seed: number) {
   }
 }
 
-// CDU 생성 함수
-function generateCDU(x: number, y: number, waferRadius: number) {
+// generateCDU는 외부에서 주어지는 PRNG를 사용하여 재현 가능하도록 변경합니다.
+function generateCDU(x: number, y: number, waferRadius: number, rand: () => number) {
   const r = Math.hypot(x, y)
   const a = Math.atan2(y, x)
   const radial = Math.cos((r / waferRadius) * Math.PI) * 0.55
   const angular = Math.sin(a * 3) * 0.28
-  const noise = (Math.random() - 0.5) * 0.12
+  const noise = (rand() - 0.5) * 0.12
   return radial + angular + noise
 }
 
@@ -36,6 +36,7 @@ interface UseCDUDataOptions {
   fieldArraySize?: [number, number] // [x개수, y개수]
   cduSeed?: number
   cduData?: (number | null)[]
+  offsetMm?: [number, number] // Wafer offset (mm 단위) - 렌더링 시 Die 필터링에만 사용
 }
 
 /**
@@ -56,6 +57,7 @@ export function useCDUData(options: UseCDUDataOptions) {
     fieldArraySize,
     cduSeed,
     cduData,
+    offsetMm = [0, 0],
   } = options
 
   return useMemo(() => {
@@ -106,7 +108,7 @@ export function useCDUData(options: UseCDUDataOptions) {
               cdu = cduData[cduIdx++] ?? null
             } else {
               const hasCdu = rand() > 0.1
-              cdu = hasCdu ? generateCDU(dx, dy, waferRadius) : null
+              cdu = hasCdu ? generateCDU(dx, dy, waferRadius, rand) : null
             }
 
             // dieIndex: left-bottom → right-top (j를 역순으로)
@@ -138,7 +140,13 @@ export function useCDUData(options: UseCDUDataOptions) {
         }
 
         // 필드에 포함할지 결정 (어떤 다이 중심이라도 wafer 내부에 있으면 포함)
-        const anyDieCenterInside = dies.some((d) => Math.hypot(d.x, d.y) <= waferRadius)
+        // offset을 고려하여 Wafer Circle 내부 판정
+        const anyDieCenterInside = dies.some((d) => {
+          // Die의 절대 위치에서 offset만큼 이동한 Wafer 위치로 판정
+          const dxWithOffset = d.x - offsetMm[0]
+          const dyWithOffset = d.y - offsetMm[1]
+          return Math.hypot(dxWithOffset, dyWithOffset) <= waferRadius
+        })
         // push는 항상 하되 포함 여부는 flag로 남김 — UI에서 전체 그리드 표시 토글에 사용
         const included = anyDieCenterInside
 
@@ -152,7 +160,12 @@ export function useCDUData(options: UseCDUDataOptions) {
             [d.x - halfW, d.y + halfH],
             [d.x + halfW, d.y + halfH],
           ]
-          const allCornersInside = corners.every(([cx_, cy_]) => Math.hypot(cx_, cy_) <= waferRadius + 1e-9)
+          // offset을 고려하여 판정
+          const allCornersInside = corners.every(([cx_, cy_]) => {
+            const cxWithOffset = cx_ - offsetMm[0]
+            const cyWithOffset = cy_ - offsetMm[1]
+            return Math.hypot(cxWithOffset, cyWithOffset) <= waferRadius + 1e-9
+          })
           if (!allCornersInside) {
             d.cdu = null
           }
@@ -164,5 +177,5 @@ export function useCDUData(options: UseCDUDataOptions) {
     }
 
     return arr
-  }, [waferRadius, fieldStepX, fieldStepY, dieRows, dieCols, dieWidth, dieHeight, fieldWidth, fieldHeight, range, fieldArraySize?.[0], fieldArraySize?.[1], cduSeed, cduData])
+  }, [waferRadius, fieldStepX, fieldStepY, dieRows, dieCols, dieWidth, dieHeight, fieldWidth, fieldHeight, range, fieldArraySize, cduSeed, cduData, offsetMm])
 }

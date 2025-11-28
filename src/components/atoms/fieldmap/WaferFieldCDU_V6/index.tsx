@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useMemo } from 'react'
 import type { WaferFieldCDU_V6Props } from './types'
 import { useCDUData, useMergeGroups, useFieldRenderItems } from './hooks'
 import { WaferOutline, ColorBar, FieldGroup } from './components'
@@ -6,7 +6,6 @@ import { WaferOutline, ColorBar, FieldGroup } from './components'
 const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
   cduSeed,
   cduData,
-  zoom = 1,
   showValues = true,
   onFieldHover,
   mergeOptions = { enabled: true, threshold: 0.05 },
@@ -14,6 +13,7 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
   showFullGrid = false,
   viewDieSequence = false,
   viewDieIndex = false,
+  viewShotSequence = false,
   fieldArraySize = [10, 10],
   offsetMicrometers = [0, 0],
   fieldSizeMicrometers = [20000, 30000],
@@ -23,8 +23,9 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
   
   // fieldSizeMicrometers로 동적 필드 크기 계산 (마이크로미터 -> mm)
   // 기본값: 20000 μm = 20 mm, 30000 μm = 30 mm
-  const fieldWidth = Math.max(1, fieldSizeMicrometers[0] / 1000)
-  const fieldHeight = Math.max(1, fieldSizeMicrometers[1] / 1000)
+  const memoFieldSizeMicrometers = useMemo(() => fieldSizeMicrometers ?? [20000, 30000], [fieldSizeMicrometers])
+  const fieldWidth = Math.max(1, memoFieldSizeMicrometers[0] / 1000)
+  const fieldHeight = Math.max(1, memoFieldSizeMicrometers[1] / 1000)
   const dieCols = 2
   const dieRows = 3
 
@@ -40,8 +41,19 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
   const fieldStepY = fieldHeight
 
   // Offset을 mm 단위로 변환 (마이크로미터 -> mm)
+  // Wafer 개념에서 offset은 Wafer의 상대적 위치를 의미합니다
+  // 따라서 Die Rect는 고정이고, Wafer Circle이 offset만큼 이동합니다
   const offsetMmX = offsetMicrometers[0] / 1000
   const offsetMmY = offsetMicrometers[1] / 1000
+
+  // offsetMm 배열은 렌더마다 새로 생성되면 참조가 바뀌어
+  // useCDUData의 의존성으로 인해 불필요한 재계산을 유발합니다.
+  // 따라서 값이 변경될 때만 새로운 배열을 생성하도록 memoize 합니다.
+  const offsetMm = useMemo(() => [offsetMmX, offsetMmY] as [number, number], [offsetMmX, offsetMmY])
+
+  // fieldArraySize와 mergeOptions도 참조 안정성이 필요할 수 있어 memoize 합니다.
+  const memoFieldArraySize = useMemo(() => fieldArraySize ?? [10, 10], [fieldArraySize])
+  const memoMergeOptions = useMemo(() => mergeOptions ?? { enabled: true, threshold: 0.05 }, [mergeOptions])
 
   // DEBUG: offset과 field size 변경 확인
   console.log('WaferFieldCDU_V6 rendered with offsetMicrometers:', offsetMicrometers, 'fieldSizeMicrometers:', fieldSizeMicrometers, 'fieldSize (mm):', [fieldWidth, fieldHeight])
@@ -60,10 +72,10 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
   // fieldArraySize는 [x개수, y개수]를 의미
   // range는 -range ~ +range 범위에서 필드를 생성하므로, 
   // 최대값을 기반으로 range를 설정
-  const maxFieldCount = Math.max(fieldArraySize[0], fieldArraySize[1])
+  const maxFieldCount = Math.max(memoFieldArraySize[0], memoFieldArraySize[1])
   const range = Math.ceil(maxFieldCount / 2) + 1
 
-  console.log('Field Array Size:', fieldArraySize, '-> range:', range)
+  console.log('Field Array Size:', memoFieldArraySize, '-> range:', range)
 
   // hooks
   const fields = useCDUData({
@@ -77,9 +89,10 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
     fieldWidth,
     fieldHeight,
     range,
-    fieldArraySize,
+    fieldArraySize: memoFieldArraySize,
     cduSeed,
     cduData,
+    offsetMm,
   })
 
   const { fieldsWithMerge } = useMergeGroups({
@@ -88,8 +101,8 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
     dieHeight,
     dieCols,
     dieRows,
-    enabled: mergeOptions.enabled,
-    mergeThreshold: mergeOptions.threshold,
+    enabled: memoMergeOptions.enabled,
+    mergeThreshold: memoMergeOptions.threshold,
   })
 
   const fieldRenderItems = useFieldRenderItems({
@@ -100,16 +113,58 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
     dieRows,
   })
 
-  const mm2px = (mm: number) => mm * scale * zoom
+  const mm2px = (mm: number) => mm * scale
 
-  // viewBox에 offset을 적용
-  const viewBoxX = -svgWidthPx / 2 - mm2px(offsetMmX)
-  const viewBoxY = -svgWidthPx / 2 - mm2px(offsetMmY)
+  // offset은 Wafer Circle의 위치 변이 (Die Rect 기준으로)
+  const offsetPxX = mm2px(offsetMmX)
+  const offsetPxY = mm2px(offsetMmY)
 
   // State
   const [hoverField, setHoverField] = useState<string | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 })
+
+  // items to render (respect showFullGrid)
+  const renderItems = fieldRenderItems.filter((item) => item.included || showFullGrid)
+
+  // viewBox 계산: 기본은 SVG 중심을 기준으로 하되,
+  // showFullGrid가 켜져있으면 모든 필드를 포함하도록 bbox를 계산하고
+  // 약간의 padding을 추가하여 스트로크가 잘리지 않도록 처리합니다.
+  let viewBoxX = -svgWidthPx / 2
+  let viewBoxY = -svgWidthPx / 2
+  let viewBoxWidth = svgWidthPx
+  let viewBoxHeight = svgWidthPx + 140
+
+  if (showFullGrid && renderItems.length > 0) {
+    const padMm = 1 // 1mm padding
+    const padPx = padMm * scale
+    let minPxX = Infinity
+    let minPxY = Infinity
+    let maxPxX = -Infinity
+    let maxPxY = -Infinity
+
+    for (const it of renderItems) {
+      const fx = mm2px(it.fieldRect.x)
+      const fy = mm2px(it.fieldRect.y)
+      const fw = mm2px(it.fieldRect.w)
+      const fh = mm2px(it.fieldRect.h)
+      minPxX = Math.min(minPxX, fx)
+      minPxY = Math.min(minPxY, fy)
+      maxPxX = Math.max(maxPxX, fx + fw)
+      maxPxY = Math.max(maxPxY, fy + fh)
+    }
+
+    // add padding to avoid clipped strokes
+    minPxX -= padPx
+    minPxY -= padPx
+    maxPxX += padPx
+    maxPxY += padPx
+
+    viewBoxX = minPxX
+    viewBoxY = minPxY
+    viewBoxWidth = Math.max(1, maxPxX - minPxX)
+    viewBoxHeight = Math.max(1, maxPxY - minPxY)
+  }
 
   // ResizeObserver
   useEffect(() => {
@@ -139,8 +194,8 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
   }, [])
 
   const svgSize = {
-    width: svgWidthPx * zoom,
-    height: (svgWidthPx + 140) * zoom,
+    width: svgWidthPx,
+    height: svgWidthPx + 140,
   }
 
   const needsScroll =
@@ -169,55 +224,55 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
         <svg
           width={svgSize.width}
           height={svgSize.height}
-          viewBox={`${viewBoxX} ${viewBoxY} ${svgWidthPx} ${svgWidthPx + 140}`}
+          viewBox={`${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}`}
           style={{
             background: 'white',
             display: 'block',
           }}>
-          {/* 오프셋을 적용하는 그룹 */}
-          <g transform={`translate(${mm2px(offsetMmX)} ${mm2px(offsetMmY)})`}>
-            {/* 필드 및 다이 렌더링 */}
-            {fieldRenderItems.filter(item => item.included || showFullGrid).map((item, fi) => (
-              <FieldGroup
-                key={fi}
-                item={item}
-                fieldIndex={fi}
-                dieWidth={dieWidth}
-                dieHeight={dieHeight}
-                mm2px={mm2px}
-                cduToColor={cduToColor}
-                showValues={showValues}
-                hoverField={hoverField}
-                onMouseEnter={(fieldKey, e) => {
-                  setHoverField(fieldKey)
-                  if (onFieldHover) {
-                    onFieldHover(
-                      {
-                        id: fieldKey,
-                        avgCdu: item.fieldAvgCdu,
-                        cx: item.fieldRect.x,
-                        cy: item.fieldRect.y,
-                      },
-                      e.clientX,
-                      e.clientY
-                    )
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  setHoverField(null)
-                  if (onFieldHover) {
-                    onFieldHover(null, e.clientX, e.clientY)
-                  }
-                }}
-                showDieIndex={viewDieIndex}
-                showDieSequence={viewDieSequence}
-              />
-            ))}
+          {/* Die Rect + Shot Rect: 고정 (Die 데이터는 Wafer Circle 내부에만 표현) */}
+          {fieldRenderItems.filter(item => item.included || showFullGrid).map((item, fi) => (
+            <FieldGroup
+              key={fi}
+              item={item}
+              fieldIndex={fi}
+              dieWidth={dieWidth}
+              dieHeight={dieHeight}
+              mm2px={mm2px}
+              cduToColor={cduToColor}
+              showValues={showValues}
+              hoverField={hoverField}
+              onMouseEnter={(fieldKey, e) => {
+                setHoverField(fieldKey)
+                if (onFieldHover) {
+                  onFieldHover(
+                    {
+                      id: fieldKey,
+                      avgCdu: item.fieldAvgCdu,
+                      cx: item.fieldRect.x,
+                      cy: item.fieldRect.y,
+                    },
+                    e.clientX,
+                    e.clientY
+                  )
+                }
+              }}
+              onMouseLeave={(e) => {
+                setHoverField(null)
+                if (onFieldHover) {
+                  onFieldHover(null, e.clientX, e.clientY)
+                }
+              }}
+              showDieIndex={viewDieIndex}
+              showDieSequence={viewDieSequence}
+              showShotSequence={viewShotSequence}
+            />
+          ))}
 
-            {/* 컬러바 */}
-            <ColorBar waferRadius={waferRadius} mm2px={mm2px} />
+          {/* 컬러바 */}
+          <ColorBar waferRadius={waferRadius} mm2px={mm2px} />
 
-            {/* wafer 테두리 */}
+          {/* Wafer Circle (offset 적용 - Die Rect 기준으로 이동) */}
+          <g transform={`translate(${offsetPxX} ${offsetPxY})`}>
             <WaferOutline cx={0} cy={0} radius={waferRadius} mm2px={mm2px} />
           </g>
         </svg>

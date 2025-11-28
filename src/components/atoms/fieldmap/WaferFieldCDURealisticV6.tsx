@@ -16,9 +16,7 @@ import type { WaferFieldCDU_V6Props } from './WaferFieldCDU_V6/types'
 /**
  * 기존 인터페이스 호환성을 위한 래퍼
  */
-interface WaferFieldCDURealisticV6Props extends WaferFieldCDU_V6Props {}
-
-const WaferFieldCDURealisticV6 = (props: WaferFieldCDURealisticV6Props) => {
+const WaferFieldCDURealisticV6 = (props: WaferFieldCDU_V6Props) => {
   return <WaferFieldCDU_V6 {...props} />
 }
 

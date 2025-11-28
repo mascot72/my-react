@@ -16,6 +16,7 @@ interface FieldGroupProps {
   onMouseLeave: (e: React.MouseEvent<SVGRectElement>) => void
   showDieIndex?: boolean
   showDieSequence?: boolean
+  showShotSequence?: boolean
 }
 
 export const FieldGroup: React.FC<FieldGroupProps> = ({
@@ -31,6 +32,7 @@ export const FieldGroup: React.FC<FieldGroupProps> = ({
   onMouseLeave,
   showDieIndex = false,
   showDieSequence = false,
+  showShotSequence = false,
 }) => {
   const fieldKey = `field-${fieldIndex}-${item.fieldRect.x}-${item.fieldRect.y}`
   const { x, y, w, h } = item.fieldRect
@@ -51,7 +53,7 @@ export const FieldGroup: React.FC<FieldGroupProps> = ({
         onMouseLeave={onMouseLeave}
       />
 
-      {/* shot index 표시 (필드 좌상단) */}
+      {/* shot index 표시 (필드 좌상단) - 항상 표시 */}
       {item.shotIndex !== undefined && (
         <text
           x={mm2px(x) + 4}
@@ -62,6 +64,8 @@ export const FieldGroup: React.FC<FieldGroupProps> = ({
           Shot: {item.shotIndex}
         </text>
       )}
+
+
 
       {/* 병합된 그룹 */}
       {item.mergeGroups.map((g) => (
@@ -88,6 +92,30 @@ export const FieldGroup: React.FC<FieldGroupProps> = ({
           showDieSequence={showDieSequence}
         />
       ))}
+
+      {/* shot sequence (on-top) - only numeric value with opaque background for visibility */}
+      {showShotSequence && item.shotIndex !== undefined && (
+        <g>
+          <rect
+            x={mm2px(x + w - dieWidth / 2 - 2)}
+            y={mm2px(y + 1)}
+            width={mm2px(dieWidth / 2 + 4)}
+            height={14}
+            fill='rgba(255,255,255,0.8)'
+            rx={3}
+          />
+          <text
+            x={mm2px(x + w - 3)}
+            y={mm2px(y) + 12}
+            fontSize={10}
+            fill='#ff6600'
+            fontWeight='bold'
+            textAnchor='end'
+          >
+            {item.shotIndex}
+          </text>
+        </g>
+      )}
     </g>
   )
 }
