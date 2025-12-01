@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react'
 import type { WaferFieldCDU_V6Props } from './types'
 import { useCDUData, useMergeGroups, useFieldRenderItems, usePointData } from './hooks'
-import { WaferOutline, ColorBar, FieldGroup, CoordinateGrid } from './components'
+import { WaferOutline, ColorBar, FieldGroup, CoordinateGrid, PointLayer } from './components'
 
 const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
   cduSeed,
@@ -10,6 +10,7 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
   onFieldHover,
   mergeOptions = { enabled: false, threshold: 0.05 }, // mergeGroup 기본적으로 비활성화
   enablePointData = false, // pointData 모드 사용 여부
+  viewPoint = false, // 포인트 렌더링 토글
   // controller props (defaults maintained here)
   showFullGrid = false,
   viewDieSequence = false,
@@ -53,7 +54,7 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
   const offsetMm = useMemo(() => [offsetMmX, offsetMmY] as [number, number], [offsetMmX, offsetMmY])
 
   // fieldArraySize와 mergeOptions도 참조 안정성이 필요할 수 있어 memoize 합니다.
-  const memoFieldArraySize = useMemo(() => fieldArraySize ?? [10, 10], [fieldArraySize])
+  const memoFieldArraySize = useMemo(() => fieldArraySize ?? [14, 13], [fieldArraySize])
   const memoMergeOptions = useMemo(() => mergeOptions ?? { enabled: false, threshold: 0.05 }, [mergeOptions])
 
   // DEBUG: offset과 field size 변경 확인
@@ -114,7 +115,7 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
     dieRows,
   })
 
-  // PointData 생성 (usePointData=true일 때 사용)
+  // PointData 생성 (enablePointData=true일 때 사용)
   const pointDataSet = usePointData({
     fields,
   })
@@ -245,44 +246,55 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
             background: 'white',
             display: 'block',
           }}>
-          {/* Die Rect + Shot Rect: 고정 (Die 데이터는 Wafer Circle 내부에만 표현) */}
-          {fieldRenderItems.filter(item => item.included || showFullGrid).map((item, fi) => (
-            <FieldGroup
-              key={fi}
-              item={item}
-              fieldIndex={fi}
-              dieWidth={dieWidth}
-              dieHeight={dieHeight}
+          {/* Rect 기반 vs Point 기반 렌더링 토글 */}
+          {enablePointData && viewPoint ? (
+            <PointLayer
+              diePoints={pointDataSet.diePoints}
+              fieldPoints={pointDataSet.fieldPoints}
               mm2px={mm2px}
               cduToColor={cduToColor}
-              showValues={showValues}
-              hoverField={hoverField}
-              onMouseEnter={(fieldKey, e) => {
-                setHoverField(fieldKey)
-                if (onFieldHover) {
-                  onFieldHover(
-                    {
-                      id: fieldKey,
-                      avgCdu: item.fieldAvgCdu,
-                      cx: item.fieldRect.x,
-                      cy: item.fieldRect.y,
-                    },
-                    e.clientX,
-                    e.clientY
-                  )
-                }
-              }}
-              onMouseLeave={(e) => {
-                setHoverField(null)
-                if (onFieldHover) {
-                  onFieldHover(null, e.clientX, e.clientY)
-                }
-              }}
-              showDieIndex={viewDieIndex}
-              showDieSequence={viewDieSequence}
-              showShotSequence={viewShotSequence}
             />
-          ))}
+          ) : (
+            fieldRenderItems
+              .filter(item => item.included || showFullGrid)
+              .map((item, fi) => (
+                <FieldGroup
+                  key={fi}
+                  item={item}
+                  fieldIndex={fi}
+                  dieWidth={dieWidth}
+                  dieHeight={dieHeight}
+                  mm2px={mm2px}
+                  cduToColor={cduToColor}
+                  showValues={showValues}
+                  hoverField={hoverField}
+                  onMouseEnter={(fieldKey, e) => {
+                    setHoverField(fieldKey)
+                    if (onFieldHover) {
+                      onFieldHover(
+                        {
+                          id: fieldKey,
+                          avgCdu: item.fieldAvgCdu,
+                          cx: item.fieldRect.x,
+                          cy: item.fieldRect.y,
+                        },
+                        e.clientX,
+                        e.clientY
+                      )
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    setHoverField(null)
+                    if (onFieldHover) {
+                      onFieldHover(null, e.clientX, e.clientY)
+                    }
+                  }}
+                  showDieIndex={viewDieIndex}
+                  showDieSequence={viewDieSequence}
+                  showShotSequence={viewShotSequence}
+                />
+              ))
+          )}
 
           {/* 좌표 눈금 */}
           <CoordinateGrid fieldArraySize={memoFieldArraySize} fieldStepX={fieldStepX} fieldStepY={fieldStepY} mm2px={mm2px} svgWidthPx={svgWidthPx} />

@@ -17,6 +17,8 @@ interface WaferControllerProps {
   onViewDieSequenceChange?: (v: boolean) => void
   viewDieIndex?: boolean
   onViewDieIndexChange?: (v: boolean) => void
+  viewPoint?: boolean
+  onViewPointChange?: (v: boolean) => void
   // Field array size and offset controls
   fieldArraySize?: [number, number]
   onFieldArraySizeChange?: (size: [number, number]) => void
@@ -42,6 +44,8 @@ const WaferController: React.FC<WaferControllerProps> = ({
   onViewDieSequenceChange,
   viewDieIndex = false,
   onViewDieIndexChange,
+  viewPoint = false,
+  onViewPointChange,
   fieldArraySize = [10, 10],
   onFieldArraySizeChange,
   offsetMicrometers = [0, 0],
@@ -114,6 +118,13 @@ const WaferController: React.FC<WaferControllerProps> = ({
           <input id='view-die-index' type='checkbox' checked={viewDieIndex} onChange={(e) => onViewDieIndexChange && onViewDieIndexChange(e.target.checked)} />
           <label htmlFor='view-die-index' className={styles.caption}>
             view die index
+          </label>
+        </div>
+
+        <div className={styles.toggleRow}>
+          <input id='view-point' type='checkbox' checked={viewPoint} onChange={(e) => onViewPointChange && onViewPointChange(e.target.checked)} />
+          <label htmlFor='view-point' className={styles.caption}>
+            View Point
           </label>
         </div>
 

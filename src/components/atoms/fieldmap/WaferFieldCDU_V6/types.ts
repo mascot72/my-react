@@ -84,6 +84,7 @@ export interface WaferFieldCDU_V6Props {
   mergeOptions?: MergeOptions
   // Point data mode
   enablePointData?: boolean // true면 pointData 기반 렌더링 사용
+  viewPoint?: boolean // true면 포인트 렌더링 표시, false면 기존 Rect 렌더링
   // Controller props (moved UI controls to external controller)
   showFullGrid?: boolean
   onShowFullGridChange?: (v: boolean) => void

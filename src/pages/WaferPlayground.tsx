@@ -9,6 +9,7 @@ const WaferPlayground: React.FC = () => {
   const [viewShotSequence, setViewShotSequence] = useState(false)
   const [viewDieSequence, setViewDieSequence] = useState(false)
   const [viewDieIndex, setViewDieIndex] = useState(false)
+  const [viewPoint, setViewPoint] = useState(false)
   const [fieldArraySize, setFieldArraySize] = useState<[number, number]>([10, 10])
   const [offsetMicrometers, setOffsetMicrometers] = useState<[number, number]>([0, 0])
   const [fieldSizeMicrometers, setFieldSizeMicrometers] = useState<[number, number]>([20000, 30000])
@@ -84,6 +85,7 @@ const WaferPlayground: React.FC = () => {
               fieldSizeMicrometers={fieldSizeMicrometers}
               mergeOptions={{ enabled: false }} 
               enablePointData={true}
+              viewPoint={viewPoint}
             />
           </div>
         </div>
@@ -104,6 +106,8 @@ const WaferPlayground: React.FC = () => {
             onViewDieSequenceChange={(v) => setViewDieSequence(v)}
             viewDieIndex={viewDieIndex}
             onViewDieIndexChange={(v) => setViewDieIndex(v)}
+            viewPoint={viewPoint}
+            onViewPointChange={(v) => setViewPoint(v)}
             fieldArraySize={fieldArraySize}
             onFieldArraySizeChange={setFieldArraySize}
             offsetMicrometers={offsetMicrometers}
