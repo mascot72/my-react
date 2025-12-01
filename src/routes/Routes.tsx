@@ -33,6 +33,7 @@ import RnD from '@components/atoms/fieldmap/RnD'
 import WaferFieldCDUChart from '@components/atoms/fieldmap/WaferFieldCduChart'
 
 import WaferMap9 from '@/pages/WaferMap9'
+import WaferEChartsPlayground from '../pages/WaferEChartsPlayground'
 
 function AppRouter() {
   return (
@@ -81,6 +82,7 @@ function AppRouter() {
         <Route path='/fieldmap-rect' element={<FieldMapRect />} /> {/* Field 맵 Rect Version 페이지 추가 */}
         <Route path='/fieldmap-svg' element={<FieldMapSvg />} /> {/* Field Map Svg 페이지 추가 */}
         <Route path='/wafer-fieldmapv6' element={<WaferPlayground />} /> {/* WaferField 플레이그라운드 페이지 추가 */}
+        <Route path='/wafer-fieldmapv6-ec' element={<WaferEChartsPlayground />} /> {/* WaferField ECharts 버전 페이지 추가 */}
         <Route path='/wafer-fieldmapv7' element={<WaferFieldCDURealisticV7 />} /> {/* WaferField 맵 페이지 추가 */}
         <Route path='/wafer-fieldmapv8' element={<WaferFieldCDUV8 />} /> {/* WaferField 맵 페이지 추가 */}
         <Route path='/rnd' element={<RnD />} /> {/* Field 맵 페이지 추가 */}

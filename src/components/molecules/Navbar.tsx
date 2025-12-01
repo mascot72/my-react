@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import styled from 'styled-components'
 import { Link } from 'react-router'
 
@@ -154,6 +154,9 @@ const Navbar: React.FC = () => {
             </DropdownItem>
             <DropdownItem>
               <DropdownLink to='/wafer-fieldmapv6'>Wafer Field Map V6</DropdownLink>
+            </DropdownItem>
+            <DropdownItem>
+              <DropdownLink to='/wafer-fieldmapv6-ec'>Wafer Field Map V6 (ECharts)</DropdownLink>
             </DropdownItem>
             <DropdownItem>
               <DropdownLink to='/wafer-fieldmapv7'>Wafer Field Map V7</DropdownLink>
