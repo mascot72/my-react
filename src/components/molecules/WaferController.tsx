@@ -19,6 +19,15 @@ interface WaferControllerProps {
   onViewDieIndexChange?: (v: boolean) => void
   viewPoint?: boolean
   onViewPointChange?: (v: boolean) => void
+  // Point rendering controls
+  diePointRadiusPx?: number
+  onDiePointRadiusPxChange?: (v: number) => void
+  fieldPointRadiusPx?: number
+  onFieldPointRadiusPxChange?: (v: number) => void
+  diePointOpacity?: number
+  onDiePointOpacityChange?: (v: number) => void
+  fieldPointOpacity?: number
+  onFieldPointOpacityChange?: (v: number) => void
   // Field array size and offset controls
   fieldArraySize?: [number, number]
   onFieldArraySizeChange?: (size: [number, number]) => void
@@ -46,6 +55,14 @@ const WaferController: React.FC<WaferControllerProps> = ({
   onViewDieIndexChange,
   viewPoint = false,
   onViewPointChange,
+  diePointRadiusPx = 2,
+  onDiePointRadiusPxChange,
+  fieldPointRadiusPx = 3,
+  onFieldPointRadiusPxChange,
+  diePointOpacity = 0.9,
+  onDiePointOpacityChange,
+  fieldPointOpacity = 0.5,
+  onFieldPointOpacityChange,
   fieldArraySize = [10, 10],
   onFieldArraySizeChange,
   offsetMicrometers = [0, 0],
@@ -127,6 +144,68 @@ const WaferController: React.FC<WaferControllerProps> = ({
             View Point
           </label>
         </div>
+
+        {viewPoint && (
+          <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px dashed #e0e0e0' }}>
+            <label className={styles.label}>Point Size / Opacity</label>
+
+            <div className={styles.rangeRow} style={{ marginTop: 6 }}>
+              <div className={styles.caption} style={{ width: 120 }}>Die Radius (px)</div>
+              <input
+                type='range'
+                min={1}
+                max={8}
+                step={1}
+                value={diePointRadiusPx}
+                onChange={(e) => onDiePointRadiusPxChange && onDiePointRadiusPxChange(Number(e.target.value))}
+                style={{ flex: 1 }}
+              />
+              <div style={{ width: 40, textAlign: 'right' }}>{diePointRadiusPx}</div>
+            </div>
+
+            <div className={styles.rangeRow} style={{ marginTop: 6 }}>
+              <div className={styles.caption} style={{ width: 120 }}>Field Radius (px)</div>
+              <input
+                type='range'
+                min={1}
+                max={10}
+                step={1}
+                value={fieldPointRadiusPx}
+                onChange={(e) => onFieldPointRadiusPxChange && onFieldPointRadiusPxChange(Number(e.target.value))}
+                style={{ flex: 1 }}
+              />
+              <div style={{ width: 40, textAlign: 'right' }}>{fieldPointRadiusPx}</div>
+            </div>
+
+            <div className={styles.rangeRow} style={{ marginTop: 6 }}>
+              <div className={styles.caption} style={{ width: 120 }}>Die Opacity</div>
+              <input
+                type='range'
+                min={0.1}
+                max={1}
+                step={0.05}
+                value={diePointOpacity}
+                onChange={(e) => onDiePointOpacityChange && onDiePointOpacityChange(Number(e.target.value))}
+                style={{ flex: 1 }}
+              />
+              <div style={{ width: 40, textAlign: 'right' }}>{diePointOpacity.toFixed(2)}</div>
+            </div>
+
+            <div className={styles.rangeRow} style={{ marginTop: 6 }}>
+              <div className={styles.caption} style={{ width: 120 }}>Field Opacity</div>
+              <input
+                type='range'
+                min={0.1}
+                max={1}
+                step={0.05}
+                value={fieldPointOpacity}
+                onChange={(e) => onFieldPointOpacityChange && onFieldPointOpacityChange(Number(e.target.value))}
+                style={{ flex: 1 }}
+              />
+              <div style={{ width: 40, textAlign: 'right' }}>{fieldPointOpacity.toFixed(2)}</div>
+            </div>
+          </div>
+        )}
 
         <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid #e0e0e0' }}>
           <label className={styles.label}>Field Array Size</label>

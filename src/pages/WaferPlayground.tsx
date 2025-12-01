@@ -10,6 +10,10 @@ const WaferPlayground: React.FC = () => {
   const [viewDieSequence, setViewDieSequence] = useState(false)
   const [viewDieIndex, setViewDieIndex] = useState(false)
   const [viewPoint, setViewPoint] = useState(false)
+  const [diePointRadiusPx, setDiePointRadiusPx] = useState<number>(2)
+  const [fieldPointRadiusPx, setFieldPointRadiusPx] = useState<number>(3)
+  const [diePointOpacity, setDiePointOpacity] = useState<number>(0.9)
+  const [fieldPointOpacity, setFieldPointOpacity] = useState<number>(0.5)
   const [fieldArraySize, setFieldArraySize] = useState<[number, number]>([10, 10])
   const [offsetMicrometers, setOffsetMicrometers] = useState<[number, number]>([0, 0])
   const [fieldSizeMicrometers, setFieldSizeMicrometers] = useState<[number, number]>([20000, 30000])
@@ -86,6 +90,10 @@ const WaferPlayground: React.FC = () => {
               mergeOptions={{ enabled: false }} 
               enablePointData={true}
               viewPoint={viewPoint}
+              diePointRadiusPx={diePointRadiusPx}
+              fieldPointRadiusPx={fieldPointRadiusPx}
+              diePointOpacity={diePointOpacity}
+              fieldPointOpacity={fieldPointOpacity}
             />
           </div>
         </div>
@@ -108,6 +116,14 @@ const WaferPlayground: React.FC = () => {
             onViewDieIndexChange={(v) => setViewDieIndex(v)}
             viewPoint={viewPoint}
             onViewPointChange={(v) => setViewPoint(v)}
+            diePointRadiusPx={diePointRadiusPx}
+            onDiePointRadiusPxChange={setDiePointRadiusPx}
+            fieldPointRadiusPx={fieldPointRadiusPx}
+            onFieldPointRadiusPxChange={setFieldPointRadiusPx}
+            diePointOpacity={diePointOpacity}
+            onDiePointOpacityChange={setDiePointOpacity}
+            fieldPointOpacity={fieldPointOpacity}
+            onFieldPointOpacityChange={setFieldPointOpacity}
             fieldArraySize={fieldArraySize}
             onFieldArraySizeChange={setFieldArraySize}
             offsetMicrometers={offsetMicrometers}
