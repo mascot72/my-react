@@ -2,6 +2,7 @@
   "compilerOptions": {
     "baseUrl": "./src", // 기본 경로를 src로 설정
     "target": "esnext",
+    "allowJs": true,
     "paths": {
       "@/*": ["./*"], // @를 src 디렉터리로 매핑
       "@components/*": ["./components/*"]
