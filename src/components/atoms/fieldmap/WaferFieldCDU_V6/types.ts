@@ -48,6 +48,29 @@ export interface MergeOptions {
   threshold?: number
 }
 
+// PointData 구조: Die-Map과 Field-Map을 위한 포인트 데이터
+export interface DiePoint {
+  x: number // mm 단위 x 좌표
+  y: number // mm 단위 y 좌표
+  value: number | null // CDU 값
+  fieldIndex?: number // 소속 필드 인덱스
+  dieIndex?: number // 필드 내 die 인덱스
+}
+
+export interface FieldPoint {
+  x: number // mm 단위 필드 중심 x 좌표
+  y: number // mm 단위 필드 중심 y 좌표
+  value: number | null // 필드 평균 CDU 값
+  shotIndex?: number // shot 인덱스
+  fieldGridX?: number // 필드 그리드 X 좌표 (중앙 기준)
+  fieldGridY?: number // 필드 그리드 Y 좌표 (중앙 기준)
+}
+
+export interface PointDataSet {
+  diePoints: DiePoint[] // 모든 die의 포인트 데이터
+  fieldPoints: FieldPoint[] // 모든 field의 포인트 데이터
+}
+
 export interface WaferFieldCDU_V6Props {
   cduSeed?: number
   cduData?: (number | null)[]
@@ -59,6 +82,8 @@ export interface WaferFieldCDU_V6Props {
     clientY?: number
   ) => void
   mergeOptions?: MergeOptions
+  // Point data mode
+  enablePointData?: boolean // true면 pointData 기반 렌더링 사용
   // Controller props (moved UI controls to external controller)
   showFullGrid?: boolean
   onShowFullGridChange?: (v: boolean) => void

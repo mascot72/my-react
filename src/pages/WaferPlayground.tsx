@@ -71,7 +71,20 @@ const WaferPlayground: React.FC = () => {
           >
           <div
             style={wrapperStyle}>
-            <WaferFieldCDU_V6 cduSeed={seed} zoom={zoom} showValues={showValues} showFullGrid={showFullGrid} viewShotSequence={viewShotSequence} viewDieSequence={viewDieSequence} viewDieIndex={viewDieIndex} fieldArraySize={fieldArraySize} offsetMicrometers={offsetMicrometers} fieldSizeMicrometers={fieldSizeMicrometers} />
+            <WaferFieldCDU_V6 
+              cduSeed={seed} 
+              zoom={zoom} 
+              showValues={showValues} 
+              showFullGrid={showFullGrid} 
+              viewShotSequence={viewShotSequence} 
+              viewDieSequence={viewDieSequence} 
+              viewDieIndex={viewDieIndex} 
+              fieldArraySize={fieldArraySize} 
+              offsetMicrometers={offsetMicrometers} 
+              fieldSizeMicrometers={fieldSizeMicrometers}
+              mergeOptions={{ enabled: false }} 
+              enablePointData={true}
+            />
           </div>
         </div>
 

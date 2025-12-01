@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react'
 import type { WaferFieldCDU_V6Props } from './types'
-import { useCDUData, useMergeGroups, useFieldRenderItems } from './hooks'
+import { useCDUData, useMergeGroups, useFieldRenderItems, usePointData } from './hooks'
 import { WaferOutline, ColorBar, FieldGroup, CoordinateGrid } from './components'
 
 const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
@@ -8,7 +8,8 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
   cduData,
   showValues = true,
   onFieldHover,
-  mergeOptions = { enabled: false, threshold: 0.05 },
+  mergeOptions = { enabled: false, threshold: 0.05 }, // mergeGroup 기본적으로 비활성화
+  enablePointData = false, // pointData 모드 사용 여부
   // controller props (defaults maintained here)
   showFullGrid = false,
   viewDieSequence = false,
@@ -53,7 +54,7 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
 
   // fieldArraySize와 mergeOptions도 참조 안정성이 필요할 수 있어 memoize 합니다.
   const memoFieldArraySize = useMemo(() => fieldArraySize ?? [10, 10], [fieldArraySize])
-  const memoMergeOptions = useMemo(() => mergeOptions ?? { enabled: true, threshold: 0.05 }, [mergeOptions])
+  const memoMergeOptions = useMemo(() => mergeOptions ?? { enabled: false, threshold: 0.05 }, [mergeOptions])
 
   // DEBUG: offset과 field size 변경 확인
   console.log('WaferFieldCDU_V6 rendered with offsetMicrometers:', offsetMicrometers, 'fieldSizeMicrometers:', fieldSizeMicrometers, 'fieldSize (mm):', [fieldWidth, fieldHeight])
@@ -112,6 +113,21 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
     dieCols,
     dieRows,
   })
+
+  // PointData 생성 (usePointData=true일 때 사용)
+  const pointDataSet = usePointData({
+    fields,
+  })
+
+  // DEBUG: pointData 출력
+  if (enablePointData) {
+    console.log('PointDataSet:', {
+      diePointsCount: pointDataSet.diePoints.length,
+      fieldPointsCount: pointDataSet.fieldPoints.length,
+      sampleDiePoints: pointDataSet.diePoints.slice(0, 5),
+      sampleFieldPoints: pointDataSet.fieldPoints.slice(0, 5),
+    })
+  }
 
   const mm2px = (mm: number) => mm * scale
 
