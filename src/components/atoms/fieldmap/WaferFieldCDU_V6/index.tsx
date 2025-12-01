@@ -16,6 +16,7 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
   diePointOpacity,
   fieldPointOpacity,
   showOutlinesInPointMode = true,
+  showPointLabels = false,
   // controller props (defaults maintained here)
   showFullGrid = false,
   viewDieSequence = false,
@@ -274,6 +275,7 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
                 fieldPointRadiusPx={fieldPointRadiusPx}
                 diePointOpacity={diePointOpacity}
                 fieldPointOpacity={fieldPointOpacity}
+                showLabels={showPointLabels}
                 onDieHover={(info) =>
                   setTooltip({ kind: 'die', x: info.x, y: info.y, value: info.value, label: `Die ${info.dieIndex ?? ''}` })
                 }

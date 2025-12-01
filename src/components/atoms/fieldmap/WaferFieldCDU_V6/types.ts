@@ -91,6 +91,7 @@ export interface WaferFieldCDU_V6Props {
   diePointOpacity?: number
   fieldPointOpacity?: number
   showOutlinesInPointMode?: boolean
+  showPointLabels?: boolean
   // Controller props (moved UI controls to external controller)
   showFullGrid?: boolean
   onShowFullGridChange?: (v: boolean) => void

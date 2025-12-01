@@ -14,6 +14,8 @@ const WaferPlayground: React.FC = () => {
   const [fieldPointRadiusPx, setFieldPointRadiusPx] = useState<number>(3)
   const [diePointOpacity, setDiePointOpacity] = useState<number>(0.9)
   const [fieldPointOpacity, setFieldPointOpacity] = useState<number>(0.5)
+  const [showPointLabels, setShowPointLabels] = useState(false)
+  const [showOutlinesInPointMode, setShowOutlinesInPointMode] = useState(true)
   const [fieldArraySize, setFieldArraySize] = useState<[number, number]>([10, 10])
   const [offsetMicrometers, setOffsetMicrometers] = useState<[number, number]>([0, 0])
   const [fieldSizeMicrometers, setFieldSizeMicrometers] = useState<[number, number]>([20000, 30000])
@@ -94,6 +96,8 @@ const WaferPlayground: React.FC = () => {
               fieldPointRadiusPx={fieldPointRadiusPx}
               diePointOpacity={diePointOpacity}
               fieldPointOpacity={fieldPointOpacity}
+              showPointLabels={showPointLabels}
+              showOutlinesInPointMode={showOutlinesInPointMode}
             />
           </div>
         </div>
@@ -124,6 +128,10 @@ const WaferPlayground: React.FC = () => {
             onDiePointOpacityChange={setDiePointOpacity}
             fieldPointOpacity={fieldPointOpacity}
             onFieldPointOpacityChange={setFieldPointOpacity}
+            showPointLabels={showPointLabels}
+            onShowPointLabelsChange={setShowPointLabels}
+            showOutlinesInPointMode={showOutlinesInPointMode}
+            onShowOutlinesInPointModeChange={setShowOutlinesInPointMode}
             fieldArraySize={fieldArraySize}
             onFieldArraySizeChange={setFieldArraySize}
             offsetMicrometers={offsetMicrometers}

@@ -28,6 +28,10 @@ interface WaferControllerProps {
   onDiePointOpacityChange?: (v: number) => void
   fieldPointOpacity?: number
   onFieldPointOpacityChange?: (v: number) => void
+  showPointLabels?: boolean
+  onShowPointLabelsChange?: (v: boolean) => void
+  showOutlinesInPointMode?: boolean
+  onShowOutlinesInPointModeChange?: (v: boolean) => void
   // Field array size and offset controls
   fieldArraySize?: [number, number]
   onFieldArraySizeChange?: (size: [number, number]) => void
@@ -69,6 +73,10 @@ const WaferController: React.FC<WaferControllerProps> = ({
   onOffsetMicrometersChange,
   fieldSizeMicrometers = [20000, 30000],
   onFieldSizeMicrometersChange,
+  showPointLabels = false,
+  onShowPointLabelsChange,
+  showOutlinesInPointMode = true,
+  onShowOutlinesInPointModeChange,
 }) => {
 
   return (
@@ -203,6 +211,16 @@ const WaferController: React.FC<WaferControllerProps> = ({
                 style={{ flex: 1 }}
               />
               <div style={{ width: 40, textAlign: 'right' }}>{fieldPointOpacity.toFixed(2)}</div>
+            </div>
+
+            <div className={styles.toggleRow} style={{ marginTop: 8 }}>
+              <input id='point-labels' type='checkbox' checked={showPointLabels} onChange={(e) => onShowPointLabelsChange && onShowPointLabelsChange(e.target.checked)} />
+              <label htmlFor='point-labels' className={styles.caption}>Show point labels</label>
+            </div>
+
+            <div className={styles.toggleRow}>
+              <input id='point-outlines' type='checkbox' checked={showOutlinesInPointMode} onChange={(e) => onShowOutlinesInPointModeChange && onShowOutlinesInPointModeChange(e.target.checked)} />
+              <label htmlFor='point-outlines' className={styles.caption}>Show outlines</label>
             </div>
           </div>
         )}
