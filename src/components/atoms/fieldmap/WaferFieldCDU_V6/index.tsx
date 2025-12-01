@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react'
 import type { WaferFieldCDU_V6Props } from './types'
 import { useCDUData, useMergeGroups, useFieldRenderItems, usePointData } from './hooks'
-import { WaferOutline, ColorBar, FieldGroup, CoordinateGrid, PointLayer } from './components'
+import { WaferOutline, ColorBar, FieldGroup, CoordinateGrid, PointLayer, OutlineLayer } from './components'
 
 const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
   cduSeed,
@@ -11,6 +11,11 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
   mergeOptions = { enabled: false, threshold: 0.05 }, // mergeGroup 기본적으로 비활성화
   enablePointData = false, // pointData 모드 사용 여부
   viewPoint = false, // 포인트 렌더링 토글
+  diePointRadiusPx,
+  fieldPointRadiusPx,
+  diePointOpacity,
+  fieldPointOpacity,
+  showOutlinesInPointMode = true,
   // controller props (defaults maintained here)
   showFullGrid = false,
   viewDieSequence = false,
@@ -140,6 +145,16 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
   const [hoverField, setHoverField] = useState<string | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 })
+  const [tooltip, setTooltip] = useState<
+    | {
+        kind: 'die' | 'field'
+        x: number
+        y: number
+        value: number | null
+        label?: string
+      }
+    | null
+  >(null)
 
   // items to render (respect showFullGrid)
   const renderItems = fieldRenderItems.filter((item) => item.included || showFullGrid)
@@ -248,12 +263,43 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
           }}>
           {/* Rect 기반 vs Point 기반 렌더링 토글 */}
           {enablePointData && viewPoint ? (
-            <PointLayer
-              diePoints={pointDataSet.diePoints}
-              fieldPoints={pointDataSet.fieldPoints}
-              mm2px={mm2px}
-              cduToColor={cduToColor}
-            />
+            <>
+              {/* Points first */}
+              <PointLayer
+                diePoints={pointDataSet.diePoints}
+                fieldPoints={pointDataSet.fieldPoints}
+                mm2px={mm2px}
+                cduToColor={cduToColor}
+                diePointRadiusPx={diePointRadiusPx}
+                fieldPointRadiusPx={fieldPointRadiusPx}
+                diePointOpacity={diePointOpacity}
+                fieldPointOpacity={fieldPointOpacity}
+                onDieHover={(info) =>
+                  setTooltip({ kind: 'die', x: info.x, y: info.y, value: info.value, label: `Die ${info.dieIndex ?? ''}` })
+                }
+                onFieldHover={(info) => {
+                  setTooltip({ kind: 'field', x: info.x, y: info.y, value: info.value, label: info.shotIndex !== undefined ? `Shot ${info.shotIndex}` : 'Field' })
+                  if (onFieldHover) {
+                    onFieldHover(
+                      { id: `field-${info.x}-${info.y}`, avgCdu: info.value, cx: info.x, cy: info.y },
+                      undefined,
+                      undefined
+                    )
+                  }
+                }}
+                onHoverEnd={() => setTooltip(null)}
+              />
+              {/* Outlines on top for visibility */}
+              {showOutlinesInPointMode && (
+                <OutlineLayer
+                  items={fieldRenderItems.filter((item) => item.included || showFullGrid)}
+                  dieWidth={dieWidth}
+                  dieHeight={dieHeight}
+                  mm2px={mm2px}
+                  showShotSequence={viewShotSequence}
+                />
+              )}
+            </>
           ) : (
             fieldRenderItems
               .filter(item => item.included || showFullGrid)
@@ -294,6 +340,21 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
                   showShotSequence={viewShotSequence}
                 />
               ))
+          )}
+
+          {/* Tooltip (SVG) */}
+          {tooltip && (
+            <g transform={`translate(${mm2px(tooltip.x)} ${mm2px(tooltip.y)})`} pointerEvents='none'>
+              <g transform={`translate(8, -8)`}>
+                <rect x={0} y={-24} width={120} height={30} rx={6} fill='rgba(0,0,0,0.7)' />
+                <text x={8} y={-8} fontSize={11} fill='#fff' fontWeight='bold'>
+                  {tooltip.label ?? (tooltip.kind === 'die' ? 'Die' : 'Field')}
+                </text>
+                <text x={8} y={6} fontSize={11} fill='#fff'>
+                  {tooltip.value == null ? 'N/A' : `CDU: ${tooltip.value.toFixed(3)}`}
+                </text>
+              </g>
+            </g>
           )}
 
           {/* 좌표 눈금 */}
