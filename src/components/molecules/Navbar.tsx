@@ -167,6 +167,9 @@ const Navbar: React.FC = () => {
             <DropdownItem>
               <DropdownLink to='/cduchart'>Field Cdu Chart</DropdownLink>
             </DropdownItem>
+            <DropdownItem>
+              <DropdownLink to='/wafer9'>Wafer Map V9</DropdownLink>
+            </DropdownItem>
           </Dropdown>
         </NavItem>
       </NavList>

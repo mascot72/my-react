@@ -49,3 +49,31 @@ TDD에서 테스트는 구현 전에 작성되어야 하므로, 테스트 파일
 4. 리팩토링 및 개선:
 
 - 기능이 구현된 후, 코드가 깨끗하고 효율적인지 점검하며 리팩토링을 합니다. 이때도 기존 테스트가 통과하는지 확인하여 리팩토링 후에도 기존 기능이 잘 동작하는지 보장합니다.
+
+
+
+
+Shot index (col,row)
+     ↓
+Shot physical origin (shotX,shotY)
+dieLocalIndex: dieIndex % splitX
+shotIndex * shotWidth +
+ (shotLocalX: dieLocalIndex * dieWidth + dieX) + offsetX
+     ↓
+Shot 내부의 die index (dieX,dieY)
+     ↓
+global die coordinate
+     ↓
+die 측정값 = shot 측정값 상속
+
+[Transform]
+[Die to Shot based]
+1. shotIndex: floor(dieIndexX / splitX)
+2. innerDieIndex: dieIndex % splitX
+3. ShotX: innerDieIndex * dieWidth + dieX
+4. ShotGlobalX: shotIndex * shotWidth + ShotX + offsetX
+
+[Shot to Die based]
+1. innerDieIndexX: floor(shotX / dieWidth)
+2. dieX: shotX % dieWidth
+3. dieIndexX: shotIndexX * splitX + innerDieIndexX

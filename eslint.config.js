@@ -8,7 +8,15 @@ export default tseslint.config(
   { ignores: ['dist'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
-    files: ['**/*.{ts,tsx}'],
+    files: ['**/*.{ts,tsx,js,jsx}'],
+    settings: {
+      // Allow ESLint (with import plugin, if later enabled) to resolve TS path aliases like @components/*
+      'import/resolver': {
+        typescript: {
+          project: ['./tsconfig.app.json', './tsconfig.path.json'],
+        },
+      },
+    },
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,

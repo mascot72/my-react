@@ -23,14 +23,16 @@ import ColorPalette from '../components/molecules/ColorTheme/PaletteManager.tsx'
 import WaferHeatMap from '../components/molecules/WaferMap/WaferHeatMap.tsx'
 import WaferShotMap from '../components/molecules/DieMap/ShotMap'
 
-import FieldMap from '../components/atoms/fieldmap/FieldMap.tsx'
-import FieldMapRect from '../components/atoms/fieldmap/FieldMapRectVer.tsx'
-import FieldMapSvg from '../components/atoms/fieldmap/FieldMapSvg.tsx'
+import FieldMap from '@components/atoms/fieldmap/FieldMap.tsx'
+import FieldMapRect from '@components/atoms/fieldmap/FieldMapRectVer.tsx'
+import FieldMapSvg from '@components/atoms/fieldmap/FieldMapSvg.tsx'
 import WaferPlayground from '../pages/WaferPlayground'
 import WaferFieldCDURealisticV7 from '../components/atoms/fieldmap/WaferFieldCDURealisticV7.tsx'
 import WaferFieldCDUV8 from '../components/atoms/fieldmap/WaferFieldCDUV8.tsx'
-import RnD from '../components/atoms/fieldmap/RnD'
-import WaferFieldCDUChart from '../components/atoms/fieldmap/WaferFieldCduChart'
+import RnD from '@components/atoms/fieldmap/RnD'
+import WaferFieldCDUChart from '@components/atoms/fieldmap/WaferFieldCduChart'
+
+import WaferMap9 from '@/pages/WaferMap9'
 
 function AppRouter() {
   return (
@@ -83,6 +85,7 @@ function AppRouter() {
         <Route path='/wafer-fieldmapv8' element={<WaferFieldCDUV8 />} /> {/* WaferField 맵 페이지 추가 */}
         <Route path='/rnd' element={<RnD />} /> {/* Field 맵 페이지 추가 */}
         <Route path='/cduchart' element={<WaferFieldCDUChart />} /> {/* Field 맵 페이지 추가 */}
+        <Route path='/wafer9' element={<WaferMap9 />} /> {/* Wafer 맵 9 페이지 추가 */}
       </Route>
       {/* 404 페이지 */}
       <Route path='*' element={<NotFound />} />
