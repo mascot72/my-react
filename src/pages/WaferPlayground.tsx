@@ -36,7 +36,7 @@ const WaferPlayground: React.FC = () => {
   const waferContainerStyle: React.CSSProperties = {
     flex: 1,
     minHeight: 'calc(100vh - 64px)',
-    overflow: 'hidden',
+    overflow: 'auto',
     borderRadius: 12,
     background: '#fff',
     boxShadow: '0 10px 30px rgba(20,30,60,0.06)',

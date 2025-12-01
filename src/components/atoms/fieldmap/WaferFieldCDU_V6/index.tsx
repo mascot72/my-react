@@ -8,13 +8,13 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
   cduData,
   showValues = true,
   onFieldHover,
-  mergeOptions = { enabled: true, threshold: 0.05 },
+  mergeOptions = { enabled: false, threshold: 0.05 },
   // controller props (defaults maintained here)
   showFullGrid = false,
   viewDieSequence = false,
   viewDieIndex = false,
   viewShotSequence = false,
-  fieldArraySize = [10, 10],
+  fieldArraySize = [14, 13],
   offsetMicrometers = [0, 0],
   fieldSizeMicrometers = [20000, 30000],
 }) => {

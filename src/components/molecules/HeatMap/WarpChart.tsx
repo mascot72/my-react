@@ -17,7 +17,7 @@ const WarpChart: React.FC = () => {
   const [power, setPower] = useState(heatmapConfig.power)
   const [minOpacity, setMinOpacity] = useState(heatmapConfig.minOpacity)
   const [maxOpacity, setMaxOpacity] = useState(heatmapConfig.maxOpacity)
-  const [count, setCount] = useState(30)
+  const [count, setCount] = useState(40)
   const [showPoints, setShowPoints] = useState(true)
   const [pointOnTop, setPointOnTop] = useState(true)
   const [dieX, setDieX] = useState(8)
