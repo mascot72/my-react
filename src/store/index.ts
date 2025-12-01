@@ -1,3 +1,7 @@
+// DEPRECATED: This store is replaced by src/app/store.ts
+// Please import from '@/app/store' instead.
+// This file is kept temporarily for reference and will be removed in the next major version.
+
 import { configureStore } from '@reduxjs/toolkit'
 import { apiSlice } from '../features/user/apiSlice'
 
