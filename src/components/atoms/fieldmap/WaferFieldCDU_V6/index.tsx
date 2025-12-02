@@ -17,6 +17,13 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
   fieldPointOpacity,
   showOutlinesInPointMode = true,
   showPointLabels = false,
+  // outside & field fill & fit
+  outsidePointColor = '#9aa3b2',
+  outsideDiePointOpacity = 0.35,
+  outsideFieldPointOpacity = 0.25,
+  showFieldFill = false,
+  fieldFillOpacity = 0.35,
+  fitToContent = true,
   // controller props (defaults maintained here)
   showFullGrid = false,
   viewDieSequence = false,
@@ -124,6 +131,7 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
   // PointData 생성 (enablePointData=true일 때 사용)
   const pointDataSet = usePointData({
     fields,
+    includeNullDies: !fitToContent,
   })
 
   // DEBUG: pointData 출력
@@ -275,6 +283,12 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
                 fieldPointRadiusPx={fieldPointRadiusPx}
                 diePointOpacity={diePointOpacity}
                 fieldPointOpacity={fieldPointOpacity}
+                waferCenter={[offsetMmX, offsetMmY]}
+                waferRadius={waferRadius}
+                clipToWafer={fitToContent}
+                outsidePointColor={outsidePointColor}
+                outsideDiePointOpacity={outsideDiePointOpacity}
+                outsideFieldPointOpacity={outsideFieldPointOpacity}
                 showLabels={showPointLabels}
                 onDieHover={(info) =>
                   setTooltip({ kind: 'die', x: info.x, y: info.y, value: info.value, label: `Die ${info.dieIndex ?? ''}` })
@@ -315,6 +329,8 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
                   mm2px={mm2px}
                   cduToColor={cduToColor}
                   showValues={showValues}
+                  showFieldFill={showFieldFill}
+                  fieldFillOpacity={fieldFillOpacity}
                   hoverField={hoverField}
                   onMouseEnter={(fieldKey, e) => {
                     setHoverField(fieldKey)

@@ -97,6 +97,12 @@ export interface WaferFieldCDU_V6Props {
   gridLineWidth?: number // 그리드 선 두께 (px)
   centerAxisCoordinates?: boolean // true면 축 라벨을 중앙(wafer center) 기준 상대 좌표로 표시
   fitToContent?: boolean // true면 축 범위를 필드/포인트 bbox로 맞춤(작아지면 직관적으로 축소)
+  // Outside point styling & field fill (SVG/ECharts 공통)
+  outsidePointColor?: string
+  outsideDiePointOpacity?: number
+  outsideFieldPointOpacity?: number
+  showFieldFill?: boolean
+  fieldFillOpacity?: number
   // Controller props (moved UI controls to external controller)
   showFullGrid?: boolean
   onShowFullGridChange?: (v: boolean) => void

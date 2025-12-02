@@ -20,6 +20,11 @@ const WaferEChartsPlayground: React.FC = () => {
   const [gridLineColor, setGridLineColor] = useState('#eeeeee')
   const [gridLineWidth, setGridLineWidth] = useState(1)
   const [fitToContent, setFitToContent] = useState(true)
+  const [outsidePointColor, setOutsidePointColor] = useState('#9aa3b2')
+  const [outsideDiePointOpacity, setOutsideDiePointOpacity] = useState(0.35)
+  const [outsideFieldPointOpacity, setOutsideFieldPointOpacity] = useState(0.25)
+  const [showFieldFill, setShowFieldFill] = useState(false)
+  const [fieldFillOpacity, setFieldFillOpacity] = useState(0.35)
   const [fieldArraySize, setFieldArraySize] = useState<[number, number]>([10, 10])
   const [offsetMicrometers, setOffsetMicrometers] = useState<[number, number]>([0, 0])
   const [fieldSizeMicrometers, setFieldSizeMicrometers] = useState<[number, number]>([20000, 30000])
@@ -93,6 +98,11 @@ const WaferEChartsPlayground: React.FC = () => {
               gridLineColor={gridLineColor}
               gridLineWidth={gridLineWidth}
               fitToContent={fitToContent}
+              outsidePointColor={outsidePointColor}
+              outsideDiePointOpacity={outsideDiePointOpacity}
+              outsideFieldPointOpacity={outsideFieldPointOpacity}
+              showFieldFill={showFieldFill}
+              fieldFillOpacity={fieldFillOpacity}
             />
           </div>
         </div>
@@ -135,6 +145,16 @@ const WaferEChartsPlayground: React.FC = () => {
             onGridLineWidthChange={setGridLineWidth}
             fitToContent={fitToContent}
             onFitToContentChange={setFitToContent}
+            outsidePointColor={outsidePointColor}
+            onOutsidePointColorChange={setOutsidePointColor}
+            outsideDiePointOpacity={outsideDiePointOpacity}
+            onOutsideDiePointOpacityChange={setOutsideDiePointOpacity}
+            outsideFieldPointOpacity={outsideFieldPointOpacity}
+            onOutsideFieldPointOpacityChange={setOutsideFieldPointOpacity}
+            showFieldFill={showFieldFill}
+            onShowFieldFillChange={setShowFieldFill}
+            fieldFillOpacity={fieldFillOpacity}
+            onFieldFillOpacityChange={setFieldFillOpacity}
             fieldArraySize={fieldArraySize}
             onFieldArraySizeChange={setFieldArraySize}
             offsetMicrometers={offsetMicrometers}

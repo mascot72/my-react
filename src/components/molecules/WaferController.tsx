@@ -41,6 +41,17 @@ interface WaferControllerProps {
   onCenterAxisCoordinatesChange?: (v: boolean) => void
   fitToContent?: boolean
   onFitToContentChange?: (v: boolean) => void
+  // Outside point & field fill (공통)
+  outsidePointColor?: string
+  onOutsidePointColorChange?: (v: string) => void
+  outsideDiePointOpacity?: number
+  onOutsideDiePointOpacityChange?: (v: number) => void
+  outsideFieldPointOpacity?: number
+  onOutsideFieldPointOpacityChange?: (v: number) => void
+  showFieldFill?: boolean
+  onShowFieldFillChange?: (v: boolean) => void
+  fieldFillOpacity?: number
+  onFieldFillOpacityChange?: (v: number) => void
   // Field array size and offset controls
   fieldArraySize?: [number, number]
   onFieldArraySizeChange?: (size: [number, number]) => void
@@ -94,6 +105,16 @@ const WaferController: React.FC<WaferControllerProps> = ({
   onCenterAxisCoordinatesChange,
   fitToContent = true,
   onFitToContentChange,
+  outsidePointColor = '#9aa3b2',
+  onOutsidePointColorChange,
+  outsideDiePointOpacity = 0.35,
+  onOutsideDiePointOpacityChange,
+  outsideFieldPointOpacity = 0.25,
+  onOutsideFieldPointOpacityChange,
+  showFieldFill = false,
+  onShowFieldFillChange,
+  fieldFillOpacity = 0.35,
+  onFieldFillOpacityChange,
 }) => {
 
   return (
@@ -239,6 +260,33 @@ const WaferController: React.FC<WaferControllerProps> = ({
               <input id='point-outlines' type='checkbox' checked={showOutlinesInPointMode} onChange={(e) => onShowOutlinesInPointModeChange && onShowOutlinesInPointModeChange(e.target.checked)} />
               <label htmlFor='point-outlines' className={styles.caption}>Show outlines</label>
             </div>
+
+            <div style={{ marginTop: 10, paddingTop: 8, borderTop: '1px dashed #e0e0e0' }}>
+              <label className={styles.label}>Outside Points</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div className={styles.caption} style={{ width: 110 }}>Color</div>
+                <input type='color' value={outsidePointColor}
+                  onChange={(e) => onOutsidePointColorChange && onOutsidePointColorChange(e.target.value)}
+                  style={{ width: 48, height: 28, padding: 0, border: '1px solid #ccc', borderRadius: 4 }}/>
+                <input type='text' value={outsidePointColor}
+                  onChange={(e) => onOutsidePointColorChange && onOutsidePointColorChange(e.target.value)}
+                  style={{ flex: 1, padding: '4px 6px', borderRadius: 4, border: '1px solid #ccc', fontFamily: 'monospace' }}/>
+              </div>
+              <div className={styles.rangeRow} style={{ marginTop: 6 }}>
+                <div className={styles.caption} style={{ width: 110 }}>Die Opacity</div>
+                <input type='range' min={0} max={1} step={0.05} value={outsideDiePointOpacity}
+                  onChange={(e) => onOutsideDiePointOpacityChange && onOutsideDiePointOpacityChange(Number(e.target.value))}
+                  style={{ flex: 1 }}/>
+                <div style={{ width: 40, textAlign: 'right' }}>{outsideDiePointOpacity.toFixed(2)}</div>
+              </div>
+              <div className={styles.rangeRow} style={{ marginTop: 6 }}>
+                <div className={styles.caption} style={{ width: 110 }}>Field Opacity</div>
+                <input type='range' min={0} max={1} step={0.05} value={outsideFieldPointOpacity}
+                  onChange={(e) => onOutsideFieldPointOpacityChange && onOutsideFieldPointOpacityChange(Number(e.target.value))}
+                  style={{ flex: 1 }}/>
+                <div style={{ width: 40, textAlign: 'right' }}>{outsideFieldPointOpacity.toFixed(2)}</div>
+              </div>
+            </div>
           </div>
         )}
 
@@ -323,6 +371,23 @@ const WaferController: React.FC<WaferControllerProps> = ({
             />
             <div style={{ width: 40, textAlign: 'right' }}>{gridLineWidth.toFixed(1)}</div>
           </div>
+        </div>
+
+        <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid #e0e0e0' }}>
+          <label className={styles.label}>Field Fill</label>
+          <div className={styles.toggleRow}>
+            <input id='field-fill' type='checkbox' checked={showFieldFill} onChange={(e) => onShowFieldFillChange && onShowFieldFillChange(e.target.checked)} />
+            <label htmlFor='field-fill' className={styles.caption}>Show field fill (avg CDU)</label>
+          </div>
+          {showFieldFill && (
+            <div className={styles.rangeRow} style={{ marginTop: 6 }}>
+              <div className={styles.caption} style={{ width: 110 }}>Fill Opacity</div>
+              <input type='range' min={0} max={1} step={0.05} value={fieldFillOpacity}
+                onChange={(e) => onFieldFillOpacityChange && onFieldFillOpacityChange(Number(e.target.value))}
+                style={{ flex: 1 }}/>
+              <div style={{ width: 40, textAlign: 'right' }}>{fieldFillOpacity.toFixed(2)}</div>
+            </div>
+          )}
         </div>
 
         <div style={{ marginTop: 12 }}>

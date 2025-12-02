@@ -10,6 +10,12 @@ interface PointLayerProps {
   fieldPointRadiusPx?: number
   diePointOpacity?: number
   fieldPointOpacity?: number
+  waferCenter?: [number, number]
+  waferRadius?: number
+  clipToWafer?: boolean
+  outsidePointColor?: string
+  outsideDiePointOpacity?: number
+  outsideFieldPointOpacity?: number
   onDieHover?: (info: { x: number; y: number; value: number | null; fieldIndex?: number; dieIndex?: number }) => void
   onFieldHover?: (info: { x: number; y: number; value: number | null; shotIndex?: number }) => void
   onHoverEnd?: () => void
@@ -25,22 +31,38 @@ export const PointLayer: React.FC<PointLayerProps> = ({
   fieldPointRadiusPx = 3,
   diePointOpacity = 0.9,
   fieldPointOpacity = 0.5,
+  waferCenter = [0, 0],
+  waferRadius = 150,
+  clipToWafer = true,
+  outsidePointColor = '#9aa3b2',
+  outsideDiePointOpacity = 0.35,
+  outsideFieldPointOpacity = 0.25,
   onDieHover,
   onFieldHover,
   onHoverEnd,
   showLabels = false,
 }) => {
+  const inside = (x: number, y: number) => {
+    const dx = x - waferCenter[0]
+    const dy = y - waferCenter[1]
+    return dx * dx + dy * dy <= (waferRadius * waferRadius + 1e-9)
+  }
   return (
     <g>
       {/* Field 중심 포인트 (배경 레이어로 약하게 표시) */}
-      {fieldPoints.map((p, idx) => (
+      {fieldPoints.map((p, idx) => {
+        const isIn = inside(p.x, p.y)
+        if (clipToWafer && !isIn) return null
+        const fill = isIn ? cduToColor(p.value ?? null) : outsidePointColor
+        const opacity = isIn ? fieldPointOpacity : outsideFieldPointOpacity
+        return (
         <g key={`fp-${idx}`}>
           <circle
             cx={mm2px(p.x)}
             cy={mm2px(p.y)}
             r={fieldPointRadiusPx}
-            fill={cduToColor(p.value ?? null)}
-            fillOpacity={fieldPointOpacity}
+            fill={fill}
+            fillOpacity={opacity}
             stroke="rgba(0,0,0,0.15)"
             strokeWidth={0.5}
             onMouseEnter={() => onFieldHover && onFieldHover({ x: p.x, y: p.y, value: p.value ?? null, shotIndex: p.shotIndex })}
@@ -59,18 +81,23 @@ export const PointLayer: React.FC<PointLayerProps> = ({
               {p.value == null ? 'N/A' : p.value.toFixed(3)}
             </text>
           )}
-        </g>
-      ))}
+        </g>)
+      })}
 
       {/* Die 포인트 (전경 레이어로 강조) */}
-      {diePoints.map((p, idx) => (
+      {diePoints.map((p, idx) => {
+        const isIn = inside(p.x, p.y)
+        if (clipToWafer && !isIn) return null
+        const fill = isIn ? cduToColor(p.value ?? null) : outsidePointColor
+        const opacity = isIn ? diePointOpacity : outsideDiePointOpacity
+        return (
         <g key={`dp-${idx}`}>
           <circle
             cx={mm2px(p.x)}
             cy={mm2px(p.y)}
             r={diePointRadiusPx}
-            fill={cduToColor(p.value ?? null)}
-            fillOpacity={diePointOpacity}
+            fill={fill}
+            fillOpacity={opacity}
             stroke="rgba(0,0,0,0.25)"
             strokeWidth={0.4}
             onMouseEnter={() => onDieHover && onDieHover({ x: p.x, y: p.y, value: p.value ?? null, fieldIndex: p.fieldIndex, dieIndex: p.dieIndex })}
@@ -90,8 +117,8 @@ export const PointLayer: React.FC<PointLayerProps> = ({
               {p.value == null ? 'N/A' : p.value.toFixed(3)}
             </text>
           )}
-        </g>
-      ))}
+        </g>)
+      })}
     </g>
   )
 }

@@ -27,6 +27,11 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
   gridLineColor = '#eeeeee',
   gridLineWidth = 1,
   fitToContent = true,
+  outsidePointColor = '#9aa3b2',
+  outsideDiePointOpacity = 0.35,
+  outsideFieldPointOpacity = 0.25,
+  showFieldFill = false,
+  fieldFillOpacity = 0.35,
 }) => {
   const waferRadius = 150
 
@@ -100,6 +105,15 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
   ), [pointDataSet.fieldPoints])
 
   const option = useMemo(() => {
+    // Axis extents derived from flags (used in both option and sizing)
+    const axisMinX = (showFullGrid ? bbox.minX : (fitToContent ? bbox.minX : Math.min(bbox.minX, -waferRadius)))
+    const axisMaxX = (showFullGrid ? bbox.maxX : (fitToContent ? bbox.maxX : Math.max(bbox.maxX, waferRadius)))
+    const axisMinY = (showFullGrid ? bbox.minY : (fitToContent ? bbox.minY : Math.min(bbox.minY, -waferRadius)))
+    const axisMaxY = (showFullGrid ? bbox.maxY : (fitToContent ? bbox.maxY : Math.max(bbox.maxY, waferRadius)))
+
+    // Grid paddings (keep in sync with container size calc below)
+    const gridPadding = { left: 40, right: 20, top: 60, bottom: 40 }
+
     // Prepare rect data
     const fieldRects = fields.map((f, fi) => ({
       x: f.cx - fieldWidth / 2,
@@ -126,7 +140,7 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
       return corners.every(([px, py]) => {
         const dx = px - cx
         const dy = py - cy
-        return dx * dx + dy * dy <= r * r + 1e-9
+        return dx * dx + dy * dy < r * r
       })
     }
 
@@ -144,10 +158,68 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
     )
     const includedDieRects = dieRectsRaw.filter(isRectFullyInsideCircle)
 
+    // Normalize sequences/indexes to match SVG rules
+    // Global die sequence: left-top -> right-bottom across ALL dies
+    // Die index (per-field): left-bottom -> right-top
+    const recomputedDieSequence = new Map<string, number>()
+    const recomputedDieIndex = new Map<string, number>()
+
+    // Global sequence over ALL dies (even those not visible), left-top -> right-bottom
+    const globalDieSorted = dieRectsRaw.slice().sort((a, b) => (a.y === b.y ? a.x - b.x : b.y - a.y))
+    globalDieSorted.forEach((dr, i) => {
+      recomputedDieSequence.set(`${dr.fieldIndex}:${dr.dieIndex}`, i)
+    })
+
+    // Per-field index bottom-first over ALL dies in each field (including hidden)
+    const byField = new Map<number, typeof dieRectsRaw>()
+    dieRectsRaw.forEach((dr) => {
+      const key = dr.fieldIndex as number
+      if (!byField.has(key)) byField.set(key, [])
+      byField.get(key)!.push(dr)
+    })
+    byField.forEach((list, fieldIdx) => {
+      const lbSorted = list.slice().sort((a, b) => (a.y === b.y ? a.x - b.x : a.y - b.y))
+      lbSorted.forEach((dr, i) => {
+        recomputedDieIndex.set(`${fieldIdx}:${dr.dieIndex}`, i)
+      })
+    })
+
+    // Field(site) sequence (shot): left-top -> right-bottom over field rects
+    // (computed after includedFieldRects below)
+
+    // Build a key set for dies whose rects are fully inside wafer (SVG parity rule)
+    const includedDieKeySet = new Set<string>()
+    includedDieRects.forEach((dr) => {
+      if (typeof dr.fieldIndex === 'number' && typeof dr.dieIndex === 'number') {
+        includedDieKeySet.add(`${dr.fieldIndex}:${dr.dieIndex}`)
+      }
+    })
+
     // Field 포함 규칙: 해당 필드의 die 중 하나라도 fully-inside면 필드 rect를 온전히 표시
     const fieldHasValidDie = new Set<number>()
     includedDieRects.forEach((dr) => { if (typeof dr.fieldIndex === 'number') fieldHasValidDie.add(dr.fieldIndex) })
     const includedFieldRects = fieldRects.filter((fr) => fieldHasValidDie.has(fr.fieldIndex))
+
+    // Field(site) sequence (shot): left-top -> right-bottom over ALL field rects (global order)
+    // Visible labels will use the global sequence but only render for included fields.
+    const recomputedShotSequence = new Map<number, number>()
+    // Top first: y desc, then x asc
+    const ltFieldSorted = fieldRects.slice().sort((a, b) => (a.y === b.y ? a.x - b.x : b.y - a.y))
+    ltFieldSorted.forEach((fr, i) => { recomputedShotSequence.set(fr.fieldIndex, i) })
+
+    // Field 평균값 (완전 포함된 die 기준)
+    const fieldAvgMap = new Map<number, number | null>()
+    const sumMap = new Map<number, { s: number; c: number }>()
+    includedDieRects.forEach((dr) => {
+      if (dr.value != null && typeof dr.fieldIndex === 'number') {
+        const cur = sumMap.get(dr.fieldIndex) ?? { s: 0, c: 0 }
+        sumMap.set(dr.fieldIndex, { s: cur.s + dr.value, c: cur.c + 1 })
+      }
+    })
+    fieldRects.forEach((fr) => {
+      const agg = sumMap.get(fr.fieldIndex)
+      fieldAvgMap.set(fr.fieldIndex, agg && agg.c > 0 ? agg.s / agg.c : null)
+    })
 
     // 포인트 모드: fitToContent=true인 경우에만 웨이퍼 내부 포인트로 제한
     const isPointInsideCircle = (x: number, y: number) => {
@@ -155,16 +227,24 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
       const dy = y - offsetMmY
       return dx * dx + dy * dy <= waferRadius * waferRadius + 1e-9
     }
-    const fieldSeriesData = (!fitToContent ? rawFieldSeriesData : rawFieldSeriesData.filter((p) => {
+    // 포인트 시리즈 inside/outside 분리 (fitToContent=false면 outside도 표시)
+    const fieldInside = rawFieldSeriesData.filter((p) => {
       const x = p.value?.[0]
       const y = p.value?.[1]
       return typeof x === 'number' && typeof y === 'number' && isPointInsideCircle(x as number, y as number)
-    }))
-    const dieSeriesData = (!fitToContent ? rawDieSeriesData : rawDieSeriesData.filter((p) => {
+    })
+    const fieldOutside = rawFieldSeriesData.filter((p) => {
       const x = p.value?.[0]
       const y = p.value?.[1]
-      return typeof x === 'number' && typeof y === 'number' && isPointInsideCircle(x as number, y as number)
-    }))
+      return !(typeof x === 'number' && typeof y === 'number' && isPointInsideCircle(x as number, y as number))
+    })
+    // Die points: use fully-inside-rect rule (four corners inside wafer)
+    const dieInside = rawDieSeriesData.filter((p) =>
+      p.fieldIndex != null && p.dieIndex != null && includedDieKeySet.has(`${p.fieldIndex}:${p.dieIndex}`)
+    )
+    const dieOutside = rawDieSeriesData.filter((p) =>
+      !(p.fieldIndex != null && p.dieIndex != null && includedDieKeySet.has(`${p.fieldIndex}:${p.dieIndex}`))
+    )
 
     return {
       backgroundColor: '#ffffff',
@@ -181,11 +261,12 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
           return `${label}<br/>CDU: ${valStr}<br/>X: ${p.data?.value?.[0]}, Y: ${p.data?.value?.[1]}`
         },
       },
-      grid: { left: 40, right: 20, top: 60, bottom: 40, containLabel: false },
+      grid: { left: gridPadding.left, right: gridPadding.right, top: gridPadding.top, bottom: gridPadding.bottom, containLabel: false },
       xAxis: {
         type: 'value',
-        min: (showFullGrid ? bbox.minX : (fitToContent ? bbox.minX : Math.min(bbox.minX, -waferRadius))),
-        max: (showFullGrid ? bbox.maxX : (fitToContent ? bbox.maxX : Math.max(bbox.maxX, waferRadius))),
+        min: axisMinX,
+        max: axisMaxX,
+        scale: true,
         axisLine: { onZero: false },
         splitLine: { show: true, lineStyle: { color: gridLineColor, width: gridLineWidth } },
         axisLabel: {
@@ -197,8 +278,8 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
       },
       yAxis: {
         type: 'value',
-        min: (showFullGrid ? bbox.minY : (fitToContent ? bbox.minY : Math.min(bbox.minY, -waferRadius))),
-        max: (showFullGrid ? bbox.maxY : (fitToContent ? bbox.maxY : Math.max(bbox.maxY, waferRadius))),
+        min: axisMinY,
+        max: axisMaxY,
         axisLine: { onZero: false },
         splitLine: { show: true, lineStyle: { color: gridLineColor, width: gridLineWidth } },
         axisLabel: {
@@ -250,7 +331,7 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
         ...(!viewPoint && viewDieIndex ? [{
           name: 'DieIndexLabels',
           type: 'scatter',
-          data: includedDieRects.map((dr) => [dr.x + dr.w / 2, dr.y + dr.h / 2, dr.dieIndex]),
+          data: includedDieRects.map((dr) => [dr.x + dr.w / 2, dr.y + dr.h / 2, recomputedDieIndex.get(`${dr.fieldIndex}:${dr.dieIndex}`) ?? dr.dieIndex]),
           symbolSize: 1,
           itemStyle: { color: 'transparent' },
           label: { show: true, formatter: '{@[2]}', position: 'inside', color: '#2b6cb0', fontSize: 10 },
@@ -259,7 +340,7 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
         ...(!viewPoint && viewDieSequence ? [{
           name: 'DieSequenceLabels',
           type: 'scatter',
-          data: includedDieRects.map((dr) => [dr.x + dr.w / 2, dr.y + dr.h / 2, dr.dieSequence]),
+          data: includedDieRects.map((dr) => [dr.x + dr.w / 2, dr.y + dr.h / 2, recomputedDieSequence.get(`${dr.fieldIndex}:${dr.dieIndex}`) ?? dr.dieSequence]),
           symbolSize: 1,
           itemStyle: { color: 'transparent' },
           label: { show: true, formatter: '{@[2]}', position: 'inside', color: '#b02b6c', fontSize: 10 },
@@ -268,7 +349,7 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
         ...(viewShotSequence ? [{
           name: 'ShotLabels',
           type: 'scatter',
-          data: includedFieldRects.map((fr) => [fr.cx, fr.cy, fr.shotIndex]),
+          data: includedFieldRects.map((fr) => [fr.cx, fr.cy, recomputedShotSequence.get(fr.fieldIndex) ?? 0]),
           symbolSize: 2,
           itemStyle: { color: 'transparent' },
           label: { show: true, formatter: '{@[2]}', position: 'top', color: '#666', fontSize: 11 },
@@ -283,7 +364,9 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               const a = api as any
               const center = a.coord([offsetMmX, offsetMmY])
-              const r1 = a.size([waferRadius, 0])[0]
+              const rx = a.size([waferRadius, 0])[0]
+              const ry = a.size([0, waferRadius])[1]
+              const r1 = Math.min(rx, ry)
               return {
                 type: 'circle',
                 shape: { cx: center[0], cy: center[1], r: r1 },
@@ -342,8 +425,34 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
             z: 8,
           },
         ] : []),
-        // Die filled rects (use visualMap color)
-        {
+        // Field fill (avg CDU) behind dies
+          ...(!viewPoint && showFieldFill ? [{
+          name: 'FieldFill',
+          type: 'custom',
+          renderItem: (params: unknown, api: unknown) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const a = api as any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const idx = (params as any).dataIndex
+            const fr = includedFieldRects[idx]
+            const p1 = a.coord([fr.x, fr.y])
+            const p2 = a.coord([fr.x + fr.w, fr.y + fr.h])
+            const x = p1[0]
+            const y = p1[1]
+            const w = p2[0] - p1[0]
+            const h = p2[1] - p1[1]
+            return {
+              type: 'rect',
+              shape: { x, y, width: w, height: h },
+              style: { fill: a.visual('color'), stroke: 'none', opacity: fieldFillOpacity },
+            }
+          },
+          data: includedFieldRects.map((fr) => [fr.cx, fr.cy, fieldAvgMap.get(fr.fieldIndex) ?? null]),
+          encode: { x: 0, y: 1, value: 2 },
+          z: 0,
+        }] : []),
+        // Die filled rects (use visualMap color) - rect mode only
+        !viewPoint ? {
           name: 'DieFill',
           type: 'custom',
           renderItem: (params: unknown, api: unknown) => {
@@ -368,12 +477,12 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
           data: includedDieRects.map((dr) => [dr.x, dr.y, dr.value]),
           encode: { x: 0, y: 1, value: 2 },
           z: 1,
-        },
-        // Field points (밑 레이어)
+        } : undefined,
+        // Field points (inside)
         viewPoint ? {
           name: 'Field',
           type: 'scatter',
-          data: fieldSeriesData,
+          data: fieldInside,
           symbolSize: fieldPointRadiusPx * 2,
           itemStyle: { opacity: fieldPointOpacity },
           encode: { x: 0, y: 1 },
@@ -382,7 +491,10 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
             formatter: (arg: unknown) => {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               const p = arg as { data?: any }
-              return p.data?.value?.[2] == null ? 'N/A' : Number(p.data.value[2]).toFixed(3)
+              const v = p.data?.value?.[2]
+              if (v == null) return ''
+              const num = Number(v)
+              return Number.isNaN(num) ? '' : num.toFixed(3)
             },
             position: 'top',
             fontSize: 10,
@@ -390,11 +502,34 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
           } : undefined,
           z: 2,
         } : undefined,
-        // Die points (위 레이어)
+        // Field points (outside)
+        viewPoint && !fitToContent ? {
+          name: 'FieldOutside',
+          type: 'scatter',
+          data: fieldOutside.map((d) => ({ ...d, itemStyle: { color: outsidePointColor, opacity: outsideFieldPointOpacity } })),
+          symbolSize: fieldPointRadiusPx * 2,
+          encode: { x: 0, y: 1 },
+          label: showPointLabels ? {
+            show: true,
+            formatter: (arg: unknown) => {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const p = arg as { data?: any }
+              const v = p.data?.value?.[2]
+              if (v == null) return ''
+              const num = Number(v)
+              return Number.isNaN(num) ? '' : num.toFixed(3)
+            },
+            position: 'top',
+            fontSize: 10,
+            color: '#444',
+          } : undefined,
+          z: 2,
+        } : undefined,
+        // Die points (inside)
         viewPoint ? {
           name: 'Die',
           type: 'scatter',
-          data: dieSeriesData,
+          data: dieInside,
           symbolSize: diePointRadiusPx * 2,
           itemStyle: { opacity: diePointOpacity },
           encode: { x: 0, y: 1 },
@@ -403,7 +538,10 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
             formatter: (arg: unknown) => {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               const p = arg as { data?: any }
-              return p.data?.value?.[2] == null ? 'N/A' : Number(p.data.value[2]).toFixed(3)
+              const v = p.data?.value?.[2]
+              if (v == null) return ''
+              const num = Number(v)
+              return Number.isNaN(num) ? '' : num.toFixed(3)
             },
             position: 'bottom',
             fontSize: 10,
@@ -411,13 +549,96 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
           } : undefined,
           z: 3,
         } : undefined,
+        // Die points (outside)
+        viewPoint && !fitToContent ? {
+          name: 'DieOutside',
+          type: 'scatter',
+          data: dieOutside.map((d) => ({ ...d, itemStyle: { color: outsidePointColor, opacity: outsideDiePointOpacity } })),
+          symbolSize: diePointRadiusPx * 2,
+          encode: { x: 0, y: 1 },
+          label: showPointLabels ? {
+            show: true,
+            formatter: (arg: unknown) => {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const p = arg as { data?: any }
+              const v = p.data?.value?.[2]
+              if (v == null) return ''
+              const num = Number(v)
+              return Number.isNaN(num) ? '' : num.toFixed(3)
+            },
+            position: 'bottom',
+            fontSize: 10,
+            color: '#444',
+          } : undefined,
+          z: 3,
+        } : undefined,
+        // Die sequence labels in point mode (left-top -> right-bottom, start at 0)
+        ...(viewPoint && viewDieSequence ? [{
+          name: 'DieSequenceLabelsPoint',
+          type: 'scatter',
+          data: dieInside.map((p) => {
+            const seq = (p.fieldIndex != null && p.dieIndex != null) ? recomputedDieSequence.get(`${p.fieldIndex}:${p.dieIndex}`) : undefined
+            const x = p.value?.[0]
+            const y = p.value?.[1]
+            return [x, y, seq]
+          }),
+          symbolSize: 1,
+          itemStyle: { color: 'transparent' },
+          label: { show: true, formatter: '{@[2]}', position: 'bottom', color: '#b02b6c', fontSize: 10 },
+          z: 12,
+          encode: { x: 0, y: 1, value: 2 },
+        }] : []),
+        // Die index labels in point mode (left-bottom -> right-top, start at 0)
+        ...(viewPoint && viewDieIndex ? [{
+          name: 'DieIndexLabelsPoint',
+          type: 'scatter',
+          data: dieInside.map((p) => {
+            const idx = (p.fieldIndex != null && p.dieIndex != null) ? recomputedDieIndex.get(`${p.fieldIndex}:${p.dieIndex}`) : undefined
+            const x = p.value?.[0]
+            const y = p.value?.[1]
+            return [x, y, idx]
+          }),
+          symbolSize: 1,
+          itemStyle: { color: 'transparent' },
+          label: { show: true, formatter: '{@[2]}', position: 'bottom', color: '#2b6cb0', fontSize: 10 },
+          z: 12,
+          encode: { x: 0, y: 1, value: 2 },
+        }] : []),
       ].filter(Boolean),
     }
-  }, [bbox, showFullGrid, waferRadius, minVal, maxVal, rawFieldSeriesData, rawDieSeriesData, viewPoint, fieldPointRadiusPx, diePointRadiusPx, fieldPointOpacity, diePointOpacity, showPointLabels, fields, fieldWidth, fieldHeight, dieCols, dieRows, offsetMmX, offsetMmY, showOutlinesInPointMode, centerAxisCoordinates, gridLineColor, gridLineWidth, fitToContent, showValues, viewShotSequence, viewDieSequence, viewDieIndex])
+  }, [bbox, showFullGrid, waferRadius, minVal, maxVal, rawFieldSeriesData, rawDieSeriesData, viewPoint, fieldPointRadiusPx, diePointRadiusPx, fieldPointOpacity, diePointOpacity, showPointLabels, fields, fieldWidth, fieldHeight, dieCols, dieRows, offsetMmX, offsetMmY, showOutlinesInPointMode, centerAxisCoordinates, gridLineColor, gridLineWidth, fitToContent, showValues, viewShotSequence, viewDieSequence, viewDieIndex, showFieldFill, fieldFillOpacity, outsidePointColor, outsideDiePointOpacity, outsideFieldPointOpacity])
+
+  // Dynamically size the chart container to reflect axis extents (intuitive overflow)
+  const { containerWidthPx, containerHeightPx } = useMemo(() => {
+    const axisMinX = (showFullGrid ? bbox.minX : (fitToContent ? bbox.minX : Math.min(bbox.minX, -waferRadius)))
+    const axisMaxX = (showFullGrid ? bbox.maxX : (fitToContent ? bbox.maxX : Math.max(bbox.maxX, waferRadius)))
+    const axisMinY = (showFullGrid ? bbox.minY : (fitToContent ? bbox.minY : Math.min(bbox.minY, -waferRadius)))
+    const axisMaxY = (showFullGrid ? bbox.maxY : (fitToContent ? bbox.maxY : Math.max(bbox.maxY, waferRadius)))
+
+    const rangeX = Math.max(1, axisMaxX - axisMinX)
+    const rangeY = Math.max(1, axisMaxY - axisMinY)
+
+    // Keep base scale consistent with previous 900px for 300mm wafer
+    const basePxPerMm = 900 / (2 * waferRadius) // ~3 px/mm
+    const gridPadding = { left: 40, right: 20, top: 60, bottom: 40 }
+
+    const w = Math.round(rangeX * basePxPerMm) + gridPadding.left + gridPadding.right
+    const h = Math.round(rangeY * basePxPerMm) + gridPadding.top + gridPadding.bottom
+
+    return {
+      containerWidthPx: Math.max(600, w),
+      containerHeightPx: Math.max(600, h),
+    }
+  }, [bbox, showFullGrid, fitToContent, waferRadius])
 
   return (
-    <div style={{ width: 900, height: 900 }}>
-      <ReactECharts option={option} style={{ width: '100%', height: '100%' }} />
+    <div style={{ width: containerWidthPx, height: containerHeightPx }}>
+      <ReactECharts 
+        option={option} 
+        style={{ width: '100%', height: '100%' }}
+        notMerge={true}
+        lazyUpdate={false}
+      />
     </div>
   )
 }

@@ -17,6 +17,8 @@ interface FieldGroupProps {
   showDieIndex?: boolean
   showDieSequence?: boolean
   showShotSequence?: boolean
+  showFieldFill?: boolean
+  fieldFillOpacity?: number
 }
 
 export const FieldGroup: React.FC<FieldGroupProps> = ({
@@ -33,12 +35,26 @@ export const FieldGroup: React.FC<FieldGroupProps> = ({
   showDieIndex = false,
   showDieSequence = false,
   showShotSequence = false,
+  showFieldFill = false,
+  fieldFillOpacity = 0.35,
 }) => {
   const fieldKey = `field-${fieldIndex}-${item.fieldRect.x}-${item.fieldRect.y}`
   const { x, y, w, h } = item.fieldRect
 
   return (
     <g key={fieldIndex}>
+      {/* 필드 fill (평균 CDU) */}
+      {showFieldFill && (
+        <rect
+          x={mm2px(x)}
+          y={mm2px(y)}
+          width={mm2px(w)}
+          height={mm2px(h)}
+          fill={cduToColor(item.fieldAvgCdu)}
+          fillOpacity={fieldFillOpacity}
+          stroke='none'
+        />
+      )}
       {/* 필드 outline */}
       <rect
         x={mm2px(x)}

@@ -21,6 +21,15 @@ const WaferPlayground: React.FC = () => {
   const [fieldSizeMicrometers, setFieldSizeMicrometers] = useState<[number, number]>([20000, 30000])
   const [seed] = useState<number>(20251110)
   const [isZoomDragging, setIsZoomDragging] = useState(false)
+  const [centerAxisCoordinates, setCenterAxisCoordinates] = useState(true)
+  const [fitToContent, setFitToContent] = useState(true)
+  const [outsidePointColor, setOutsidePointColor] = useState('#9aa3b2')
+  const [outsideDiePointOpacity, setOutsideDiePointOpacity] = useState(0.35)
+  const [outsideFieldPointOpacity, setOutsideFieldPointOpacity] = useState(0.25)
+  const [showFieldFill, setShowFieldFill] = useState(false)
+  const [fieldFillOpacity, setFieldFillOpacity] = useState(0.35)
+  const [gridLineColor, setGridLineColor] = useState('#eeeeee')
+  const [gridLineWidth, setGridLineWidth] = useState(1)
 
   const containerStyle: React.CSSProperties = {
     display: 'flex',
@@ -98,6 +107,12 @@ const WaferPlayground: React.FC = () => {
               fieldPointOpacity={fieldPointOpacity}
               showPointLabels={showPointLabels}
               showOutlinesInPointMode={showOutlinesInPointMode}
+              fitToContent={fitToContent}
+              outsidePointColor={outsidePointColor}
+              outsideDiePointOpacity={outsideDiePointOpacity}
+              outsideFieldPointOpacity={outsideFieldPointOpacity}
+              showFieldFill={showFieldFill}
+              fieldFillOpacity={fieldFillOpacity}
             />
           </div>
         </div>
@@ -132,6 +147,24 @@ const WaferPlayground: React.FC = () => {
             onShowPointLabelsChange={setShowPointLabels}
             showOutlinesInPointMode={showOutlinesInPointMode}
             onShowOutlinesInPointModeChange={setShowOutlinesInPointMode}
+            centerAxisCoordinates={centerAxisCoordinates}
+            onCenterAxisCoordinatesChange={setCenterAxisCoordinates}
+            fitToContent={fitToContent}
+            onFitToContentChange={setFitToContent}
+            gridLineColor={gridLineColor}
+            onGridLineColorChange={setGridLineColor}
+            gridLineWidth={gridLineWidth}
+            onGridLineWidthChange={setGridLineWidth}
+            outsidePointColor={outsidePointColor}
+            onOutsidePointColorChange={setOutsidePointColor}
+            outsideDiePointOpacity={outsideDiePointOpacity}
+            onOutsideDiePointOpacityChange={setOutsideDiePointOpacity}
+            outsideFieldPointOpacity={outsideFieldPointOpacity}
+            onOutsideFieldPointOpacityChange={setOutsideFieldPointOpacity}
+            showFieldFill={showFieldFill}
+            onShowFieldFillChange={setShowFieldFill}
+            fieldFillOpacity={fieldFillOpacity}
+            onFieldFillOpacityChange={setFieldFillOpacity}
             fieldArraySize={fieldArraySize}
             onFieldArraySizeChange={setFieldArraySize}
             offsetMicrometers={offsetMicrometers}
