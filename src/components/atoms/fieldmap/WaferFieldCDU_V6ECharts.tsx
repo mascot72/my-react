@@ -64,7 +64,7 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
     offsetMm: [offsetMmX, offsetMmY],
   })
 
-  const pointDataSet = usePointData({ fields })
+  const pointDataSet = usePointData({ fields, includeNullDies: !fitToContent })
 
   const bbox = useMemo(() => {
     if (fields.length === 0) return { minX: -waferRadius, maxX: waferRadius, minY: -waferRadius, maxY: waferRadius }
@@ -149,25 +149,18 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
     includedDieRects.forEach((dr) => { if (typeof dr.fieldIndex === 'number') fieldHasValidDie.add(dr.fieldIndex) })
     const includedFieldRects = fieldRects.filter((fr) => fieldHasValidDie.has(fr.fieldIndex))
 
-    // 포인트 모드: 그리드가 wafer 범위를 넘지 않을 때만 wafer 내부 포인트로 제한
-    const waferSquare = {
-      minX: offsetMmX - waferRadius,
-      maxX: offsetMmX + waferRadius,
-      minY: offsetMmY - waferRadius,
-      maxY: offsetMmY + waferRadius,
-    }
-    const gridExceedsWafer = (bbox.minX < waferSquare.minX) || (bbox.maxX > waferSquare.maxX) || (bbox.minY < waferSquare.minY) || (bbox.maxY > waferSquare.maxY)
+    // 포인트 모드: fitToContent=true인 경우에만 웨이퍼 내부 포인트로 제한
     const isPointInsideCircle = (x: number, y: number) => {
       const dx = x - offsetMmX
       const dy = y - offsetMmY
       return dx * dx + dy * dy <= waferRadius * waferRadius + 1e-9
     }
-    const fieldSeriesData = (gridExceedsWafer ? rawFieldSeriesData : rawFieldSeriesData.filter((p) => {
+    const fieldSeriesData = (!fitToContent ? rawFieldSeriesData : rawFieldSeriesData.filter((p) => {
       const x = p.value?.[0]
       const y = p.value?.[1]
       return typeof x === 'number' && typeof y === 'number' && isPointInsideCircle(x as number, y as number)
     }))
-    const dieSeriesData = (gridExceedsWafer ? rawDieSeriesData : rawDieSeriesData.filter((p) => {
+    const dieSeriesData = (!fitToContent ? rawDieSeriesData : rawDieSeriesData.filter((p) => {
       const x = p.value?.[0]
       const y = p.value?.[1]
       return typeof x === 'number' && typeof y === 'number' && isPointInsideCircle(x as number, y as number)

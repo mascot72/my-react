@@ -3,6 +3,7 @@ import type { Field, PointDataSet } from '../types'
 
 interface UsePointDataOptions {
   fields: Field[]
+  includeNullDies?: boolean // true면 cdu가 null인 die도 포인트로 포함
 }
 
 /**
@@ -12,6 +13,7 @@ interface UsePointDataOptions {
  */
 export function usePointData({
   fields,
+  includeNullDies = false,
 }: UsePointDataOptions): PointDataSet {
   return useMemo(() => {
     const diePoints: PointDataSet['diePoints'] = []
@@ -39,7 +41,7 @@ export function usePointData({
 
       // Die points 추가
       field.dies.forEach((die, dieIndex) => {
-        if (die.cdu !== null) {
+        if (includeNullDies || die.cdu !== null) {
           diePoints.push({
             x: die.x,
             y: die.y,
@@ -55,5 +57,5 @@ export function usePointData({
       diePoints,
       fieldPoints,
     }
-  }, [fields])
+  }, [fields, includeNullDies])
 }
