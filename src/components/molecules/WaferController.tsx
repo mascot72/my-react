@@ -39,6 +39,8 @@ interface WaferControllerProps {
   onGridLineWidthChange?: (v: number) => void
   centerAxisCoordinates?: boolean
   onCenterAxisCoordinatesChange?: (v: boolean) => void
+  fitToContent?: boolean
+  onFitToContentChange?: (v: boolean) => void
   // Field array size and offset controls
   fieldArraySize?: [number, number]
   onFieldArraySizeChange?: (size: [number, number]) => void
@@ -90,6 +92,8 @@ const WaferController: React.FC<WaferControllerProps> = ({
   onGridLineWidthChange,
   centerAxisCoordinates = true,
   onCenterAxisCoordinatesChange,
+  fitToContent = true,
+  onFitToContentChange,
 }) => {
 
   return (
@@ -286,6 +290,10 @@ const WaferController: React.FC<WaferControllerProps> = ({
           <div className={styles.toggleRow} style={{ marginTop: 4 }}>
             <input id='center-axis' type='checkbox' checked={centerAxisCoordinates} onChange={(e) => onCenterAxisCoordinatesChange && onCenterAxisCoordinatesChange(e.target.checked)} />
             <label htmlFor='center-axis' className={styles.caption}>Center axis coordinates</label>
+          </div>
+          <div className={styles.toggleRow}>
+            <input id='fit-content' type='checkbox' checked={fitToContent} onChange={(e) => onFitToContentChange && onFitToContentChange(e.target.checked)} />
+            <label htmlFor='fit-content' className={styles.caption}>Fit axes to content</label>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
             <div className={styles.caption} style={{ width: 110 }}>Grid Color</div>

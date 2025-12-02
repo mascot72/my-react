@@ -8,6 +8,7 @@ const WaferEChartsPlayground: React.FC = () => {
   const [viewShotSequence, setViewShotSequence] = useState(false)
   const [viewDieSequence, setViewDieSequence] = useState(false)
   const [viewDieIndex, setViewDieIndex] = useState(false)
+  const [showValues, setShowValues] = useState(false)
   const [viewPoint, setViewPoint] = useState(true)
   const [diePointRadiusPx, setDiePointRadiusPx] = useState<number>(2)
   const [fieldPointRadiusPx, setFieldPointRadiusPx] = useState<number>(3)
@@ -18,6 +19,7 @@ const WaferEChartsPlayground: React.FC = () => {
   const [centerAxisCoordinates, setCenterAxisCoordinates] = useState(true)
   const [gridLineColor, setGridLineColor] = useState('#eeeeee')
   const [gridLineWidth, setGridLineWidth] = useState(1)
+  const [fitToContent, setFitToContent] = useState(true)
   const [fieldArraySize, setFieldArraySize] = useState<[number, number]>([10, 10])
   const [offsetMicrometers, setOffsetMicrometers] = useState<[number, number]>([0, 0])
   const [fieldSizeMicrometers, setFieldSizeMicrometers] = useState<[number, number]>([20000, 30000])
@@ -76,6 +78,10 @@ const WaferEChartsPlayground: React.FC = () => {
               fieldArraySize={fieldArraySize}
               offsetMicrometers={offsetMicrometers}
               fieldSizeMicrometers={fieldSizeMicrometers}
+              showValues={showValues}
+              viewShotSequence={viewShotSequence}
+              viewDieSequence={viewDieSequence}
+              viewDieIndex={viewDieIndex}
               viewPoint={viewPoint}
               diePointRadiusPx={diePointRadiusPx}
               fieldPointRadiusPx={fieldPointRadiusPx}
@@ -86,6 +92,7 @@ const WaferEChartsPlayground: React.FC = () => {
               centerAxisCoordinates={centerAxisCoordinates}
               gridLineColor={gridLineColor}
               gridLineWidth={gridLineWidth}
+              fitToContent={fitToContent}
             />
           </div>
         </div>
@@ -96,8 +103,8 @@ const WaferEChartsPlayground: React.FC = () => {
             onZoomChange={(z) => setZoom(z)}
             onZoomDragStart={() => setIsZoomDragging(true)}
             onZoomDragEnd={() => setIsZoomDragging(false)}
-            showValues={false}
-            onShowValuesChange={() => {}}
+            showValues={showValues}
+            onShowValuesChange={setShowValues}
             showFullGrid={showFullGrid}
             onShowFullGridChange={(v) => setShowFullGrid(v)}
             viewShotSequence={viewShotSequence}
@@ -126,6 +133,8 @@ const WaferEChartsPlayground: React.FC = () => {
             onGridLineColorChange={setGridLineColor}
             gridLineWidth={gridLineWidth}
             onGridLineWidthChange={setGridLineWidth}
+            fitToContent={fitToContent}
+            onFitToContentChange={setFitToContent}
             fieldArraySize={fieldArraySize}
             onFieldArraySizeChange={setFieldArraySize}
             offsetMicrometers={offsetMicrometers}
