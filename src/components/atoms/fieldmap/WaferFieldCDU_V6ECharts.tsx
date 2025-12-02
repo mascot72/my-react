@@ -87,22 +87,21 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
     return [Math.min(...vals), Math.max(...vals)]
   }, [pointDataSet.diePoints])
 
-  const dieSeriesData = useMemo(() => (
+  const rawDieSeriesData = useMemo(() => (
     pointDataSet.diePoints.map((p) => ({
       value: [p.x, p.y, p.value],
-      // 보조 정보는 tooltip에서 사용 가능
       fieldIndex: p.fieldIndex,
       dieIndex: p.dieIndex,
     }))
   ), [pointDataSet.diePoints])
 
-  const fieldSeriesData = useMemo(() => (
+  const rawFieldSeriesData = useMemo(() => (
     pointDataSet.fieldPoints.map((p) => ({ value: [p.x, p.y, p.value], shotIndex: p.shotIndex }))
   ), [pointDataSet.fieldPoints])
 
   const option = useMemo(() => {
-    // Prepare outline data
-    const fieldRects = fields.map((f) => ({
+    // Prepare rect data
+    const fieldRects = fields.map((f, fi) => ({
       x: f.cx - fieldWidth / 2,
       y: f.cy - fieldHeight / 2,
       w: fieldWidth,
@@ -110,6 +109,7 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
       shotIndex: f.shotIndex,
       cx: f.cx,
       cy: f.cy,
+      fieldIndex: fi,
     }))
     
     // Helper: check if all 4 corners of rect lie inside wafer circle
@@ -130,9 +130,7 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
       })
     }
 
-    const includedFieldRects = fieldRects.filter(isRectFullyInsideCircle)
-
-    const dieRectsRaw = fields.flatMap((f) =>
+    const dieRectsRaw = fields.flatMap((f, fi) =>
       f.dies.map((d, idx) => ({
         x: d.x - fieldWidth / dieCols / 2,
         y: d.y - fieldHeight / dieRows / 2,
@@ -141,9 +139,39 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
         value: d.cdu,
         dieIndex: d.dieIndex ?? idx,
         dieSequence: d.dieSequence ?? idx,
+        fieldIndex: fi,
       }))
     )
     const includedDieRects = dieRectsRaw.filter(isRectFullyInsideCircle)
+
+    // Field 포함 규칙: 해당 필드의 die 중 하나라도 fully-inside면 필드 rect를 온전히 표시
+    const fieldHasValidDie = new Set<number>()
+    includedDieRects.forEach((dr) => { if (typeof dr.fieldIndex === 'number') fieldHasValidDie.add(dr.fieldIndex) })
+    const includedFieldRects = fieldRects.filter((fr) => fieldHasValidDie.has(fr.fieldIndex))
+
+    // 포인트 모드: 그리드가 wafer 범위를 넘지 않을 때만 wafer 내부 포인트로 제한
+    const waferSquare = {
+      minX: offsetMmX - waferRadius,
+      maxX: offsetMmX + waferRadius,
+      minY: offsetMmY - waferRadius,
+      maxY: offsetMmY + waferRadius,
+    }
+    const gridExceedsWafer = (bbox.minX < waferSquare.minX) || (bbox.maxX > waferSquare.maxX) || (bbox.minY < waferSquare.minY) || (bbox.maxY > waferSquare.maxY)
+    const isPointInsideCircle = (x: number, y: number) => {
+      const dx = x - offsetMmX
+      const dy = y - offsetMmY
+      return dx * dx + dy * dy <= waferRadius * waferRadius + 1e-9
+    }
+    const fieldSeriesData = (gridExceedsWafer ? rawFieldSeriesData : rawFieldSeriesData.filter((p) => {
+      const x = p.value?.[0]
+      const y = p.value?.[1]
+      return typeof x === 'number' && typeof y === 'number' && isPointInsideCircle(x as number, y as number)
+    }))
+    const dieSeriesData = (gridExceedsWafer ? rawDieSeriesData : rawDieSeriesData.filter((p) => {
+      const x = p.value?.[0]
+      const y = p.value?.[1]
+      return typeof x === 'number' && typeof y === 'number' && isPointInsideCircle(x as number, y as number)
+    }))
 
     return {
       backgroundColor: '#ffffff',
@@ -392,7 +420,7 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
         } : undefined,
       ].filter(Boolean),
     }
-  }, [bbox, showFullGrid, waferRadius, minVal, maxVal, fieldSeriesData, dieSeriesData, viewPoint, fieldPointRadiusPx, diePointRadiusPx, fieldPointOpacity, diePointOpacity, showPointLabels, fields, fieldWidth, fieldHeight, dieCols, dieRows, offsetMmX, offsetMmY, showOutlinesInPointMode, centerAxisCoordinates, gridLineColor, gridLineWidth, fitToContent, showValues, viewShotSequence, viewDieSequence, viewDieIndex])
+  }, [bbox, showFullGrid, waferRadius, minVal, maxVal, rawFieldSeriesData, rawDieSeriesData, viewPoint, fieldPointRadiusPx, diePointRadiusPx, fieldPointOpacity, diePointOpacity, showPointLabels, fields, fieldWidth, fieldHeight, dieCols, dieRows, offsetMmX, offsetMmY, showOutlinesInPointMode, centerAxisCoordinates, gridLineColor, gridLineWidth, fitToContent, showValues, viewShotSequence, viewDieSequence, viewDieIndex])
 
   return (
     <div style={{ width: 900, height: 900 }}>
