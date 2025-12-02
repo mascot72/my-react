@@ -15,6 +15,9 @@ const WaferEChartsPlayground: React.FC = () => {
   const [fieldPointOpacity, setFieldPointOpacity] = useState<number>(0.5)
   const [showPointLabels, setShowPointLabels] = useState(false)
   const [showOutlinesInPointMode, setShowOutlinesInPointMode] = useState(true)
+  const [centerAxisCoordinates, setCenterAxisCoordinates] = useState(true)
+  const [gridLineColor, setGridLineColor] = useState('#eeeeee')
+  const [gridLineWidth, setGridLineWidth] = useState(1)
   const [fieldArraySize, setFieldArraySize] = useState<[number, number]>([10, 10])
   const [offsetMicrometers, setOffsetMicrometers] = useState<[number, number]>([0, 0])
   const [fieldSizeMicrometers, setFieldSizeMicrometers] = useState<[number, number]>([20000, 30000])
@@ -79,6 +82,10 @@ const WaferEChartsPlayground: React.FC = () => {
               diePointOpacity={diePointOpacity}
               fieldPointOpacity={fieldPointOpacity}
               showPointLabels={showPointLabels}
+              showOutlinesInPointMode={showOutlinesInPointMode}
+              centerAxisCoordinates={centerAxisCoordinates}
+              gridLineColor={gridLineColor}
+              gridLineWidth={gridLineWidth}
             />
           </div>
         </div>
@@ -113,6 +120,12 @@ const WaferEChartsPlayground: React.FC = () => {
             onShowPointLabelsChange={setShowPointLabels}
             showOutlinesInPointMode={showOutlinesInPointMode}
             onShowOutlinesInPointModeChange={setShowOutlinesInPointMode}
+            centerAxisCoordinates={centerAxisCoordinates}
+            onCenterAxisCoordinatesChange={setCenterAxisCoordinates}
+            gridLineColor={gridLineColor}
+            onGridLineColorChange={setGridLineColor}
+            gridLineWidth={gridLineWidth}
+            onGridLineWidthChange={setGridLineWidth}
             fieldArraySize={fieldArraySize}
             onFieldArraySizeChange={setFieldArraySize}
             offsetMicrometers={offsetMicrometers}

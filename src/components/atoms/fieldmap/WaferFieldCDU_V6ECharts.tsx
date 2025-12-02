@@ -18,6 +18,10 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
   diePointOpacity = 0.9,
   fieldPointOpacity = 0.5,
   showPointLabels = false,
+  showOutlinesInPointMode = true,
+  centerAxisCoordinates = true,
+  gridLineColor = '#eeeeee',
+  gridLineWidth = 1,
 }) => {
   const waferRadius = 150
 
@@ -131,16 +135,26 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
         min: showFullGrid ? bbox.minX : Math.min(bbox.minX, -waferRadius),
         max: showFullGrid ? bbox.maxX : Math.max(bbox.maxX, waferRadius),
         axisLine: { onZero: false },
-        splitLine: { show: true, lineStyle: { color: '#eee' } },
-        name: 'mm',
+        splitLine: { show: true, lineStyle: { color: gridLineColor, width: gridLineWidth } },
+        axisLabel: {
+          formatter: (val: number) => centerAxisCoordinates ? (val - offsetMmX).toFixed(0) : String(val),
+          color: '#555',
+          fontSize: 11,
+        },
+        name: centerAxisCoordinates ? 'ΔX (mm)' : 'X (mm)',
       },
       yAxis: {
         type: 'value',
         min: showFullGrid ? bbox.minY : Math.min(bbox.minY, -waferRadius),
         max: showFullGrid ? bbox.maxY : Math.max(bbox.maxY, waferRadius),
         axisLine: { onZero: false },
-        splitLine: { show: true, lineStyle: { color: '#eee' } },
-        name: 'mm',
+        splitLine: { show: true, lineStyle: { color: gridLineColor, width: gridLineWidth } },
+        axisLabel: {
+          formatter: (val: number) => centerAxisCoordinates ? (val - offsetMmY).toFixed(0) : String(val),
+          color: '#555',
+          fontSize: 11,
+        },
+        name: centerAxisCoordinates ? 'ΔY (mm)' : 'Y (mm)',
         scale: true,
       },
       visualMap: [
@@ -159,74 +173,74 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
         },
       ],
       series: [
-        // Wafer circle outline
-        {
-          name: 'WaferOutline',
-          type: 'custom',
-          renderItem: (_params: unknown, api: unknown) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const a = api as any
-            const center = a.coord([offsetMmX, offsetMmY])
-            const r1 = a.size([waferRadius, 0])[0]
-            return {
-              type: 'circle',
-              shape: { cx: center[0], cy: center[1], r: r1 },
-              style: { stroke: '#333', fill: 'none', lineWidth: 1.2 },
-            }
+        // Outlines (conditional)
+        ...(showOutlinesInPointMode ? [
+          {
+            name: 'WaferOutline',
+            type: 'custom',
+            renderItem: (_params: unknown, api: unknown) => {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const a = api as any
+              const center = a.coord([offsetMmX, offsetMmY])
+              const r1 = a.size([waferRadius, 0])[0]
+              return {
+                type: 'circle',
+                shape: { cx: center[0], cy: center[1], r: r1 },
+                style: { stroke: '#333', fill: 'none', lineWidth: 1.2 },
+              }
+            },
+            data: [[offsetMmX, offsetMmY]],
+            z: 10,
           },
-          data: [[offsetMmX, offsetMmY]],
-          z: 10,
-        },
-        // Field rect outlines
-        {
-          name: 'FieldOutlines',
-          type: 'custom',
-          renderItem: (params: unknown, api: unknown) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const a = api as any
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const idx = (params as any).dataIndex
-            const fr = fieldRects[idx]
-            const p1 = a.coord([fr.x, fr.y])
-            const p2 = a.coord([fr.x + fr.w, fr.y + fr.h])
-            const x = p1[0]
-            const y = p1[1]
-            const w = p2[0] - p1[0]
-            const h = p2[1] - p1[1]
-            return {
-              type: 'rect',
-              shape: { x, y, width: w, height: h },
-              style: { stroke: '#c1c6cc', fill: 'none', lineWidth: 0.9 },
-            }
+          {
+            name: 'FieldOutlines',
+            type: 'custom',
+            renderItem: (params: unknown, api: unknown) => {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const a = api as any
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const idx = (params as any).dataIndex
+              const fr = fieldRects[idx]
+              const p1 = a.coord([fr.x, fr.y])
+              const p2 = a.coord([fr.x + fr.w, fr.y + fr.h])
+              const x = p1[0]
+              const y = p1[1]
+              const w = p2[0] - p1[0]
+              const h = p2[1] - p1[1]
+              return {
+                type: 'rect',
+                shape: { x, y, width: w, height: h },
+                style: { stroke: '#c1c6cc', fill: 'none', lineWidth: 0.9 },
+              }
+            },
+            data: fieldRects.map((_, i) => i),
+            z: 9,
           },
-          data: fieldRects.map((_, i) => i),
-          z: 9,
-        },
-        // Die rect outlines
-        {
-          name: 'DieOutlines',
-          type: 'custom',
-          renderItem: (params: unknown, api: unknown) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const a = api as any
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const idx = (params as any).dataIndex
-            const dr = dieRects[idx]
-            const p1 = a.coord([dr.x, dr.y])
-            const p2 = a.coord([dr.x + dr.w, dr.y + dr.h])
-            const x = p1[0]
-            const y = p1[1]
-            const w = p2[0] - p1[0]
-            const h = p2[1] - p1[1]
-            return {
-              type: 'rect',
-              shape: { x, y, width: w, height: h },
-              style: { stroke: 'rgba(0,0,0,0.18)', fill: 'none', lineWidth: 0.3 },
-            }
+          {
+            name: 'DieOutlines',
+            type: 'custom',
+            renderItem: (params: unknown, api: unknown) => {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const a = api as any
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const idx = (params as any).dataIndex
+              const dr = dieRects[idx]
+              const p1 = a.coord([dr.x, dr.y])
+              const p2 = a.coord([dr.x + dr.w, dr.y + dr.h])
+              const x = p1[0]
+              const y = p1[1]
+              const w = p2[0] - p1[0]
+              const h = p2[1] - p1[1]
+              return {
+                type: 'rect',
+                shape: { x, y, width: w, height: h },
+                style: { stroke: 'rgba(0,0,0,0.18)', fill: 'none', lineWidth: 0.3 },
+              }
+            },
+            data: dieRects.map((_, i) => i),
+            z: 8,
           },
-          data: dieRects.map((_, i) => i),
-          z: 8,
-        },
+        ] : []),
         // Field points (밑 레이어)
         viewPoint ? {
           name: 'Field',
@@ -271,7 +285,7 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
         } : undefined,
       ].filter(Boolean),
     }
-  }, [bbox, showFullGrid, waferRadius, minVal, maxVal, fieldSeriesData, dieSeriesData, viewPoint, fieldPointRadiusPx, diePointRadiusPx, fieldPointOpacity, diePointOpacity, showPointLabels, fields, fieldWidth, fieldHeight, dieCols, dieRows, offsetMmX, offsetMmY])
+  }, [bbox, showFullGrid, waferRadius, minVal, maxVal, fieldSeriesData, dieSeriesData, viewPoint, fieldPointRadiusPx, diePointRadiusPx, fieldPointOpacity, diePointOpacity, showPointLabels, fields, fieldWidth, fieldHeight, dieCols, dieRows, offsetMmX, offsetMmY, showOutlinesInPointMode, centerAxisCoordinates, gridLineColor, gridLineWidth])
 
   return (
     <div style={{ width: 900, height: 900 }}>

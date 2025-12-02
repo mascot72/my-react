@@ -32,6 +32,13 @@ interface WaferControllerProps {
   onShowPointLabelsChange?: (v: boolean) => void
   showOutlinesInPointMode?: boolean
   onShowOutlinesInPointModeChange?: (v: boolean) => void
+  // Axis & Grid styling (ECharts 전용 확장)
+  gridLineColor?: string
+  onGridLineColorChange?: (v: string) => void
+  gridLineWidth?: number
+  onGridLineWidthChange?: (v: number) => void
+  centerAxisCoordinates?: boolean
+  onCenterAxisCoordinatesChange?: (v: boolean) => void
   // Field array size and offset controls
   fieldArraySize?: [number, number]
   onFieldArraySizeChange?: (size: [number, number]) => void
@@ -77,6 +84,12 @@ const WaferController: React.FC<WaferControllerProps> = ({
   onShowPointLabelsChange,
   showOutlinesInPointMode = true,
   onShowOutlinesInPointModeChange,
+  gridLineColor = '#eeeeee',
+  onGridLineColorChange,
+  gridLineWidth = 1,
+  onGridLineWidthChange,
+  centerAxisCoordinates = true,
+  onCenterAxisCoordinatesChange,
 }) => {
 
   return (
@@ -265,6 +278,42 @@ const WaferController: React.FC<WaferControllerProps> = ({
               style={{ width: '50px', padding: '4px 6px', borderRadius: '4px', border: '1px solid #ccc' }}
               placeholder='Y'
             />
+          </div>
+        </div>
+
+        <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid #e0e0e0' }}>
+          <label className={styles.label}>Axis & Grid</label>
+          <div className={styles.toggleRow} style={{ marginTop: 4 }}>
+            <input id='center-axis' type='checkbox' checked={centerAxisCoordinates} onChange={(e) => onCenterAxisCoordinatesChange && onCenterAxisCoordinatesChange(e.target.checked)} />
+            <label htmlFor='center-axis' className={styles.caption}>Center axis coordinates</label>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+            <div className={styles.caption} style={{ width: 110 }}>Grid Color</div>
+            <input
+              type='color'
+              value={gridLineColor}
+              onChange={(e) => onGridLineColorChange && onGridLineColorChange(e.target.value)}
+              style={{ width: 48, height: 28, padding: 0, border: '1px solid #ccc', borderRadius: 4 }}
+            />
+            <input
+              type='text'
+              value={gridLineColor}
+              onChange={(e) => onGridLineColorChange && onGridLineColorChange(e.target.value)}
+              style={{ flex: 1, padding: '4px 6px', borderRadius: 4, border: '1px solid #ccc', fontFamily: 'monospace' }}
+            />
+          </div>
+          <div className={styles.rangeRow} style={{ marginTop: 8 }}>
+            <div className={styles.caption} style={{ width: 110 }}>Grid Thickness</div>
+            <input
+              type='range'
+              min={0.5}
+              max={3}
+              step={0.5}
+              value={gridLineWidth}
+              onChange={(e) => onGridLineWidthChange && onGridLineWidthChange(Number(e.target.value))}
+              style={{ flex: 1 }}
+            />
+            <div style={{ width: 40, textAlign: 'right' }}>{gridLineWidth.toFixed(1)}</div>
           </div>
         </div>
 

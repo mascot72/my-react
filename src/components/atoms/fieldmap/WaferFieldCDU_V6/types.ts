@@ -92,6 +92,10 @@ export interface WaferFieldCDU_V6Props {
   fieldPointOpacity?: number
   showOutlinesInPointMode?: boolean
   showPointLabels?: boolean
+  // Grid & Axis styling (ECharts 전용 확장)
+  gridLineColor?: string // 그리드 선 색상 (splitLine)
+  gridLineWidth?: number // 그리드 선 두께 (px)
+  centerAxisCoordinates?: boolean // true면 축 라벨을 중앙(wafer center) 기준 상대 좌표로 표시
   // Controller props (moved UI controls to external controller)
   showFullGrid?: boolean
   onShowFullGridChange?: (v: boolean) => void
