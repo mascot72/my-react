@@ -30,6 +30,11 @@ const WaferPlayground: React.FC = () => {
   const [fieldFillOpacity, setFieldFillOpacity] = useState(0.35)
   const [gridLineColor, setGridLineColor] = useState('#eeeeee')
   const [gridLineWidth, setGridLineWidth] = useState(1)
+  const [showShotRuler, setShowShotRuler] = useState(false)
+  const [showWaferRadius, setShowWaferRadius] = useState(false)
+  const [shotRulerStepX, setShotRulerStepX] = useState(1)
+  const [shotRulerStepY, setShotRulerStepY] = useState(1)
+  const [waferTickStepMm, setWaferTickStepMm] = useState(50)
 
   const containerStyle: React.CSSProperties = {
     display: 'flex',
@@ -113,6 +118,14 @@ const WaferPlayground: React.FC = () => {
               outsideFieldPointOpacity={outsideFieldPointOpacity}
               showFieldFill={showFieldFill}
               fieldFillOpacity={fieldFillOpacity}
+              showShotRuler={showShotRuler}
+              showWaferRadius={showWaferRadius}
+              shotRulerStepX={shotRulerStepX}
+              shotRulerStepY={shotRulerStepY}
+              centerAxisCoordinates={centerAxisCoordinates}
+              waferTickStepMm={waferTickStepMm}
+              gridLineColor={gridLineColor}
+              gridLineWidth={gridLineWidth}
             />
           </div>
         </div>
@@ -155,6 +168,16 @@ const WaferPlayground: React.FC = () => {
             onGridLineColorChange={setGridLineColor}
             gridLineWidth={gridLineWidth}
             onGridLineWidthChange={setGridLineWidth}
+            showShotRuler={showShotRuler}
+            onShowShotRulerChange={setShowShotRuler}
+            showWaferRadius={showWaferRadius}
+            onShowWaferRadiusChange={setShowWaferRadius}
+            shotRulerStepX={shotRulerStepX}
+            onShotRulerStepXChange={setShotRulerStepX}
+            shotRulerStepY={shotRulerStepY}
+            onShotRulerStepYChange={setShotRulerStepY}
+            waferTickStepMm={waferTickStepMm}
+            onWaferTickStepMmChange={setWaferTickStepMm}
             outsidePointColor={outsidePointColor}
             onOutsidePointColorChange={setOutsidePointColor}
             outsideDiePointOpacity={outsideDiePointOpacity}

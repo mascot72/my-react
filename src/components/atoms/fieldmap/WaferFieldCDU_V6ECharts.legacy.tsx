@@ -32,6 +32,10 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
   outsideFieldPointOpacity = 0.25,
   showFieldFill = false,
   fieldFillOpacity = 0.35,
+  showShotRuler = false,
+  showWaferRadius = false,
+  shotRulerStepX = 1,
+  shotRulerStepY = 1,
 }) => {
   const waferRadius = 150
 
@@ -112,7 +116,7 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
     const axisMaxY = (showFullGrid ? bbox.maxY : (fitToContent ? bbox.maxY : Math.max(bbox.maxY, waferRadius)))
 
     // Grid paddings (keep in sync with container size calc below)
-    const gridPadding = { left: 40, right: 20, top: 60, bottom: 40 }
+    const gridPadding = { left: showShotRuler ? 56 : 40, right: 20, top: 60, bottom: showShotRuler ? 56 : 40 }
 
     // Prepare rect data
     const fieldRects = fields.map((f, fi) => ({
@@ -246,6 +250,16 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
       !(p.fieldIndex != null && p.dieIndex != null && includedDieKeySet.has(`${p.fieldIndex}:${p.dieIndex}`))
     )
 
+    // Prepare shot ruler ticks (gx, gy centered indices)
+    const gyMin = Math.ceil(axisMinY / fieldStepY)
+    const gyMax = Math.floor(axisMaxY / fieldStepY)
+    const gxMin = Math.ceil(axisMinX / fieldStepX)
+    const gxMax = Math.floor(axisMaxX / fieldStepX)
+    const yTickData = [] as Array<[number, number]> // [gy, y]
+    for (let gy = gyMin; gy <= gyMax; gy++) if (Math.abs(gy % shotRulerStepY) === 0) yTickData.push([gy, gy * fieldStepY])
+    const xTickData = [] as Array<[number, number]> // [gx, x]
+    for (let gx = gxMin; gx <= gxMax; gx++) if (Math.abs(gx % shotRulerStepX) === 0) xTickData.push([gx, gx * fieldStepX])
+
     return {
       backgroundColor: '#ffffff',
       animation: false,
@@ -269,12 +283,14 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
         scale: true,
         axisLine: { onZero: false },
         splitLine: { show: true, lineStyle: { color: gridLineColor, width: gridLineWidth } },
+        axisTick: { show: !showShotRuler },
         axisLabel: {
+          show: !showShotRuler,
           formatter: (val: number) => centerAxisCoordinates ? (val - offsetMmX).toFixed(0) : String(val),
           color: '#555',
           fontSize: 11,
         },
-        name: centerAxisCoordinates ? 'ΔX (mm)' : 'X (mm)',
+        name: showShotRuler ? '' : (centerAxisCoordinates ? 'ΔX (mm)' : 'X (mm)'),
       },
       yAxis: {
         type: 'value',
@@ -282,12 +298,14 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
         max: axisMaxY,
         axisLine: { onZero: false },
         splitLine: { show: true, lineStyle: { color: gridLineColor, width: gridLineWidth } },
+        axisTick: { show: !showShotRuler },
         axisLabel: {
+          show: !showShotRuler,
           formatter: (val: number) => centerAxisCoordinates ? (val - offsetMmY).toFixed(0) : String(val),
           color: '#555',
           fontSize: 11,
         },
-        name: centerAxisCoordinates ? 'ΔY (mm)' : 'Y (mm)',
+        name: showShotRuler ? '' : (centerAxisCoordinates ? 'ΔY (mm)' : 'Y (mm)'),
         scale: true,
       },
       visualMap: [
@@ -306,6 +324,88 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
         },
       ],
       series: [
+        // Shot rulers along left (Y) and bottom (X) — labels at field centers
+        ...(showShotRuler ? [{
+          name: 'ShotRulerY',
+          type: 'custom',
+          renderItem: (_params: unknown, api: unknown) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const a = api as any
+            const gy = a.value(0)
+            const y = a.value(1)
+            const p = a.coord([axisMinX, y])
+            return {
+              type: 'text',
+              style: {
+                x: p[0] + 8,
+                y: p[1],
+                text: String(gy),
+                textAlign: 'left',
+                textVerticalAlign: 'middle',
+                fill: '#6b7280',
+                fontSize: 11,
+              },
+              silent: true,
+            }
+          },
+          data: yTickData,
+          z: 50,
+        }, {
+          name: 'ShotRulerX',
+          type: 'custom',
+          renderItem: (_params: unknown, api: unknown) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const a = api as any
+            const gx = a.value(0)
+            const x = a.value(1)
+            const p = a.coord([x, axisMinY])
+            return {
+              type: 'text',
+              style: {
+                x: p[0],
+                y: p[1] - 8,
+                text: String(gx),
+                textAlign: 'center',
+                textVerticalAlign: 'bottom',
+                fill: '#6b7280',
+                fontSize: 11,
+              },
+              silent: true,
+            }
+          },
+          data: xTickData,
+          z: 50,
+        }] : []),
+        // Wafer radius overlay — line from center to wafer edge with label
+        ...(showWaferRadius ? [{
+          name: 'WaferRadius',
+          type: 'custom',
+          renderItem: (_p: unknown, api: unknown) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const a = api as any
+            const c = a.coord([offsetMmX, offsetMmY])
+            const e = a.coord([offsetMmX + waferRadius, offsetMmY])
+            const mx = c[0] + (e[0] - c[0]) * 0.6
+            const my = c[1] + (e[1] - c[1]) * 0.6
+            return {
+              type: 'group',
+              children: [
+                {
+                  type: 'line',
+                  shape: { x1: c[0], y1: c[1], x2: e[0], y2: e[1] },
+                  style: { stroke: '#374151', lineWidth: 1.2 },
+                },
+                {
+                  type: 'text',
+                  style: { x: mx, y: my - 6, text: `R=${waferRadius} mm`, fill: '#374151', textAlign: 'center', textVerticalAlign: 'bottom', fontSize: 11 },
+                },
+              ],
+              silent: true,
+            }
+          },
+          data: [[0]],
+          z: 55,
+        }] : []),
         // Rect mode labels (values / indices / sequences)
         ...(!viewPoint && showValues ? [{
           name: 'DieValueLabels',
@@ -606,7 +706,7 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
         }] : []),
       ].filter(Boolean),
     }
-  }, [bbox, showFullGrid, waferRadius, minVal, maxVal, rawFieldSeriesData, rawDieSeriesData, viewPoint, fieldPointRadiusPx, diePointRadiusPx, fieldPointOpacity, diePointOpacity, showPointLabels, fields, fieldWidth, fieldHeight, dieCols, dieRows, offsetMmX, offsetMmY, showOutlinesInPointMode, centerAxisCoordinates, gridLineColor, gridLineWidth, fitToContent, showValues, viewShotSequence, viewDieSequence, viewDieIndex, showFieldFill, fieldFillOpacity, outsidePointColor, outsideDiePointOpacity, outsideFieldPointOpacity])
+  }, [bbox, showFullGrid, waferRadius, minVal, maxVal, rawFieldSeriesData, rawDieSeriesData, viewPoint, fieldPointRadiusPx, diePointRadiusPx, fieldPointOpacity, diePointOpacity, showPointLabels, fields, fieldWidth, fieldHeight, dieCols, dieRows, offsetMmX, offsetMmY, showOutlinesInPointMode, centerAxisCoordinates, gridLineColor, gridLineWidth, fitToContent, showValues, viewShotSequence, viewDieSequence, viewDieIndex, showFieldFill, fieldFillOpacity, outsidePointColor, outsideDiePointOpacity, outsideFieldPointOpacity, showShotRuler, showWaferRadius, fieldStepX, fieldStepY, shotRulerStepX, shotRulerStepY])
 
   // Dynamically size the chart container to reflect axis extents (intuitive overflow)
   const { containerWidthPx, containerHeightPx } = useMemo(() => {
@@ -620,7 +720,7 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
 
     // Keep base scale consistent with previous 900px for 300mm wafer
     const basePxPerMm = 900 / (2 * waferRadius) // ~3 px/mm
-    const gridPadding = { left: 40, right: 20, top: 60, bottom: 40 }
+    const gridPadding = { left: showShotRuler ? 56 : 40, right: 20, top: 60, bottom: showShotRuler ? 56 : 40 }
 
     const w = Math.round(rangeX * basePxPerMm) + gridPadding.left + gridPadding.right
     const h = Math.round(rangeY * basePxPerMm) + gridPadding.top + gridPadding.bottom
@@ -629,7 +729,7 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
       containerWidthPx: Math.max(600, w),
       containerHeightPx: Math.max(600, h),
     }
-  }, [bbox, showFullGrid, fitToContent, waferRadius])
+  }, [bbox, showFullGrid, fitToContent, waferRadius, showShotRuler])
 
   return (
     <div style={{ width: containerWidthPx, height: containerHeightPx }}>

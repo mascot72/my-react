@@ -28,6 +28,10 @@ const WaferEChartsPlayground: React.FC = () => {
   const [fieldArraySize, setFieldArraySize] = useState<[number, number]>([10, 10])
   const [offsetMicrometers, setOffsetMicrometers] = useState<[number, number]>([0, 0])
   const [fieldSizeMicrometers, setFieldSizeMicrometers] = useState<[number, number]>([20000, 30000])
+  const [showShotRuler, setShowShotRuler] = useState(false)
+  const [showWaferRadius, setShowWaferRadius] = useState(false)
+  const [shotRulerStepX, setShotRulerStepX] = useState(1)
+  const [shotRulerStepY, setShotRulerStepY] = useState(1)
   const [seed] = useState<number>(20251110)
   const [isZoomDragging, setIsZoomDragging] = useState(false)
 
@@ -103,6 +107,10 @@ const WaferEChartsPlayground: React.FC = () => {
               outsideFieldPointOpacity={outsideFieldPointOpacity}
               showFieldFill={showFieldFill}
               fieldFillOpacity={fieldFillOpacity}
+              showShotRuler={showShotRuler}
+              showWaferRadius={showWaferRadius}
+              shotRulerStepX={shotRulerStepX}
+              shotRulerStepY={shotRulerStepY}
             />
           </div>
         </div>
@@ -161,6 +169,14 @@ const WaferEChartsPlayground: React.FC = () => {
             onOffsetMicrometersChange={setOffsetMicrometers}
             fieldSizeMicrometers={fieldSizeMicrometers}
             onFieldSizeMicrometersChange={setFieldSizeMicrometers}
+            showShotRuler={showShotRuler}
+            onShowShotRulerChange={setShowShotRuler}
+            showWaferRadius={showWaferRadius}
+            onShowWaferRadiusChange={setShowWaferRadius}
+            shotRulerStepX={shotRulerStepX}
+            onShotRulerStepXChange={setShotRulerStepX}
+            shotRulerStepY={shotRulerStepY}
+            onShotRulerStepYChange={setShotRulerStepY}
           />
         </div>
       </div>

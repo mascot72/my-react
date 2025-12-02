@@ -120,4 +120,11 @@ export interface WaferFieldCDU_V6Props {
   // Field size in micrometers
   fieldSizeMicrometers?: [number, number] // [width, height] in micrometers
   onFieldSizeMicrometersChange?: (size: [number, number]) => void
+  // Rulers & overlays
+  showShotRuler?: boolean
+  showWaferRadius?: boolean
+  shotRulerStepX?: number
+  shotRulerStepY?: number
+  // SVG mm tick step when Shot Ruler is off
+  waferTickStepMm?: number
 }

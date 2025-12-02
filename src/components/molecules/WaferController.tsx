@@ -60,6 +60,17 @@ interface WaferControllerProps {
   // Field size controls
   fieldSizeMicrometers?: [number, number]
   onFieldSizeMicrometersChange?: (size: [number, number]) => void
+  // Rulers & overlays
+  showShotRuler?: boolean
+  onShowShotRulerChange?: (v: boolean) => void
+  showWaferRadius?: boolean
+  onShowWaferRadiusChange?: (v: boolean) => void
+  shotRulerStepX?: number
+  onShotRulerStepXChange?: (v: number) => void
+  shotRulerStepY?: number
+  onShotRulerStepYChange?: (v: number) => void
+  waferTickStepMm?: number
+  onWaferTickStepMmChange?: (v: number) => void
 }
 
 const WaferController: React.FC<WaferControllerProps> = ({
@@ -96,6 +107,16 @@ const WaferController: React.FC<WaferControllerProps> = ({
   showPointLabels = false,
   onShowPointLabelsChange,
   showOutlinesInPointMode = true,
+  showShotRuler = false,
+  onShowShotRulerChange,
+  showWaferRadius = false,
+  onShowWaferRadiusChange,
+  shotRulerStepX = 1,
+  onShotRulerStepXChange,
+  shotRulerStepY = 1,
+  onShotRulerStepYChange,
+  waferTickStepMm = 50,
+  onWaferTickStepMmChange,
   onShowOutlinesInPointModeChange,
   gridLineColor = '#eeeeee',
   onGridLineColorChange,
@@ -342,6 +363,58 @@ const WaferController: React.FC<WaferControllerProps> = ({
           <div className={styles.toggleRow}>
             <input id='fit-content' type='checkbox' checked={fitToContent} onChange={(e) => onFitToContentChange && onFitToContentChange(e.target.checked)} />
             <label htmlFor='fit-content' className={styles.caption}>Fit axes to content</label>
+          </div>
+          <div className={styles.toggleRow}>
+            <input id='show-shot-ruler' type='checkbox' checked={showShotRuler} onChange={(e) => onShowShotRulerChange && onShowShotRulerChange(e.target.checked)} />
+            <label htmlFor='show-shot-ruler' className={styles.caption}>Shot Ruler (gx/gy)</label>
+          </div>
+          {showShotRuler && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+              <div className={styles.caption} style={{ width: 110 }}>Ruler Step X</div>
+              <input
+                type='number'
+                min={1}
+                step={1}
+                value={shotRulerStepX}
+                onChange={(e) => {
+                  const v = Math.max(1, Math.floor(Number(e.target.value) || 1))
+                  if (onShotRulerStepXChange) onShotRulerStepXChange(v)
+                }}
+                style={{ width: 70, padding: '4px 6px', borderRadius: 4, border: '1px solid #ccc' }}
+              />
+              <div className={styles.caption} style={{ width: 110 }}>Ruler Step Y</div>
+              <input
+                type='number'
+                min={1}
+                step={1}
+                value={shotRulerStepY}
+                onChange={(e) => {
+                  const v = Math.max(1, Math.floor(Number(e.target.value) || 1))
+                  if (onShotRulerStepYChange) onShotRulerStepYChange(v)
+                }}
+                style={{ width: 70, padding: '4px 6px', borderRadius: 4, border: '1px solid #ccc' }}
+              />
+            </div>
+          )}
+          <div className={styles.toggleRow}>
+            <input id='show-wafer-radius' type='checkbox' checked={showWaferRadius} onChange={(e) => onShowWaferRadiusChange && onShowWaferRadiusChange(e.target.checked)} />
+            <label htmlFor='show-wafer-radius' className={styles.caption}>Wafer Radius overlay</label>
+          </div>
+          {/* mm tick step for SVG when Shot Ruler is OFF */}
+          <div className={styles.rangeRow} style={{ marginTop: 6 }}>
+            <div className={styles.caption} style={{ width: 110 }}>mm Tick Step</div>
+            <input
+              type='number'
+              min={1}
+              step={1}
+              value={waferTickStepMm}
+              onChange={(e) => {
+                const v = Math.max(1, Math.floor(Number(e.target.value) || 1))
+                if (onWaferTickStepMmChange) onWaferTickStepMmChange(v)
+              }}
+              style={{ width: 80, padding: '4px 6px', borderRadius: 4, border: '1px solid #ccc' }}
+            />
+            <span style={{ marginLeft: 6, color: '#999' }}>mm</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
             <div className={styles.caption} style={{ width: 110 }}>Grid Color</div>

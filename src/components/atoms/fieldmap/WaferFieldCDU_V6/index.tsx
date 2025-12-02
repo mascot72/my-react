@@ -32,6 +32,14 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
   fieldArraySize = [14, 13],
   offsetMicrometers = [0, 0],
   fieldSizeMicrometers = [20000, 30000],
+  showShotRuler = false,
+  showWaferRadius = false,
+  shotRulerStepX = 1,
+  shotRulerStepY = 1,
+  centerAxisCoordinates = true,
+  waferTickStepMm = 50,
+  gridLineColor,
+  gridLineWidth,
 }) => {
   // Parameters
   const waferRadius = 150
@@ -270,6 +278,23 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
             background: 'white',
             display: 'block',
           }}>
+          {/* 좌표 눈금 (항상 배경에 위치) */}
+          <CoordinateGrid
+            fieldArraySize={memoFieldArraySize}
+            fieldStepX={fieldStepX}
+            fieldStepY={fieldStepY}
+            mm2px={mm2px}
+            svgWidthPx={svgWidthPx}
+            showShotRuler={showShotRuler}
+            shotRulerStepX={shotRulerStepX}
+            shotRulerStepY={shotRulerStepY}
+            waferRadius={waferRadius}
+            centerAxisCoordinates={centerAxisCoordinates}
+            offsetMm={[offsetMmX, offsetMmY]}
+            waferTickStepMm={waferTickStepMm}
+            gridLineColor={gridLineColor}
+            gridLineWidth={gridLineWidth}
+          />
           {/* Rect 기반 vs Point 기반 렌더링 토글 */}
           {enablePointData && viewPoint ? (
             <>
@@ -375,15 +400,33 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
             </g>
           )}
 
-          {/* 좌표 눈금 */}
-          <CoordinateGrid fieldArraySize={memoFieldArraySize} fieldStepX={fieldStepX} fieldStepY={fieldStepY} mm2px={mm2px} svgWidthPx={svgWidthPx} />
-
           {/* 컬러바 */}
           <ColorBar waferRadius={waferRadius} mm2px={mm2px} />
 
           {/* Wafer Circle (offset 적용 - Die Rect 기준으로 이동) */}
           <g transform={`translate(${offsetPxX} ${offsetPxY})`}>
             <WaferOutline cx={0} cy={0} radius={waferRadius} mm2px={mm2px} />
+            {showWaferRadius && (
+              <g>
+                {/* 반지름 라인 (오른쪽 방향) */}
+                <line
+                  x1={mm2px(0)}
+                  y1={mm2px(0)}
+                  x2={mm2px(waferRadius)}
+                  y2={mm2px(0)}
+                  stroke='#374151'
+                  strokeWidth={1}
+                />
+                <text
+                  x={mm2px(waferRadius * 0.6)}
+                  y={mm2px(-2)}
+                  fontSize={11}
+                  fill='#374151'
+                  textAnchor='middle'>
+                  {`R=${waferRadius} mm`}
+                </text>
+              </g>
+            )}
           </g>
         </svg>
       </div>
