@@ -19,6 +19,8 @@ interface FieldGroupProps {
   showShotSequence?: boolean
   showFieldFill?: boolean
   fieldFillOpacity?: number
+  onDieHover?: (info: { x: number; y: number; value: number | null; fieldIndex: number; dieIndex?: number }) => void
+  onDieHoverEnd?: () => void
 }
 
 export const FieldGroup: React.FC<FieldGroupProps> = ({
@@ -37,12 +39,17 @@ export const FieldGroup: React.FC<FieldGroupProps> = ({
   showShotSequence = false,
   showFieldFill = false,
   fieldFillOpacity = 0.35,
+  onDieHover,
+  onDieHoverEnd,
 }) => {
   const fieldKey = `field-${fieldIndex}-${item.fieldRect.x}-${item.fieldRect.y}`
   const { x, y, w, h } = item.fieldRect
 
   return (
-    <g key={fieldIndex}>
+    <g key={fieldIndex}
+       onMouseEnter={(e) => onMouseEnter(fieldKey, e as unknown as React.MouseEvent<SVGRectElement>)}
+       onMouseLeave={onMouseLeave}
+    >
       {/* 필드 fill (평균 CDU) */}
       {showFieldFill && (
         <rect
@@ -106,6 +113,9 @@ export const FieldGroup: React.FC<FieldGroupProps> = ({
           showValues={showValues}
           showDieIndex={showDieIndex}
           showDieSequence={showDieSequence}
+          fieldIndex={fieldIndex}
+          onDieHover={(info) => onDieHover && onDieHover({ ...info, fieldIndex })}
+          onHoverEnd={onDieHoverEnd}
         />
       ))}
 
@@ -133,17 +143,7 @@ export const FieldGroup: React.FC<FieldGroupProps> = ({
         </g>
       )}
 
-      {/* Transparent interactive overlay to ensure hover works over fills */}
-      <rect
-        x={mm2px(x)}
-        y={mm2px(y)}
-        width={mm2px(w)}
-        height={mm2px(h)}
-        fill='transparent'
-        pointerEvents='all'
-        onMouseEnter={(e) => onMouseEnter(fieldKey, e)}
-        onMouseLeave={onMouseLeave}
-      />
+      
     </g>
   )
 }

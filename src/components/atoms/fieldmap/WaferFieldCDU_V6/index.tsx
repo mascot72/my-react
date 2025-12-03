@@ -387,6 +387,16 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
                       onFieldHover(null, e.clientX, e.clientY)
                     }
                   }}
+                  onDieHover={(info) => {
+                    setTooltip({
+                      kind: 'die',
+                      x: info.x,
+                      y: info.y,
+                      value: info.value,
+                      label: `Die ${info.dieIndex ?? ''}`,
+                    })
+                  }}
+                  onDieHoverEnd={() => setTooltip(null)}
                   showDieIndex={viewDieIndex}
                   showDieSequence={viewDieSequence}
                   showShotSequence={viewShotSequence}
