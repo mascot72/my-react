@@ -61,6 +61,64 @@ export default function WaferEChartsPlayground() {
 
 ---
 
+## 예시 스니펫 모음
+- **베이직 Rect 모드**: 필드 평균 채움, 샷 시퀀스 라벨만 활성화.
+```tsx
+<WaferFieldCDU_V6ECharts
+  viewPoint={false}
+  showFieldFill
+  showShotSequence
+  showValues={false}
+  viewDieIndex={false}
+  viewDieSequence={false}
+  fieldArraySize={[12,12]}
+  fieldSizeMicrometers={[18000,28000]}
+  offsetMicrometers={[0,0]}
+/>
+```
+
+- **포인트 모드(Outlines 유지)**: 포인트만 표시하고 외곽선은 유지.
+```tsx
+<WaferFieldCDU_V6ECharts
+  viewPoint
+  showOutlinesInPointMode
+  fitToContent
+  showShotRuler={false}
+  showWaferRadius={false}
+/>
+```
+
+- **Shot Ruler 활성 + 중앙 좌표 라벨**: 축 라벨 숨기고 Ruler로 대체, ΔX/ΔY 사용.
+```tsx
+<WaferFieldCDU_V6ECharts
+  viewPoint={false}
+  showFieldFill
+  showShotRuler
+  shotRulerStepX={10}
+  shotRulerStepY={10}
+  centerAxisCoordinates
+/>
+```
+
+- **툴팁 정밀도 메모**: 좌표/값 포맷은 훅의 포맷터에서 처리합니다. 좌표는 소수점 2자리, CDU 값은 기본 3자리로 맞추며, 커스텀 시리즈에서는 중심 좌표/평균 값으로 폴백합니다.
+
+---
+
+## 스크린샷
+- 캡처 가이드:
+  - `pnpm build && pnpm preview`로 로컬 프리뷰를 띄운 뒤 브라우저에서 캡처합니다.
+  - 파일은 `public/docs/echarts/` 하위에 저장하고 README에서 상대 경로로 참조합니다.
+  - 권장 파일명 규칙: `mode-rect.png`, `mode-point.png`, `overlay-ruler.png`, `overlay-radius.png`, `tooltip-rect.png`.
+
+- 예시(이미지 추가 후 활성화):
+  - Rect 모드: `![Rect Mode](../../../../public/docs/echarts/mode-rect.png)`
+  - Point 모드: `![Point Mode](../../../../public/docs/echarts/mode-point.png)`
+  - Shot Ruler: `![Shot Ruler](../../../../public/docs/echarts/overlay-ruler.png)`
+  - Wafer Radius: `![Wafer Radius](../../../../public/docs/echarts/overlay-radius.png)`
+  - Rect 툴팁: `![Rect Tooltip](../../../../public/docs/echarts/tooltip-rect.png)`
+
+이미지가 아직 없으므로 위 경로에 캡처를 저장하면 자동으로 미리보기에서 표시됩니다.
+
 ## 동작 상세
 - **웨이퍼 포함(strict)**: 다이/필드 Rect의 4개 모서리가 모두 웨이퍼 내부일 때만 포함됩니다. 포인트 모드 클리핑은 `fitToContent`에 따릅니다.
 - **번호 재계산**: 글로벌 다이 시퀀스, 필드 내 다이 인덱스를 재계산하여 라벨 일관성 유지.
