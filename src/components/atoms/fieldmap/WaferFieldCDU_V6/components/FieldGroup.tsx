@@ -132,6 +132,18 @@ export const FieldGroup: React.FC<FieldGroupProps> = ({
           </text>
         </g>
       )}
+
+      {/* Transparent interactive overlay to ensure hover works over fills */}
+      <rect
+        x={mm2px(x)}
+        y={mm2px(y)}
+        width={mm2px(w)}
+        height={mm2px(h)}
+        fill='transparent'
+        pointerEvents='all'
+        onMouseEnter={(e) => onMouseEnter(fieldKey, e)}
+        onMouseLeave={onMouseLeave}
+      />
     </g>
   )
 }
