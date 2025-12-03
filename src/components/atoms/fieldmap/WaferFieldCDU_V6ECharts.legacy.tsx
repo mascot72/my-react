@@ -1,3 +1,16 @@
+/**
+ * Legacy ECharts implementation (monolithic component)
+ *
+ * Kept for reference and fallback during refactor validation.
+ * Usage:
+ * - Prefer the new folderized component at `src/components/atoms/fieldmap/WaferFieldCDU_V6ECharts/index.tsx`.
+ * - To temporarily compare behaviors, import this file directly where needed.
+ * - Do not modify for new features; apply changes to the modular version instead.
+ *
+ * Removal plan:
+ * - Once parity is verified across scenarios (ruler/mm modes, labels, outlines/fills, point-only view),
+ *   this file can be safely deleted along with any references.
+ */
 import React, { useMemo } from 'react'
 import ReactECharts from 'echarts-for-react'
 import { useCDUData, usePointData } from './WaferFieldCDU_V6/hooks'
