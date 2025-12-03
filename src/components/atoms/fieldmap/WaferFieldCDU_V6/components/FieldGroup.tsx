@@ -19,7 +19,7 @@ interface FieldGroupProps {
   showShotSequence?: boolean
   showFieldFill?: boolean
   fieldFillOpacity?: number
-  onDieHover?: (info: { x: number; y: number; value: number | null; fieldIndex: number; dieIndex?: number }) => void
+  onDieHover?: (info: { x: number; y: number; value: number | null; fieldIndex: number; dieIndex?: number; dieSequence?: number }) => void
   onDieHoverEnd?: () => void
 }
 

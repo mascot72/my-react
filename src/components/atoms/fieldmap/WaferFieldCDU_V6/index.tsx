@@ -169,6 +169,8 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
         y: number
         value: number | null
         label?: string
+        dieIndex?: number
+        dieSequence?: number
       }
     | null
   >(null)
@@ -393,7 +395,8 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
                       x: info.x,
                       y: info.y,
                       value: info.value,
-                      label: `Die ${info.dieIndex ?? ''}`,
+                      dieIndex: info.dieIndex,
+                      dieSequence: info.dieSequence,
                     })
                   }}
                   onDieHoverEnd={() => setTooltip(null)}
@@ -408,12 +411,17 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
           {tooltip && (
             <g transform={`translate(${mm2px(tooltip.x)} ${mm2px(tooltip.y)})`} pointerEvents='none'>
               <g transform={`translate(8, -8)`}>
-                <rect x={0} y={-24} width={120} height={30} rx={6} fill='rgba(0,0,0,0.7)' />
-                <text x={8} y={-8} fontSize={11} fill='#fff' fontWeight='bold'>
-                  {tooltip.label ?? (tooltip.kind === 'die' ? 'Die' : 'Field')}
+                <rect x={0} y={-32} width={160} height={52} rx={6} fill='rgba(0,0,0,0.7)' />
+                <text x={8} y={-16} fontSize={11} fill='#fff' fontWeight='bold'>
+                  {tooltip.kind === 'die'
+                    ? `Die ${tooltip.dieIndex ?? ''}${tooltip.dieSequence != null ? ` (Seq ${tooltip.dieSequence})` : ''}`
+                    : (tooltip.label ?? 'Field')}
                 </text>
-                <text x={8} y={6} fontSize={11} fill='#fff'>
-                  {tooltip.value == null ? 'N/A' : `CDU: ${tooltip.value.toFixed(3)}`}
+                <text x={8} y={-2} fontSize={11} fill='#fff'>
+                  {tooltip.value == null ? 'CDU: N/A' : `CDU: ${tooltip.value.toFixed(3)}`}
+                </text>
+                <text x={8} y={12} fontSize={11} fill='#fff'>
+                  {`X: ${tooltip.x.toFixed(2)} mm, Y: ${tooltip.y.toFixed(2)} mm`}
                 </text>
               </g>
             </g>

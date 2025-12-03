@@ -11,7 +11,7 @@ interface DieRectProps {
   showDieIndex?: boolean
   showDieSequence?: boolean
   fieldIndex?: number
-  onDieHover?: (info: { x: number; y: number; value: number | null; fieldIndex?: number; dieIndex?: number }) => void
+  onDieHover?: (info: { x: number; y: number; value: number | null; fieldIndex?: number; dieIndex?: number; dieSequence?: number }) => void
   onHoverEnd?: () => void
 }
 
@@ -40,8 +40,8 @@ export const DieRect: React.FC<DieRectProps> = ({
         fill={die.cdu == null ? '#fff' : cduToColor(die.cdu)}
         stroke={die.cdu == null ? '#ddddddff' : 'rgba(0, 0, 0, 0.1)'}
         strokeWidth={0.3}
-        onMouseEnter={() => onDieHover && onDieHover({ x: die.x, y: die.y, value: die.cdu ?? null, fieldIndex, dieIndex: die.dieIndex })}
-        onMouseMove={() => onDieHover && onDieHover({ x: die.x, y: die.y, value: die.cdu ?? null, fieldIndex, dieIndex: die.dieIndex })}
+        onMouseEnter={() => onDieHover && onDieHover({ x: die.x, y: die.y, value: die.cdu ?? null, fieldIndex, dieIndex: die.dieIndex, dieSequence: die.dieSequence })}
+        onMouseMove={() => onDieHover && onDieHover({ x: die.x, y: die.y, value: die.cdu ?? null, fieldIndex, dieIndex: die.dieIndex, dieSequence: die.dieSequence })}
         onMouseLeave={() => onHoverEnd && onHoverEnd()}
       />
       {die.cdu != null && showValues && (
