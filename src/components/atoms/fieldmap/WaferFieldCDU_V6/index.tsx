@@ -359,6 +359,14 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
                   hoverField={hoverField}
                   onMouseEnter={(fieldKey, e) => {
                     setHoverField(fieldKey)
+                    // Show internal tooltip for rect mode as well
+                    setTooltip({
+                      kind: 'field',
+                      x: item.fieldRect.x + item.fieldRect.w / 2,
+                      y: item.fieldRect.y + item.fieldRect.h / 2,
+                      value: item.fieldAvgCdu,
+                      label: item.shotIndex !== undefined ? `Shot ${item.shotIndex}` : 'Field',
+                    })
                     if (onFieldHover) {
                       onFieldHover(
                         {
@@ -374,6 +382,7 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
                   }}
                   onMouseLeave={(e) => {
                     setHoverField(null)
+                    setTooltip(null)
                     if (onFieldHover) {
                       onFieldHover(null, e.clientX, e.clientY)
                     }

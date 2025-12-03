@@ -154,11 +154,46 @@ export function useWaferEChartsOption(props: WaferFieldCDU_V6Props & { waferRadi
         trigger: 'item',
         formatter: (params: unknown) => {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const p = params as { seriesName?: string; data?: any }
-          const v = p.data?.value?.[2]
-          const label = p.seriesName === 'Die' ? `Die ${p.data?.dieIndex ?? ''}` : (p.data?.shotIndex != null ? `Shot ${p.data?.shotIndex}` : 'Field')
+          const p = params as any
+          const seriesName: string = p.seriesName ?? ''
+          const idx: number | undefined = p.dataIndex
+          // Try multiple shapes: {value:[x,y,v]}, [x,y,v], or params.value
+          const raw = (p.data && p.data.value) || (Array.isArray(p.data) ? p.data : undefined) || (Array.isArray(p.value) ? p.value : undefined)
+
+          let x: number | undefined
+          let y: number | undefined
+          let v: number | null | undefined
+          let label = 'Field'
+
+          if (raw && Array.isArray(raw)) {
+            x = raw[0]
+            y = raw[1]
+            v = raw[2]
+          } else if (/FieldOutlines|FieldFill/.test(seriesName) && typeof idx === 'number' && includedFieldRects[idx]) {
+            const fr = includedFieldRects[idx]
+            x = fr.cx
+            y = fr.cy
+            v = fieldAvgMap.get(fr.fieldIndex) ?? null
+          } else if (/DieOutlines|DieFill/.test(seriesName) && typeof idx === 'number' && includedDieRects[idx]) {
+            const dr = includedDieRects[idx]
+            x = dr.x + dr.w / 2
+            y = dr.y + dr.h / 2
+            v = dr.value ?? null
+          }
+
+          if (seriesName.startsWith('Die')) {
+            const di = (p.data && p.data.dieIndex) ?? (typeof idx === 'number' && includedDieRects[idx]?.dieIndex)
+            label = `Die ${di ?? ''}`
+          } else if ((p.data && p.data.shotIndex != null) || (typeof idx === 'number' && includedFieldRects[idx]?.fieldIndex != null)) {
+            const fi = typeof idx === 'number' ? includedFieldRects[idx]?.fieldIndex : undefined
+            const shot = typeof fi === 'number' ? (recomputedShotSequence.get(fi)) : p.data?.shotIndex
+            label = shot != null ? `Shot ${shot}` : 'Field'
+          }
+
           const valStr = v == null ? 'N/A' : Number(v).toFixed(3)
-          return `${label}<br/>CDU: ${valStr}<br/>X: ${p.data?.value?.[0]}, Y: ${p.data?.value?.[1]}`
+          const xs = x == null ? '—' : String(x)
+          const ys = y == null ? '—' : String(y)
+          return `${label}<br/>CDU: ${valStr}<br/>X: ${xs}, Y: ${ys}`
         },
       },
       grid: { left: gridPadding.left, right: gridPadding.right, top: gridPadding.top, bottom: gridPadding.bottom, containLabel: false },
