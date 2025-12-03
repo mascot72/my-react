@@ -26,7 +26,7 @@
  *  - 처리 성능 최적화 및 불필요한 렌더링 방지
  */
 
-import { useMemo } from 'react'
+// Note: kept as a simple console-driven RnD utility component
 
 // Shot별 다이그리드 맵 생성
 const mapInitData = {
@@ -35,23 +35,21 @@ const mapInitData = {
   // Die 그리드 분할 수
   mapShotSize: [{ mapSeq: 37, dieXCnt: 3, dieYCnt: 6, xaxis: 11, yaxis: 34 }],
 }
-// Point 데이터 (Shot 내부 포인트)
-const pointData = [{
-  chip: '-5, 0',
-  chipindexX: -5000, chipindexY: 0,
-  chipx: 536144000, chipy: 124631000,
-  siteSeq: 27,
-  value: -0.47,
-  imageYn: 'Y',
-  lotId: 'YTQ0114',
-  wfId: '14',
-  prmtNm: 'ADB_BBC_OVL_HHS_810',
-}]
+// Point 데이터 예시 (미사용 예제)
+// const pointData = [{
+//   chip: '-5, 0',
+//   chipindexX: -5000, chipindexY: 0,
+//   chipx: 536144000, chipy: 124631000,
+//   siteSeq: 27,
+//   value: -0.47,
+//   imageYn: 'Y',
+//   lotId: 'YTQ0114',
+//   wfId: '14',
+//   prmtNm: 'ADB_BBC_OVL_HHS_810',
+// }]
 
-// Shot 통계 데이타
-const config = {
-  chipXMax: 536144, chipXMin: 536144, chipYMax: 5461631, chipYMin: 124631, shotMax: -0.21, shotMaxVal: -0.21, shotMin: -1.28, shotMinVal: -1.28, shotXSize: 13, shotYSize: 11, shotAverages: [ [-5, 0, 1.46, '-5,0', 1],], chipXMin: 536144, chipXMax: 536144, chipYMin: 124631, chipYMax: 5461631, shotOffset: 13 
-}
+// Shot 통계 데이타 예시 (미사용)
+// const config = { /* ... */ }
 // Shot 그룹별 포인트 맵 ([indeX, indexY, x, y, value, siteSeq])
 const matData = [
   [-5, 0, 536144, 124621, 1.43, 1],
@@ -71,31 +69,19 @@ const matData = [
 ]
 
 export  default function RnD() {
-
-// shotGroups: Map<shotKey, Array<point>>: '-5,0' => [{chipX, chipY, value, siteSeq}, ...]
-// const shotGroups = pointData.reduce((map, p) => {
-//   const shotKey = `${p.chipindexX},${p.chipindexY}`
-//   if (!map.has(shotKey)) map.set(shotKey, [])
-//   map.get(shotKey).push({
-//     chipX: p.chipx,
-//     chipY: p.chipy,
-//     value: p.value,
-//     siteSeq: p.siteSeq,
-//   })
-//   return map
-// }, new Map())
-const shotGroups = matData.reduce((map, p) => {
-  const [chipindexX, chipindexY, chipx, chipy, value, siteSeq] = p
-  const shotKey = `${chipindexX},${chipindexY}`
-  if (!map.has(shotKey)) map.set(shotKey, [])
-  map.get(shotKey).push({
-    chipX: chipx,
-    chipY: chipy,
-    value: value,
-    siteSeq: siteSeq,
-  })
-  return map
-}, new Map())
+  // shotGroups: Map<shotKey, Array<point>>: '-5,0' => [{chipX, chipY, value, siteSeq}, ...]
+  const shotGroups = matData.reduce((map, p) => {
+    const [chipindexX, chipindexY, chipx, chipy, value, siteSeq] = p
+    const shotKey = `${chipindexX},${chipindexY}`
+    if (!map.has(shotKey)) map.set(shotKey, [])
+    map.get(shotKey).push({
+      chipX: chipx,
+      chipY: chipy,
+      value: value,
+      siteSeq: siteSeq,
+    })
+    return map
+  }, new Map())
 
 const [{ dieXCnt, dieYCnt }] = mapInitData.mapShotSize // 샷 내부 다이 그리드 분할 수
 const GRID = { x: dieXCnt, y: dieYCnt }
@@ -108,15 +94,16 @@ const result = new Map()
 
 // 전체 샷 좌표 범위 계산
 console.log('shotGroups entries:', shotGroups.entries())
-const chipXList = shotGroups.entries().flatMap(([_, samples]) => samples.map(p => p.chipX))
+const chipXList = [...shotGroups.values()].flatMap((samples) => samples.map((p) => p.chipX))
 console.log('shotGroups chipXList:', chipXList)
-const chipYList = shotGroups.entries().flatMap(([_, samples]) => samples.map(p => p.chipY))
-const shotXMin = Math.min(...chipXList)
-const shotXMax = Math.max(...chipXList)
-const shotYMin = Math.min(...chipYList)
-const shotYMax = Math.max(...chipYList)
-const deltaX = shotXMax > shotXMin ? shotXMax - shotXMin : 1
-const deltaY = shotYMax > shotYMin ? shotYMax - shotYMin : 1
+const chipYList = [...shotGroups.values()].flatMap((samples) => samples.map((p) => p.chipY))
+console.log('shotGroups chipYList:', chipYList)
+// const shotXMin = Math.min(...chipXList)
+// const shotXMax = Math.max(...chipXList)
+// const shotYMin = Math.min(...chipYList)
+// const shotYMax = Math.max(...chipYList)
+// const deltaX = shotXMax > shotXMin ? shotXMax - shotXMin : 1
+// const deltaY = shotYMax > shotYMin ? shotYMax - shotYMin : 1
 
 // 각 샷 그룹별로 다이그리드 맵 생성
 shotGroups.forEach((samples, shotKey)=> {
@@ -143,14 +130,11 @@ shotGroups.forEach((samples, shotKey)=> {
     const dieKey = `${dieX},${dieY}`
     console.log(idx, ' normX:', normX, 'normY:', normY, '-> dieKey', dieKey)
     const point = { ...p, value: p.value ?? 0 }
-    if (!dieMap.has(dieKey)) dieMap.set(dieKey, { points: [], avgValue: 0 })
-    dieMap.get(dieKey).push(point)
-    //'0,0': { points: [{chipX, chipY, value, siteSeq }, ...], avgValue}
-    const currentDie = dieMap.get(dieKey)
-    currentDie.points.push(point)
-    const totalValue = currentDie.reduce((s, pt) => s + pt.value, 0)
-    const avgValue = totalValue / currentDie.length
-    dieMap.set(dieKey, { points: currentDie, avgValue })
+    const current = dieMap.get(dieKey) ?? { points: [], avgValue: 0 }
+    current.points.push(point)
+    const totalValue = current.points.reduce((s, pt) => s + pt.value, 0)
+    const avgValue = totalValue / Math.max(current.points.length, 1)
+    dieMap.set(dieKey, { points: current.points, avgValue })
   })
 
   // '-5,0' => { dieMap, avgValue }
@@ -159,90 +143,6 @@ shotGroups.forEach((samples, shotKey)=> {
 
 console.log('RnD V1 shotGroups:', shotGroups)
 console.log('RnD V1 Result:', result)
-
-//** UcFieldCduMapSvg **
-const matCells = useMemo(() => {
-  const devide = 1000
-  // Shot 내부 다이그리드 맵 생성: Key 순서가 어떻게 될지 연구할 부분
-  semPoints.forEach((pts, refKey) => {
-    pts.forEach((p) => {
-      const dieKey = `${Math.floor(p.Location.x / (shotSplit.x * devide))},${Math.floor(
-        p.Location.y / (shotSplit.y * devide),
-      )}`
-      const arr = dieMap.get(dieKey) ?? []
-      arr.push(p)
-      dieMap.set(dieKey, arr)
-    })
-  })
-
-  // 이 부분에서 위와 아래 속성 전달이 잘못 되었다!, 해결할 부분임.
-  // pts, pts.Location.x, pts.Location.y 등등
-
-  // 1. 물리 정렬 - 내림차순(높이 기준)
-  const yList = [...new Set(pts.map(p => p.Location))].sort((a, b) => b - a)
-  const yDiff = yList.slice(1).map((v, i) => yList[i] - v)
-  const yAvg = yDiff.reduce((s, v) =>  s + v, 0) / (yDiff.length || 1)
-  const yThreshold = yAvg / 4
-  const bigY = yDiff.filter(v => v > yThreshold).length
-
-  const dicY = new Map()
-  j = 0
-  for (let i =0; i < yList.lengthh; i++) {
-    dicY.set(yList[i], j)
-    if (bigY > i) j++
-  }
-
-  // 2. Mat셀 객체 생성
-  const dieIdx = dicKey.split(',').map(Number)
-  pts.forEach(p => {
-    const matX = dicX.get(p.Location.x)
-    const matY = dicY.get(p.Location.y)
-    // pts.length가 0인 경우는 avg를 0으로 처리 (NaN 방지)
-    const avg = pts.filter(pp => Math.floor(pp.Location.x / 1e3) === matX && Math.floor((pp.Location.y / 1e3) === matY))
-      .reduce((s, pp) => s + pp.Value, 0) / Math.max(pts.length, 1)
-
-    cells.push({
-      INDEX_X: p.RefIndex.x, INDEX_Y: p.RefIndex.y,
-      DIE_X: dieIdx[0], DIE_Y: dieIdx[1],
-      MAT_NAME: "", MAT_X: matX, MAT_Y: matY,
-      VAL_AVG: avg, POINTS: [p]
-    })
-  })
-
-  // 3. 행/열 병합(rowShift, colShift)
-  // [2,0]. [1,0]
-  // [1,1]. [0,1]
-  // [0,1]. [0,1]
-  let colCount = Math.max(...cells.map(c => c.MAT_X)) + 1 // 2
-  let rowCount = Math.max(...cells.map(c => c.MAT_Y)) + 1 // 3
-
-  for (let xr = 1; xr < colCount; xr++) {
-    const pre = cells.filter(c => c.MAT_X === xr -1)  // [0,1]
-    const cur = cells.filter(c => c.MAT_X === xr) // [1,1]
-    const preIdx = new Set(pre.map(c => c.MAT_Y)) // [0,1]
-    const curIdx = cur.map(c => c.MAT_Y)  // 1
-    const noOverlap = curIdx.every(idx => !preIdx.has(idx))
-    const sum = pre.length + cur.lengthh
-    if (pre.length && sum <= rowCount && noOverlap) {
-      cur.forEach(c => c.MAT_X -= 1)
-    }
-  }
-
-  for (let yr = 1; yr < rowCount; yr++) {
-    const pre = cells.filter(c => c.MAT_Y === yr -1)  // [2,0]
-    const cur = cells.filter(c => c.MAT_Y === yr)
-    const preIdx = new Set(pre.map(c => c.MAT_X))
-    const curIdx = cur.map(c => c.MAT_X)
-    const noOverlap = curIdx.every(idx => !preIdx.has(idx))
-    const sum = pre.length + cur.lengthh
-    if (pre.length && sum <= rowCount && noOverlap) {
-      cur.forEach(c => c.MAT_Y -= 1)
-    }
-  }
-
-  return cells
-// }, [semPoints, shotSplit])
-}, [])
 
   return   (
     <div>Wafer Field CDU Convert V1 - Check Console for Result</div>
