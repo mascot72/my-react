@@ -4,6 +4,13 @@ import { useCDUData, useMergeGroups, useFieldRenderItems, usePointData } from '.
 import { WaferOutline, ColorBar, FieldGroup, CoordinateGrid, PointLayer, OutlineLayer } from './components'
 import { mapSemPointsToFields } from './utils/semPointMapper'
 import type { SemPointMapped } from './utils/semPointMapper'
+import { usePalette } from '../../../../app/usePalette'
+import {
+  getColorFromPalette,
+  buildFieldValueMap,
+  calculateFieldPercentages,
+  getFieldPercentage,
+} from './utils/paletteColorMapper'
 
 const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
   cduSeed,
@@ -48,6 +55,9 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
   semPointRadiusPx = 4,
   semPointOpacity = 0.85,
   semPointColor = '#ff6b35',
+  useSemPointColorFromPalette = false,
+  applyFieldFillFromSemValue = false,
+  applyDieFillFromSemValue = false,
 }) => {
   // Parameters
   const waferRadius = 150
@@ -165,6 +175,91 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
       dieRows
     )
   }, [showSemPoints, semPoints, fieldStepX, fieldStepY, fieldWidth, fieldHeight, dieCols, dieRows])
+
+  // Palette 및 Field 백분율 계산
+  const { appliedPalette } = usePalette()
+
+  // Field별 value 맵 생성 및 백분율 계산
+  const fieldPercentages = useMemo(() => {
+    if (!showSemPoints || !semPoints || semPoints.length === 0) {
+      return {}
+    }
+    const valueMap = buildFieldValueMap(semPoints)
+    return calculateFieldPercentages(valueMap)
+  }, [showSemPoints, semPoints])
+
+  // SEM 포인트의 색상 결정 함수
+  const getSemPointColor = (semPoint: { indexX: number; indexY: number; value: number }): string => {
+    if (!useSemPointColorFromPalette || !appliedPalette) {
+      return semPointColor // fallback to UI color
+    }
+    const percentage = getFieldPercentage(semPoint.indexX, semPoint.indexY, fieldPercentages)
+    if (percentage === null) {
+      return semPointColor // fallback
+    }
+    return getColorFromPalette(percentage, appliedPalette)
+  }
+
+  // Field 배경색 결정 함수
+  const getFieldFillColor = (fieldCenterX: number, fieldCenterY: number): string | null => {
+    if (!applyFieldFillFromSemValue || !appliedPalette) {
+      return null
+    }
+    // Field 중심 좌표에서 그리드 인덱스 계산
+    // fieldCenterX = gridX * fieldStepX, fieldCenterY = gridY * fieldStepY
+    const gridX = Math.round(fieldCenterX / fieldStepX)
+    const gridY = Math.round(fieldCenterY / fieldStepY)
+    
+    const percentage = getFieldPercentage(gridX, gridY, fieldPercentages)
+    if (percentage === null) {
+      return null
+    }
+    return getColorFromPalette(percentage, appliedPalette)
+  }
+
+  // Die 배경색 결정 함수
+  const getDieFillColor = (fieldGridX: number, fieldGridY: number, dieCol: number, dieRow: number): string | null => {
+    if (!applyDieFillFromSemValue || !appliedPalette) {
+      return null
+    }
+    // 해당 Field/Die 조합에 속하는 SEM 포인트들을 찾아 평균값 계산
+    const semPointsInDie = mappedSemPoints.filter(
+      (mp) => mp.semPoint.indexX === fieldGridX &&
+              mp.semPoint.indexY === fieldGridY &&
+              mp.dieCol === dieCol &&
+              mp.dieRow === dieRow
+    )
+    
+    if (semPointsInDie.length === 0) {
+      return null
+    }
+    
+    // Die 내 SEM 포인트들의 평균값
+    const avgValue = semPointsInDie.reduce((sum, mp) => sum + mp.semPoint.value, 0) / semPointsInDie.length
+    
+    // 전체 Field 평균들을 기반으로 백분율 계산
+    const allFieldAvgValues = Object.keys(fieldPercentages).map(key => {
+      const parts = key.split(',')
+      const gx = parseInt(parts[0], 10)
+      const gy = parseInt(parts[1], 10)
+      
+      // 해당 Field의 모든 SEM 포인트 값
+      const pointsForField = semPoints.filter(p => p.indexX === gx && p.indexY === gy)
+      if (pointsForField.length === 0) return 0
+      return pointsForField.reduce((sum, p) => sum + p.value, 0) / pointsForField.length
+    })
+    
+    if (allFieldAvgValues.length === 0) {
+      return null
+    }
+    
+    const minAvg = Math.min(...allFieldAvgValues)
+    const maxAvg = Math.max(...allFieldAvgValues)
+    const rangeAvg = maxAvg - minAvg
+    
+    const percentage = rangeAvg === 0 ? 50 : ((avgValue - minAvg) / rangeAvg) * 100
+    return getColorFromPalette(percentage, appliedPalette)
+  }
 
   // DEBUG: pointData 출력
   if (enablePointData) {
@@ -448,6 +543,13 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
                   semPointRadiusPx={semPointRadiusPx}
                   semPointOpacity={semPointOpacity}
                   semPointColor={semPointColor}
+                  getSemPointColor={getSemPointColor}
+                  appliedPalette={appliedPalette}
+                  fieldPercentages={fieldPercentages}
+                  applyFieldFillFromSemValue={applyFieldFillFromSemValue}
+                  applyDieFillFromSemValue={applyDieFillFromSemValue}
+                  getFieldFillColor={getFieldFillColor}
+                  getDieFillColor={getDieFillColor}
                 />
               )})
           )}

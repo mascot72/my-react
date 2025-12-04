@@ -80,6 +80,12 @@ interface WaferControllerProps {
   onSemPointOpacityChange?: (v: number) => void
   semPointColor?: string
   onSemPointColorChange?: (v: string) => void
+  useSemPointColorFromPalette?: boolean
+  onUseSemPointColorFromPaletteChange?: (v: boolean) => void
+  applyFieldFillFromSemValue?: boolean
+  onApplyFieldFillFromSemValueChange?: (v: boolean) => void
+  applyDieFillFromSemValue?: boolean
+  onApplyDieFillFromSemValueChange?: (v: boolean) => void
 }
 
 const WaferController: React.FC<WaferControllerProps> = ({
@@ -154,6 +160,12 @@ const WaferController: React.FC<WaferControllerProps> = ({
   onSemPointOpacityChange,
   semPointColor = '#ff6b35',
   onSemPointColorChange,
+  useSemPointColorFromPalette = false,
+  onUseSemPointColorFromPaletteChange,
+  applyFieldFillFromSemValue = false,
+  onApplyFieldFillFromSemValueChange,
+  applyDieFillFromSemValue = false,
+  onApplyDieFillFromSemValueChange,
 }) => {
 
   return (
@@ -616,6 +628,42 @@ const WaferController: React.FC<WaferControllerProps> = ({
                   onChange={(e) => onSemPointColorChange && onSemPointColorChange(e.target.value)}
                   style={{ width: 80, height: 28, border: '1px solid #ccc', borderRadius: 4, cursor: 'pointer' }}
                 />
+              </div>
+
+              <div className={styles.toggleRow} style={{ marginTop: 12 }}>
+                <input
+                  id='use-sem-palette-color'
+                  type='checkbox'
+                  checked={useSemPointColorFromPalette}
+                  onChange={(e) => onUseSemPointColorFromPaletteChange && onUseSemPointColorFromPaletteChange(e.target.checked)}
+                />
+                <label htmlFor='use-sem-palette-color' className={styles.caption} style={{ fontSize: 13 }}>
+                  Use Palette Color
+                </label>
+              </div>
+
+              <div className={styles.toggleRow} style={{ marginTop: 8 }}>
+                <input
+                  id='apply-field-fill-sem'
+                  type='checkbox'
+                  checked={applyFieldFillFromSemValue}
+                  onChange={(e) => onApplyFieldFillFromSemValueChange && onApplyFieldFillFromSemValueChange(e.target.checked)}
+                />
+                <label htmlFor='apply-field-fill-sem' className={styles.caption} style={{ fontSize: 13 }}>
+                  Field BG Color (SEM avg)
+                </label>
+              </div>
+
+              <div className={styles.toggleRow} style={{ marginTop: 8 }}>
+                <input
+                  id='apply-die-fill-sem'
+                  type='checkbox'
+                  checked={applyDieFillFromSemValue}
+                  onChange={(e) => onApplyDieFillFromSemValueChange && onApplyDieFillFromSemValueChange(e.target.checked)}
+                />
+                <label htmlFor='apply-die-fill-sem' className={styles.caption} style={{ fontSize: 13 }}>
+                  Die BG Color (SEM avg)
+                </label>
               </div>
             </div>
           )}

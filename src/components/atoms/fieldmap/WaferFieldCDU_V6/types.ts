@@ -135,4 +135,8 @@ export interface WaferFieldCDU_V6Props {
   semPointRadiusPx?: number // SEM 포인트 반지름 (px)
   semPointOpacity?: number // SEM 포인트 투명도
   semPointColor?: string // SEM 포인트 색상
+  // SEM Point color by palette (선택 사항)
+  useSemPointColorFromPalette?: boolean // true면 SEM point value 기반 팔레트 색상 사용
+  applyFieldFillFromSemValue?: boolean // true면 Field 배경에 SEM 평균값 기반 팔레트 색상 적용
+  applyDieFillFromSemValue?: boolean // true면 Die 배경에 포함된 SEM 포인트 평균값 기반 팔레트 색상 적용
 }

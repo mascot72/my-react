@@ -1,8 +1,8 @@
 /**
  * SEM 측정 포인트 데이터 타입
  * [indexX, indexY, x, y, value, siteSeq]
- * - indexX, indexY: Field 그리드 인덱스
- * - x, y: Field 내부 상대 좌표 (μm, left-bottom 기준)
+ * - indexX, indexY: Field 그리드 인덱스 (FieldPoint.fieldGridX, fieldGridY와 동일)
+ * - x, y: 절대 측정 좌표 (전체 범위를 구해 Field 상대 좌표로 비율 변환됨)
  * - value: 측정값
  * - siteSeq: 사이트 시퀀스 번호
  */
@@ -12,13 +12,13 @@ export type SemPointRaw = [number, number, number, number, number, number]
  * SEM 측정 포인트 (구조화된 형태)
  */
 export interface SemPoint {
-  /** Field X 인덱스 (그리드 좌표) */
+  /** Field X 그리드 인덱스 (FieldPoint.fieldGridX와 동일, 중앙 기준) */
   indexX: number
-  /** Field Y 인덱스 (그리드 좌표) */
+  /** Field Y 그리드 인덱스 (FieldPoint.fieldGridY와 동일, 중앙 기준) */
   indexY: number
-  /** Field 내부 상대 X 좌표 (μm, left-bottom 기준) */
+  /** 절대 측정 X 좌표 (전체 범위에서 비율로 Field 상대 좌표 변환) */
   x: number
-  /** Field 내부 상대 Y 좌표 (μm, left-bottom 기준) */
+  /** 절대 측정 Y 좌표 (전체 범위에서 비율로 Field 상대 좌표 변환) */
   y: number
   /** 측정값 */
   value: number

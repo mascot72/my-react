@@ -1,6 +1,7 @@
 import React from 'react'
 import type { FieldRenderItem } from '../types'
 import type { SemPointMapped } from '../utils/semPointMapper'
+import type { PaletteGroup } from '../../../../../app/usePalette'
 import { DieRect } from './DieRect'
 import { MergeGroupRect } from './MergeGroupRect'
 
@@ -28,6 +29,13 @@ interface FieldGroupProps {
   semPointRadiusPx?: number
   semPointOpacity?: number
   semPointColor?: string
+  getSemPointColor?: (semPoint: { indexX: number; indexY: number; value: number }) => string
+  appliedPalette?: PaletteGroup | null
+  fieldPercentages?: Record<string, number>
+  applyFieldFillFromSemValue?: boolean
+  applyDieFillFromSemValue?: boolean
+  getFieldFillColor?: (fieldGridX: number, fieldGridY: number) => string | null
+  getDieFillColor?: (fieldGridX: number, fieldGridY: number, dieCol: number, dieRow: number) => string | null
 }
 
 export const FieldGroup: React.FC<FieldGroupProps> = ({
@@ -53,6 +61,13 @@ export const FieldGroup: React.FC<FieldGroupProps> = ({
   semPointRadiusPx = 4,
   semPointOpacity = 0.85,
   semPointColor = '#ff6b35',
+  getSemPointColor,
+  appliedPalette,
+  fieldPercentages,
+  applyFieldFillFromSemValue = false,
+  applyDieFillFromSemValue = false,
+  getFieldFillColor,
+  getDieFillColor,
 }) => {
   const fieldKey = `field-${fieldIndex}-${item.fieldRect.x}-${item.fieldRect.y}`
   const { x, y, w, h } = item.fieldRect
@@ -62,14 +77,18 @@ export const FieldGroup: React.FC<FieldGroupProps> = ({
        onMouseEnter={(e) => onMouseEnter(fieldKey, e as unknown as React.MouseEvent<SVGRectElement>)}
        onMouseLeave={onMouseLeave}
     >
-      {/* 필드 fill (평균 CDU) */}
+      {/* 필드 fill (평균 CDU 또는 SEM value 기반) */}
       {showFieldFill && (
         <rect
           x={mm2px(x)}
           y={mm2px(y)}
           width={mm2px(w)}
           height={mm2px(h)}
-          fill={cduToColor(item.fieldAvgCdu)}
+          fill={
+            applyFieldFillFromSemValue && getFieldFillColor
+              ? getFieldFillColor(item.fieldRect.x, item.fieldRect.y) || cduToColor(item.fieldAvgCdu)
+              : cduToColor(item.fieldAvgCdu)
+          }
           fillOpacity={fieldFillOpacity}
           stroke='none'
         />
@@ -114,7 +133,12 @@ export const FieldGroup: React.FC<FieldGroupProps> = ({
       ))}
 
       {/* 개별 다이 */}
-      {item.singleDies.map((d) => (
+      {item.singleDies.map((d) => {
+        // Die의 Field 내부 위치 계산 (0 ~ dieCols-1, 0 ~ dieRows-1)
+        const dieColIndex = d.dieIndex ? d.dieIndex % 2 : 0 // 2 columns 가정
+        const dieRowIndex = d.dieIndex ? Math.floor(d.dieIndex / 2) : 0 // row는 dieIndex / 2
+        
+        return (
         <DieRect
           key={`d-${fieldIndex}-${d.dieIndex}`}
           die={d}
@@ -128,8 +152,10 @@ export const FieldGroup: React.FC<FieldGroupProps> = ({
           fieldIndex={fieldIndex}
           onDieHover={(info) => onDieHover && onDieHover({ ...info, fieldIndex })}
           onHoverEnd={onDieHoverEnd}
+          getDieFillColor={getDieFillColor}
+          applyDieFillFromSemValue={applyDieFillFromSemValue}
         />
-      ))}
+      )})}
 
       {/* shot sequence (on-top) - only numeric value with opaque background for visibility */}
       {showShotSequence && item.shotIndex !== undefined && (
@@ -158,13 +184,18 @@ export const FieldGroup: React.FC<FieldGroupProps> = ({
       {/* SEM 포인트 렌더링 */}
       {showSemPoints && semPoints && semPoints.length > 0 && (
         <g className="sem-points">
-          {semPoints.map((sp, idx) => (
+          {semPoints.map((sp, idx) => {
+            // getSemPointColor 함수가 있으면 사용, 없으면 UI에서의 색상 사용
+            const pointColor = getSemPointColor
+              ? getSemPointColor(sp.semPoint)
+              : semPointColor
+            return (
             <circle
               key={`sem-${idx}`}
               cx={mm2px(sp.absoluteX)}
               cy={mm2px(sp.absoluteY)}
               r={semPointRadiusPx}
-              fill={semPointColor}
+              fill={pointColor}
               opacity={semPointOpacity}
               stroke="#fff"
               strokeWidth={0.5}
@@ -187,7 +218,8 @@ export const FieldGroup: React.FC<FieldGroupProps> = ({
             >
               <title>{`SEM Site ${sp.semPoint.siteSeq}\nValue: ${sp.semPoint.value.toFixed(3)}\nDie: (${sp.dieCol}, ${sp.dieRow})`}</title>
             </circle>
-          ))}
+            )
+          })}
         </g>
       )}
       

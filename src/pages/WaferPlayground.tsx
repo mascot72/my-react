@@ -39,36 +39,23 @@ const WaferPlayground: React.FC = () => {
   const [waferTickStepMm, setWaferTickStepMm] = useState(50)
 
   // SEM 측정 포인트 샘플 데이터
-  // [indexX, indexY, x(μm, left-bottom), y(μm, left-bottom), value, siteSeq]
-  // Field 크기: 20mm x 30mm = 20000μm x 30000μm
+  // [indexX, indexY, x(절대좌표), y(절대좌표), value, siteSeq]
+  // indexX, indexY: FieldPoint.fieldGridX, fieldGridY와 동일 (중앙 기준 그리드)
+  // x, y: 노광장비에서 촬영한 실제 측정 좌표 (μm 단위, 전체 범위를 구해 Field 상대 좌표로 비율 변환됨)
   const sampleSemPointData: SemPointRaw[] = [
-    // Field (-5, 0) - 좌측 중앙
-    [-5, 0, 5000, 10000, 1.43, 1],   // left-bottom에서 5mm, 10mm
-    [-5, 0, 15000, 20000, 1.46, 2],  // left-bottom에서 15mm, 20mm
-    
-    // Field (-4, -2) - 좌측 하단
-    [-4, -2, 8000, 5000, 1.49, 3],
-    [-4, -2, 12000, 15000, 1.52, 4],
-    
-    // Field (-2, 0) - 중앙 좌측
-    [-2, 0, 10000, 12000, 1.55, 5],
-    [-2, 0, 6000, 18000, 1.58, 6],
-    
-    // Field (-1, 1) - 중앙 위
-    [-1, 1, 9000, 14000, 1.61, 7],
-    [-1, 1, 11000, 16000, 1.64, 8],
-    
-    // Field (0, 0) - 중심
-    [0, 0, 10000, 15000, 1.67, 9],
-    [0, 0, 8000, 12000, 1.70, 10],
-    
-    // Field (1, 1) - 우측 위
-    [1, 1, 7000, 11000, 1.73, 11],
-    [1, 1, 13000, 19000, 1.76, 12],
-    
-    // Field (3, 2) - 우측 위
-    [3, 2, 6000, 8000, 1.13, 13],
-    [3, 2, 14000, 22000, 1.74, 14],
+    [-5, 0, 536144, 124621, 1.43, 1],
+    [-5, 1, 536143, 124631, 1.46, 2],
+    [-4, -2, 536124, 124641, 1.49, 3],
+    [-4, 1, 536143, 124651, 1.52, 4],
+    [-2, 0, 536144, 124661, 1.55, 5],
+    [-2, 2, 536124, 124671, 1.58, 6],
+    [-1, 1, 536144, 124681, 1.61, 7],
+    [-1, 2, 536144, 114691, 1.64, 8],
+    [0, 0, 536144, 124701, 1.67, 9],
+    [1, 1, 536141, 122711, 1.70, 10],
+    [3, 2, 536146, 124728, 1.73, 11],
+    [3, 2, 536267, 124738, 1.13, 12],
+    [3, 2, 536317, 125775, 1.74, 13],
   ]
 
   const [semPoints] = useState(() => parseSemPoints(sampleSemPointData))
@@ -76,6 +63,9 @@ const WaferPlayground: React.FC = () => {
   const [semPointRadiusPx, setSemPointRadiusPx] = useState(4)
   const [semPointOpacity, setSemPointOpacity] = useState(0.85)
   const [semPointColor, setSemPointColor] = useState('#ff6b35')
+  const [useSemPointColorFromPalette, setUseSemPointColorFromPalette] = useState(false)
+  const [applyFieldFillFromSemValue, setApplyFieldFillFromSemValue] = useState(false)
+  const [applyDieFillFromSemValue, setApplyDieFillFromSemValue] = useState(false)
 
   const containerStyle: React.CSSProperties = {
     display: 'flex',
@@ -172,6 +162,9 @@ const WaferPlayground: React.FC = () => {
               semPointRadiusPx={semPointRadiusPx}
               semPointOpacity={semPointOpacity}
               semPointColor={semPointColor}
+              useSemPointColorFromPalette={useSemPointColorFromPalette}
+              applyFieldFillFromSemValue={applyFieldFillFromSemValue}
+              applyDieFillFromSemValue={applyDieFillFromSemValue}
             />
           </div>
         </div>
@@ -248,6 +241,12 @@ const WaferPlayground: React.FC = () => {
             onSemPointOpacityChange={setSemPointOpacity}
             semPointColor={semPointColor}
             onSemPointColorChange={setSemPointColor}
+            useSemPointColorFromPalette={useSemPointColorFromPalette}
+            onUseSemPointColorFromPaletteChange={setUseSemPointColorFromPalette}
+            applyFieldFillFromSemValue={applyFieldFillFromSemValue}
+            onApplyFieldFillFromSemValueChange={setApplyFieldFillFromSemValue}
+            applyDieFillFromSemValue={applyDieFillFromSemValue}
+            onApplyDieFillFromSemValueChange={setApplyDieFillFromSemValue}
           />
         </div>
       </div>

@@ -21,17 +21,83 @@ export interface SemPointMapped {
 
 /**
  * Field 그리드 인덱스를 절대 좌표로 변환
+ * indexX, indexY는 FieldPoint.fieldGridX, fieldGridY와 동일한 값 (중앙 기준)
  */
-function fieldIndexToCenter(
-  indexX: number,
-  indexY: number,
+function fieldGridToCenter(
+  gridX: number,
+  gridY: number,
   fieldStepX: number,
   fieldStepY: number
 ): { cx: number; cy: number } {
   return {
-    cx: indexX * fieldStepX,
-    cy: indexY * fieldStepY,
+    cx: gridX * fieldStepX,
+    cy: gridY * fieldStepY,
   }
+}
+
+/**
+ * 전체 SEM 포인트의 좌표 범위를 계산
+ */
+function calculatePointBounds(semPoints: SemPoint[]): {
+  minX: number
+  maxX: number
+  minY: number
+  maxY: number
+} {
+  if (semPoints.length === 0) {
+    return { minX: 0, maxX: 0, minY: 0, maxY: 0 }
+  }
+
+  let minX = Infinity
+  let maxX = -Infinity
+  let minY = Infinity
+  let maxY = -Infinity
+
+  semPoints.forEach((p) => {
+    minX = Math.min(minX, p.x)
+    maxX = Math.max(maxX, p.x)
+    minY = Math.min(minY, p.y)
+    maxY = Math.max(maxY, p.y)
+  })
+
+  return { minX, maxX, minY, maxY }
+}
+
+/**
+ * 절대 좌표를 Field 상대 좌표로 비율 변환
+ * @param x 절대 X 좌표
+ * @param y 절대 Y 좌표
+ * @param bounds 전체 포인트의 좌표 범위
+ * @param fieldWidth Field 너비 (mm)
+ * @param fieldHeight Field 높이 (mm)
+ */
+function absoluteToFieldRelative(
+  x: number,
+  y: number,
+  bounds: { minX: number; maxX: number; minY: number; maxY: number },
+  fieldWidth: number,
+  fieldHeight: number
+): { relX: number; relY: number } {
+  const rangeX = bounds.maxX - bounds.minX
+  const rangeY = bounds.maxY - bounds.minY
+
+  // 범위가 0이면 중앙으로
+  if (rangeX === 0 || rangeY === 0) {
+    return {
+      relX: fieldWidth / 2,
+      relY: fieldHeight / 2,
+    }
+  }
+
+  // 정규화 (0~1 범위)
+  const normalizedX = (x - bounds.minX) / rangeX
+  const normalizedY = (y - bounds.minY) / rangeY
+
+  // Field 좌표계로 스케일링 (mm, left-bottom 기준)
+  const relX = normalizedX * fieldWidth
+  const relY = normalizedY * fieldHeight
+
+  return { relX, relY }
 }
 
 /**
@@ -89,6 +155,8 @@ function findDieIndex(
 
 /**
  * SEM 포인트 배열을 Field/Die에 매핑
+ * indexX/Y는 FieldPoint.fieldGridX/Y와 동일 (중앙 기준 그리드 좌표)
+ * x/y는 절대 좌표이며, 전체 범위를 구해 Field 상대 좌표로 비율 변환
  */
 export function mapSemPointsToFields(
   semPoints: SemPoint[],
@@ -99,23 +167,36 @@ export function mapSemPointsToFields(
   dieCols: number,
   dieRows: number
 ): SemPointMapped[] {
+  if (semPoints.length === 0) {
+    return []
+  }
+
+  // 1. 전체 포인트의 좌표 범위 계산
+  const bounds = calculatePointBounds(semPoints)
+
   return semPoints.map((sp) => {
-    // Field 중심 좌표 계산 (mm)
-    const { cx, cy } = fieldIndexToCenter(sp.indexX, sp.indexY, fieldStepX, fieldStepY)
+    // 2. Field 그리드 인덱스를 중심 좌표로 변환
+    // indexX, indexY는 FieldPoint.fieldGridX, fieldGridY와 동일
+    const { cx, cy } = fieldGridToCenter(sp.indexX, sp.indexY, fieldStepX, fieldStepY)
 
-    // Field 내부 상대 좌표를 절대 좌표로 변환
-    // Field center 기준으로 변환: left-bottom → center
-    // left-bottom (0, 0) → center (-fieldWidth/2, -fieldHeight/2)
-    const relXMm = sp.x / 1000 // μm → mm
-    const relYMm = sp.y / 1000
-
-    const absoluteX = cx - fieldWidth / 2 + relXMm
-    const absoluteY = cy - fieldHeight / 2 + relYMm
-
-    // Die 인덱스 계산
-    const { dieCol, dieRow, dieLocalX, dieLocalY } = findDieIndex(
+    // 3. 절대 좌표를 Field 상대 좌표로 비율 변환 (mm)
+    const { relX, relY } = absoluteToFieldRelative(
       sp.x,
       sp.y,
+      bounds,
+      fieldWidth,
+      fieldHeight
+    )
+
+    // 4. Field 내부 상대 좌표를 절대 좌표로 변환
+    // Field center 기준으로 변환: left-bottom → center
+    const absoluteX = cx - fieldWidth / 2 + relX
+    const absoluteY = cy - fieldHeight / 2 + relY
+
+    // 5. Die 인덱스 계산 (relX, relY는 이미 mm 단위)
+    const { dieCol, dieRow, dieLocalX, dieLocalY } = findDieIndex(
+      relX * 1000, // mm → μm
+      relY * 1000,
       fieldWidth,
       fieldHeight,
       dieCols,
