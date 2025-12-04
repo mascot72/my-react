@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import WaferFieldCDU_V6 from '../components/atoms/fieldmap/WaferFieldCDURealisticV6'
 import WaferController from '../components/molecules/WaferController'
+import type { SemPointRaw } from '../types/semPoint'
+import { parseSemPoints } from '../types/semPoint'
 
 const WaferPlayground: React.FC = () => {
   const [zoom, setZoom] = useState(1)
@@ -35,6 +37,45 @@ const WaferPlayground: React.FC = () => {
   const [shotRulerStepX, setShotRulerStepX] = useState(1)
   const [shotRulerStepY, setShotRulerStepY] = useState(1)
   const [waferTickStepMm, setWaferTickStepMm] = useState(50)
+
+  // SEM 측정 포인트 샘플 데이터
+  // [indexX, indexY, x(μm, left-bottom), y(μm, left-bottom), value, siteSeq]
+  // Field 크기: 20mm x 30mm = 20000μm x 30000μm
+  const sampleSemPointData: SemPointRaw[] = [
+    // Field (-5, 0) - 좌측 중앙
+    [-5, 0, 5000, 10000, 1.43, 1],   // left-bottom에서 5mm, 10mm
+    [-5, 0, 15000, 20000, 1.46, 2],  // left-bottom에서 15mm, 20mm
+    
+    // Field (-4, -2) - 좌측 하단
+    [-4, -2, 8000, 5000, 1.49, 3],
+    [-4, -2, 12000, 15000, 1.52, 4],
+    
+    // Field (-2, 0) - 중앙 좌측
+    [-2, 0, 10000, 12000, 1.55, 5],
+    [-2, 0, 6000, 18000, 1.58, 6],
+    
+    // Field (-1, 1) - 중앙 위
+    [-1, 1, 9000, 14000, 1.61, 7],
+    [-1, 1, 11000, 16000, 1.64, 8],
+    
+    // Field (0, 0) - 중심
+    [0, 0, 10000, 15000, 1.67, 9],
+    [0, 0, 8000, 12000, 1.70, 10],
+    
+    // Field (1, 1) - 우측 위
+    [1, 1, 7000, 11000, 1.73, 11],
+    [1, 1, 13000, 19000, 1.76, 12],
+    
+    // Field (3, 2) - 우측 위
+    [3, 2, 6000, 8000, 1.13, 13],
+    [3, 2, 14000, 22000, 1.74, 14],
+  ]
+
+  const [semPoints] = useState(() => parseSemPoints(sampleSemPointData))
+  const [showSemPoints, setShowSemPoints] = useState(false)
+  const [semPointRadiusPx, setSemPointRadiusPx] = useState(4)
+  const [semPointOpacity, setSemPointOpacity] = useState(0.85)
+  const [semPointColor, setSemPointColor] = useState('#ff6b35')
 
   const containerStyle: React.CSSProperties = {
     display: 'flex',
@@ -126,6 +167,11 @@ const WaferPlayground: React.FC = () => {
               waferTickStepMm={waferTickStepMm}
               gridLineColor={gridLineColor}
               gridLineWidth={gridLineWidth}
+              semPoints={semPoints}
+              showSemPoints={showSemPoints}
+              semPointRadiusPx={semPointRadiusPx}
+              semPointOpacity={semPointOpacity}
+              semPointColor={semPointColor}
             />
           </div>
         </div>
@@ -194,6 +240,14 @@ const WaferPlayground: React.FC = () => {
             onOffsetMicrometersChange={setOffsetMicrometers}
             fieldSizeMicrometers={fieldSizeMicrometers}
             onFieldSizeMicrometersChange={setFieldSizeMicrometers}
+            showSemPoints={showSemPoints}
+            onShowSemPointsChange={setShowSemPoints}
+            semPointRadiusPx={semPointRadiusPx}
+            onSemPointRadiusPxChange={setSemPointRadiusPx}
+            semPointOpacity={semPointOpacity}
+            onSemPointOpacityChange={setSemPointOpacity}
+            semPointColor={semPointColor}
+            onSemPointColorChange={setSemPointColor}
           />
         </div>
       </div>

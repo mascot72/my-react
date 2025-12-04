@@ -2,6 +2,8 @@
  * WaferFieldCDU_V6 공유 타입 정의
  */
 
+import type { SemPoint } from '../../../../types/semPoint'
+
 export interface Die {
   x: number
   y: number
@@ -127,4 +129,10 @@ export interface WaferFieldCDU_V6Props {
   shotRulerStepY?: number
   // SVG mm tick step when Shot Ruler is off
   waferTickStepMm?: number
+  // SEM Point data
+  semPoints?: SemPoint[] // 외부 SEM 측정 포인트 데이터
+  showSemPoints?: boolean // SEM 포인트 표시 여부
+  semPointRadiusPx?: number // SEM 포인트 반지름 (px)
+  semPointOpacity?: number // SEM 포인트 투명도
+  semPointColor?: string // SEM 포인트 색상
 }

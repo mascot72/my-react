@@ -71,6 +71,15 @@ interface WaferControllerProps {
   onShotRulerStepYChange?: (v: number) => void
   waferTickStepMm?: number
   onWaferTickStepMmChange?: (v: number) => void
+  // SEM Point controls
+  showSemPoints?: boolean
+  onShowSemPointsChange?: (v: boolean) => void
+  semPointRadiusPx?: number
+  onSemPointRadiusPxChange?: (v: number) => void
+  semPointOpacity?: number
+  onSemPointOpacityChange?: (v: number) => void
+  semPointColor?: string
+  onSemPointColorChange?: (v: string) => void
 }
 
 const WaferController: React.FC<WaferControllerProps> = ({
@@ -136,6 +145,15 @@ const WaferController: React.FC<WaferControllerProps> = ({
   onShowFieldFillChange,
   fieldFillOpacity = 0.35,
   onFieldFillOpacityChange,
+  // SEM Point props
+  showSemPoints = false,
+  onShowSemPointsChange,
+  semPointRadiusPx = 4,
+  onSemPointRadiusPxChange,
+  semPointOpacity = 0.85,
+  onSemPointOpacityChange,
+  semPointColor = '#ff6b35',
+  onSemPointColorChange,
 }) => {
 
   return (
@@ -544,6 +562,63 @@ const WaferController: React.FC<WaferControllerProps> = ({
               placeholder='Height'
             />
           </div>
+        </div>
+
+        {/* SEM Point Controls */}
+        <div style={{ marginTop: 16, paddingTop: 16, borderTop: '2px solid #e0e0e0' }}>
+          <div className={styles.toggleRow}>
+            <input
+              id='show-sem-points'
+              type='checkbox'
+              checked={showSemPoints}
+              onChange={(e) => onShowSemPointsChange && onShowSemPointsChange(e.target.checked)}
+            />
+            <label htmlFor='show-sem-points' className={styles.caption} style={{ fontWeight: 600 }}>
+              Show SEM Points
+            </label>
+          </div>
+
+          {showSemPoints && (
+            <div style={{ marginTop: 8, paddingLeft: 8 }}>
+              <div className={styles.rangeRow} style={{ marginTop: 6 }}>
+                <div className={styles.caption} style={{ width: 120 }}>Radius (px)</div>
+                <input
+                  type='range'
+                  min={1}
+                  max={10}
+                  step={0.5}
+                  value={semPointRadiusPx}
+                  onChange={(e) => onSemPointRadiusPxChange && onSemPointRadiusPxChange(Number(e.target.value))}
+                  style={{ flex: 1 }}
+                />
+                <div style={{ width: 40, textAlign: 'right' }}>{semPointRadiusPx.toFixed(1)}</div>
+              </div>
+
+              <div className={styles.rangeRow} style={{ marginTop: 6 }}>
+                <div className={styles.caption} style={{ width: 120 }}>Opacity</div>
+                <input
+                  type='range'
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  value={semPointOpacity}
+                  onChange={(e) => onSemPointOpacityChange && onSemPointOpacityChange(Number(e.target.value))}
+                  style={{ flex: 1 }}
+                />
+                <div style={{ width: 40, textAlign: 'right' }}>{semPointOpacity.toFixed(2)}</div>
+              </div>
+
+              <div style={{ marginTop: 8 }}>
+                <label className={styles.label}>Color</label>
+                <input
+                  type='color'
+                  value={semPointColor}
+                  onChange={(e) => onSemPointColorChange && onSemPointColorChange(e.target.value)}
+                  style={{ width: 80, height: 28, border: '1px solid #ccc', borderRadius: 4, cursor: 'pointer' }}
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         <div className={styles.note}>Hover the wafer for a subtle lift animation</div>

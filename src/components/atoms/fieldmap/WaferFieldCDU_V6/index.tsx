@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect, useMemo } from 'react'
 import type { WaferFieldCDU_V6Props } from './types'
 import { useCDUData, useMergeGroups, useFieldRenderItems, usePointData } from './hooks'
 import { WaferOutline, ColorBar, FieldGroup, CoordinateGrid, PointLayer, OutlineLayer } from './components'
+import { mapSemPointsToFields } from './utils/semPointMapper'
+import type { SemPointMapped } from './utils/semPointMapper'
 
 const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
   cduSeed,
@@ -40,6 +42,12 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
   waferTickStepMm = 50,
   gridLineColor,
   gridLineWidth,
+  // SEM Point props
+  semPoints = [],
+  showSemPoints = false,
+  semPointRadiusPx = 4,
+  semPointOpacity = 0.85,
+  semPointColor = '#ff6b35',
 }) => {
   // Parameters
   const waferRadius = 150
@@ -142,6 +150,22 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
     includeNullDies: !fitToContent,
   })
 
+  // SEM 포인트 매핑 (Field/Die 좌표계로 변환)
+  const mappedSemPoints: SemPointMapped[] = useMemo(() => {
+    if (!showSemPoints || !semPoints || semPoints.length === 0) {
+      return []
+    }
+    return mapSemPointsToFields(
+      semPoints,
+      fieldStepX,
+      fieldStepY,
+      fieldWidth,
+      fieldHeight,
+      dieCols,
+      dieRows
+    )
+  }, [showSemPoints, semPoints, fieldStepX, fieldStepY, fieldWidth, fieldHeight, dieCols, dieRows])
+
   // DEBUG: pointData 출력
   if (enablePointData) {
     console.log('PointDataSet:', {
@@ -149,6 +173,14 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
       fieldPointsCount: pointDataSet.fieldPoints.length,
       sampleDiePoints: pointDataSet.diePoints.slice(0, 5),
       sampleFieldPoints: pointDataSet.fieldPoints.slice(0, 5),
+    })
+  }
+
+  // DEBUG: SEM 포인트 매핑 결과
+  if (showSemPoints && mappedSemPoints.length > 0) {
+    console.log('Mapped SEM Points:', {
+      count: mappedSemPoints.length,
+      sample: mappedSemPoints.slice(0, 3),
     })
   }
 
@@ -164,7 +196,7 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 })
   const [tooltip, setTooltip] = useState<
     | {
-        kind: 'die' | 'field'
+        kind: 'die' | 'field' | 'sem'
         x: number
         y: number
         value: number | null
@@ -346,7 +378,15 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
           ) : (
             fieldRenderItems
               .filter(item => item.included || showFullGrid)
-              .map((item, fi) => (
+              .map((item, fi) => {
+                // 이 Field의 SEM 포인트 필터링
+                const fieldSemPoints = mappedSemPoints.filter(
+                  (mp) =>
+                    Math.abs(mp.fieldCenterX - (item.fieldRect.x + item.fieldRect.w / 2)) < 0.01 &&
+                    Math.abs(mp.fieldCenterY - (item.fieldRect.y + item.fieldRect.h / 2)) < 0.01
+                )
+                
+                return (
                 <FieldGroup
                   key={fi}
                   item={item}
@@ -403,8 +443,13 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
                   showDieIndex={viewDieIndex}
                   showDieSequence={viewDieSequence}
                   showShotSequence={viewShotSequence}
+                  semPoints={fieldSemPoints}
+                  showSemPoints={showSemPoints}
+                  semPointRadiusPx={semPointRadiusPx}
+                  semPointOpacity={semPointOpacity}
+                  semPointColor={semPointColor}
                 />
-              ))
+              )})
           )}
 
           {/* Tooltip (SVG) */}

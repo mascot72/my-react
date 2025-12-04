@@ -1,5 +1,6 @@
 import React from 'react'
 import type { FieldRenderItem } from '../types'
+import type { SemPointMapped } from '../utils/semPointMapper'
 import { DieRect } from './DieRect'
 import { MergeGroupRect } from './MergeGroupRect'
 
@@ -21,6 +22,12 @@ interface FieldGroupProps {
   fieldFillOpacity?: number
   onDieHover?: (info: { x: number; y: number; value: number | null; fieldIndex: number; dieIndex?: number; dieSequence?: number }) => void
   onDieHoverEnd?: () => void
+  // SEM Points
+  semPoints?: SemPointMapped[]
+  showSemPoints?: boolean
+  semPointRadiusPx?: number
+  semPointOpacity?: number
+  semPointColor?: string
 }
 
 export const FieldGroup: React.FC<FieldGroupProps> = ({
@@ -41,6 +48,11 @@ export const FieldGroup: React.FC<FieldGroupProps> = ({
   fieldFillOpacity = 0.35,
   onDieHover,
   onDieHoverEnd,
+  semPoints = [],
+  showSemPoints = false,
+  semPointRadiusPx = 4,
+  semPointOpacity = 0.85,
+  semPointColor = '#ff6b35',
 }) => {
   const fieldKey = `field-${fieldIndex}-${item.fieldRect.x}-${item.fieldRect.y}`
   const { x, y, w, h } = item.fieldRect
@@ -143,6 +155,41 @@ export const FieldGroup: React.FC<FieldGroupProps> = ({
         </g>
       )}
 
+      {/* SEM 포인트 렌더링 */}
+      {showSemPoints && semPoints && semPoints.length > 0 && (
+        <g className="sem-points">
+          {semPoints.map((sp, idx) => (
+            <circle
+              key={`sem-${idx}`}
+              cx={mm2px(sp.absoluteX)}
+              cy={mm2px(sp.absoluteY)}
+              r={semPointRadiusPx}
+              fill={semPointColor}
+              opacity={semPointOpacity}
+              stroke="#fff"
+              strokeWidth={0.5}
+              style={{ cursor: 'pointer' }}
+              onMouseEnter={() => {
+                if (onDieHover) {
+                  onDieHover({
+                    x: sp.absoluteX,
+                    y: sp.absoluteY,
+                    value: sp.semPoint.value,
+                    fieldIndex,
+                  })
+                }
+              }}
+              onMouseLeave={() => {
+                if (onDieHoverEnd) {
+                  onDieHoverEnd()
+                }
+              }}
+            >
+              <title>{`SEM Site ${sp.semPoint.siteSeq}\nValue: ${sp.semPoint.value.toFixed(3)}\nDie: (${sp.dieCol}, ${sp.dieRow})`}</title>
+            </circle>
+          ))}
+        </g>
+      )}
       
     </g>
   )

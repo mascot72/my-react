@@ -50,7 +50,7 @@ const mapInitData = {
 
 // Shot 통계 데이타 예시 (미사용)
 // const config = { /* ... */ }
-// Shot 그룹별 포인트 맵 ([indeX, indexY, x, y, value, siteSeq])
+// Field(Shot) 그룹별 포인트 맵 ([indeX, indexY, x, y, value, siteSeq])
 const matData = [
   [-5, 0, 536144, 124621, 1.43, 1],
   [-5, 1, 536143, 124631, 1.46, 2],
