@@ -89,11 +89,18 @@ export function useWaferData(props: WaferFieldCDU_V6Props & { waferRadius?: numb
   }, [fields, fieldWidth, fieldHeight, waferRadius])
 
   const rawDieSeriesData = useMemo(() => (
-    pointDataSet.diePoints.map((p) => ({ value: [p.x as number, p.y as number, (p.value as number|null)], fieldIndex: p.fieldIndex, dieIndex: p.dieIndex }))
+    pointDataSet.diePoints.map((p) => ({ 
+      value: [p.x as number, p.y as number, (p.value as number|null)] as [number, number, number|null], 
+      fieldIndex: p.fieldIndex, 
+      dieIndex: p.dieIndex 
+    }))
   ), [pointDataSet.diePoints])
 
   const rawFieldSeriesData = useMemo(() => (
-    pointDataSet.fieldPoints.map((p) => ({ value: [p.x as number, p.y as number, (p.value as number|null)], shotIndex: p.shotIndex }))
+    pointDataSet.fieldPoints.map((p) => ({ 
+      value: [p.x as number, p.y as number, (p.value as number|null)] as [number, number, number|null], 
+      shotIndex: p.shotIndex 
+    }))
   ), [pointDataSet.fieldPoints])
 
   // Field rects
