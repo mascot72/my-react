@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import WaferFieldCDU_V6ECharts from '../components/atoms/fieldmap/WaferFieldCDU_V6ECharts'
 import WaferController from '../components/molecules/WaferController'
+import type { SemPointRaw } from '../types/semPoint'
+import { parseSemPoints } from '../types/semPoint'
 
 const WaferEChartsPlayground: React.FC = () => {
   const [zoom, setZoom] = useState(1)
@@ -34,6 +36,28 @@ const WaferEChartsPlayground: React.FC = () => {
   const [shotRulerStepY, setShotRulerStepY] = useState(1)
   const [seed] = useState<number>(20251110)
   const [isZoomDragging, setIsZoomDragging] = useState(false)
+  // SEM point sample (equipment absolute coordinates)
+  const sampleSemPointData: SemPointRaw[] = [
+    [-5, 0, 536144, 124621, 1.43, 1],
+    [-5, 1, 536143, 124631, 1.46, 2],
+    [-4, -2, 536124, 124641, 1.49, 3],
+    [-4, 1, 536143, 124651, 1.52, 4],
+    [-2, 0, 536144, 124661, 1.55, 5],
+    [-2, 2, 536124, 124671, 1.58, 6],
+    [-1, 1, 536144, 124681, 1.61, 7],
+    [-1, 2, 536144, 114691, 1.64, 8],
+    [0, 0, 536144, 124701, 1.67, 9],
+    [1, 1, 536141, 122711, 1.70, 10],
+    [3, 2, 536146, 124728, 1.73, 11],
+    [3, 2, 536267, 124738, 1.13, 12],
+    [3, 2, 536317, 125775, 1.74, 13],
+  ]
+  const [semPoints] = useState(() => parseSemPoints(sampleSemPointData))
+  const [showSemPoints, setShowSemPoints] = useState(false)
+  const [semPointRadiusPx, setSemPointRadiusPx] = useState(4)
+  const [semPointOpacity, setSemPointOpacity] = useState(0.85)
+  const [semPointColor, setSemPointColor] = useState('#ff6b35')
+  const [useSemPointColorFromPalette, setUseSemPointColorFromPalette] = useState(false)
 
   const containerStyle: React.CSSProperties = {
     display: 'flex',
@@ -111,6 +135,13 @@ const WaferEChartsPlayground: React.FC = () => {
               showWaferRadius={showWaferRadius}
               shotRulerStepX={shotRulerStepX}
               shotRulerStepY={shotRulerStepY}
+              // SEM
+              semPoints={semPoints}
+              showSemPoints={showSemPoints}
+              semPointRadiusPx={semPointRadiusPx}
+              semPointOpacity={semPointOpacity}
+              semPointColor={semPointColor}
+              useSemPointColorFromPalette={useSemPointColorFromPalette}
             />
           </div>
         </div>
@@ -177,6 +208,17 @@ const WaferEChartsPlayground: React.FC = () => {
             onShotRulerStepXChange={setShotRulerStepX}
             shotRulerStepY={shotRulerStepY}
             onShotRulerStepYChange={setShotRulerStepY}
+            // SEM Controller
+            showSemPoints={showSemPoints}
+            onShowSemPointsChange={setShowSemPoints}
+            semPointRadiusPx={semPointRadiusPx}
+            onSemPointRadiusPxChange={setSemPointRadiusPx}
+            semPointOpacity={semPointOpacity}
+            onSemPointOpacityChange={setSemPointOpacity}
+            semPointColor={semPointColor}
+            onSemPointColorChange={setSemPointColor}
+            useSemPointColorFromPalette={useSemPointColorFromPalette}
+            onUseSemPointColorFromPaletteChange={setUseSemPointColorFromPalette}
           />
         </div>
       </div>

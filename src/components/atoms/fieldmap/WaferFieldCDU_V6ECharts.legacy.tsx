@@ -15,6 +15,10 @@ import React, { useMemo } from 'react'
 import ReactECharts from 'echarts-for-react'
 import { useCDUData, usePointData } from './WaferFieldCDU_V6/hooks'
 import type { WaferFieldCDU_V6Props } from './WaferFieldCDU_V6/types'
+import type { SemPoint } from '../../types/semPoint'
+import { mapSemPointsToFields } from './WaferFieldCDU_V6/utils/semPointMapper'
+import { usePalette } from '../../app/usePalette'
+import { buildFieldValueMap, calculateFieldPercentages, getColorFromPalette, getFieldPercentage } from './WaferFieldCDU_V6/utils/paletteColorMapper'
 
 const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
   cduSeed,
@@ -49,6 +53,13 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
   showWaferRadius = false,
   shotRulerStepX = 1,
   shotRulerStepY = 1,
+  // SEM Points
+  semPoints = [],
+  showSemPoints = false,
+  semPointRadiusPx = 4,
+  semPointOpacity = 0.85,
+  semPointColor = '#ff6b35',
+  useSemPointColorFromPalette = false,
 }) => {
   const waferRadius = 150
 
@@ -87,6 +98,46 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
   })
 
   const pointDataSet = usePointData({ fields, includeNullDies: !fitToContent })
+
+  // Palette integration for SEM
+  const { appliedPalette } = usePalette()
+  const fieldPercentages = useMemo(() => {
+    if (!showSemPoints || !semPoints || semPoints.length === 0) return {}
+    const valueMap = buildFieldValueMap(semPoints as Array<{ indexX: number; indexY: number; value: number }>)
+    return calculateFieldPercentages(valueMap)
+  }, [showSemPoints, semPoints])
+
+  // Map SEM points to absolute positions (mm)
+  const mappedSemPoints = useMemo(() => {
+    if (!showSemPoints || !semPoints || semPoints.length === 0) return []
+    return mapSemPointsToFields(
+      semPoints as SemPoint[],
+      fieldStepX,
+      fieldStepY,
+      fieldWidth,
+      fieldHeight,
+      dieCols,
+      dieRows
+    )
+  }, [showSemPoints, semPoints, fieldStepX, fieldStepY, fieldWidth, fieldHeight, dieCols, dieRows])
+
+  // Build ECharts scatter data for SEM points
+  const semScatterData = useMemo(() => {
+    if (!showSemPoints || mappedSemPoints.length === 0) return []
+    return mappedSemPoints.map((mp) => {
+      const percentage = getFieldPercentage(mp.semPoint.indexX, mp.semPoint.indexY, fieldPercentages)
+      const color = useSemPointColorFromPalette && appliedPalette && percentage != null
+        ? getColorFromPalette(percentage, appliedPalette)
+        : semPointColor
+      return {
+        value: [mp.absoluteX, mp.absoluteY, mp.semPoint.value],
+        itemStyle: { color, opacity: semPointOpacity },
+        dieCol: mp.dieCol,
+        dieRow: mp.dieRow,
+        siteSeq: mp.semPoint.siteSeq,
+      }
+    })
+  }, [showSemPoints, mappedSemPoints, fieldPercentages, appliedPalette, useSemPointColorFromPalette, semPointColor, semPointOpacity])
 
   const bbox = useMemo(() => {
     if (fields.length === 0) return { minX: -waferRadius, maxX: waferRadius, minY: -waferRadius, maxY: waferRadius }
@@ -467,6 +518,31 @@ const WaferFieldCDU_V6ECharts: React.FC<WaferFieldCDU_V6Props> = ({
           itemStyle: { color: 'transparent' },
           label: { show: true, formatter: '{@[2]}', position: 'top', color: '#666', fontSize: 11 },
           z: 11,
+        }] : []),
+        // SEM points scatter (absolute wafer coordinates)
+        ...(showSemPoints ? [{
+          name: 'SEM',
+          type: 'scatter',
+          data: semScatterData,
+          symbolSize: semPointRadiusPx * 2,
+          encode: { x: 0, y: 1, value: 2 },
+          tooltip: {
+            valueFormatter: (v: unknown) => {
+              const num = Number(v)
+              return Number.isNaN(num) ? String(v) : num.toFixed(3)
+            },
+            formatter: (params: unknown) => {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const p = params as any
+              const v = p.data?.value?.[2]
+              const seq = p.data?.siteSeq
+              const dc = p.data?.dieCol
+              const dr = p.data?.dieRow
+              const valStr = v == null ? 'N/A' : Number(v).toFixed(3)
+              return `SEM Site ${seq}\nValue: ${valStr}\nDie: (${dc}, ${dr})`
+            },
+          },
+          z: 60,
         }] : []),
         // Outlines (conditional)
         ...(showOutlinesInPointMode ? [

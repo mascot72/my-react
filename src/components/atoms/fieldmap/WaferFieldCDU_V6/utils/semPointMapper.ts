@@ -82,16 +82,16 @@ function absoluteToFieldRelative(
   const rangeY = bounds.maxY - bounds.minY
 
   // 범위가 0이면 중앙으로
-  if (rangeX === 0 || rangeY === 0) {
-    return {
-      relX: fieldWidth / 2,
-      relY: fieldHeight / 2,
-    }
-  }
+  // if (rangeX === 0 || rangeY === 0) {
+  //   return {
+  //     relX: rangeX,
+  //     relY: rangeY,
+  //   }
+  // }
 
   // 정규화 (0~1 범위)
-  const normalizedX = (x - bounds.minX) / rangeX
-  const normalizedY = (y - bounds.minY) / rangeY
+  const normalizedX = rangeX === 0 ? 0 : (x - bounds.minX) / rangeX
+  const normalizedY = rangeY === 0 ? 0 : (y - bounds.minY) / rangeY
 
   // Field 좌표계로 스케일링 (mm, left-bottom 기준)
   const relX = normalizedX * fieldWidth
@@ -206,9 +206,9 @@ export function mapSemPointsToFields(
     return {
       semPoint: sp,
       fieldCenterX: cx,
-      fieldCenterY: cy,
+      fieldCenterY: -cy,
       absoluteX,
-      absoluteY,
+      absoluteY: -absoluteY,
       dieCol,
       dieRow,
       dieLocalX,
