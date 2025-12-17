@@ -1,13 +1,14 @@
 import React from 'react'
-import type { FieldRenderItem } from '../types'
+import type { FieldRenderItem, DiePointWithSemPoints } from '../types'
 import type { SemPointMapped } from '../utils/semPointMapper'
-import type { PaletteGroup } from '../../../../../app/usePalette'
 import { DieRect } from './DieRect'
 import { MergeGroupRect } from './MergeGroupRect'
 
 interface FieldGroupProps {
   item: FieldRenderItem
   fieldIndex: number
+  fieldGridX: number
+  fieldGridY: number
   dieWidth: number
   dieHeight: number
   mm2px: (mm: number) => number
@@ -30,17 +31,18 @@ interface FieldGroupProps {
   semPointOpacity?: number
   semPointColor?: string
   getSemPointColor?: (semPoint: { indexX: number; indexY: number; value: number }) => string
-  appliedPalette?: PaletteGroup | null
-  fieldPercentages?: Record<string, number>
   applyFieldFillFromSemValue?: boolean
   applyDieFillFromSemValue?: boolean
   getFieldFillColor?: (fieldGridX: number, fieldGridY: number) => string | null
   getDieFillColor?: (fieldGridX: number, fieldGridY: number, dieCol: number, dieRow: number) => string | null
+  dieSemPoints?: DiePointWithSemPoints[]
 }
 
 export const FieldGroup: React.FC<FieldGroupProps> = ({
   item,
   fieldIndex,
+  fieldGridX,
+  fieldGridY,
   dieWidth,
   dieHeight,
   mm2px,
@@ -62,12 +64,11 @@ export const FieldGroup: React.FC<FieldGroupProps> = ({
   semPointOpacity = 0.85,
   semPointColor = '#ff6b35',
   getSemPointColor,
-  appliedPalette,
-  fieldPercentages,
   applyFieldFillFromSemValue = false,
   applyDieFillFromSemValue = false,
   getFieldFillColor,
   getDieFillColor,
+  dieSemPoints = [],
 }) => {
   const fieldKey = `field-${fieldIndex}-${item.fieldRect.x}-${item.fieldRect.y}`
   const { x, y, w, h } = item.fieldRect
@@ -125,6 +126,8 @@ export const FieldGroup: React.FC<FieldGroupProps> = ({
         const dieColIndex = d.dieIndex ? d.dieIndex % 2 : 0 // 2 columns 가정
         const dieRowIndex = d.dieIndex ? Math.floor(d.dieIndex / 2) : 0 // row는 dieIndex / 2
 
+        const dieSem = dieSemPoints.find((ds) => ds.dieCol === dieColIndex && ds.dieRow === dieRowIndex)
+
         return (
           <DieRect
             key={`d-${fieldIndex}-${d.dieIndex}`}
@@ -141,6 +144,14 @@ export const FieldGroup: React.FC<FieldGroupProps> = ({
             onHoverEnd={onDieHoverEnd}
             getDieFillColor={getDieFillColor}
             applyDieFillFromSemValue={applyDieFillFromSemValue}
+            fieldGridX={fieldGridX}
+            fieldGridY={fieldGridY}
+            dieCol={dieColIndex}
+            dieRow={dieRowIndex}
+            semPoints={dieSem?.semPoints ?? []}
+            dieAverageValue={dieSem?.value ?? null}
+            semPointRadiusPx={semPointRadiusPx}
+            interpolateSemFill={applyDieFillFromSemValue}
           />
         )
       })}

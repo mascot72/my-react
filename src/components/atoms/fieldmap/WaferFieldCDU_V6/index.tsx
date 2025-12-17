@@ -5,17 +5,29 @@
  * 
  * 1. CDU 기반 포인트 (usePointData)
  *    - Field 내 모든 Die의 CDU 값을 포인트로 변환
- *    - 구조: Wafer > Field > Die > CDU Value
- * 
- * 2. SEM 측정 기반 포인트 (useSemPointData) - NEW!
- *    - SEM 측정 데이터를 hierarchical 구조로 정렬
- *    - 구조: Wafer > Field (gridX, gridY) > Die (col, row) > SemPoints
- *    - 각 레벨에서 하위 데이터의 평균값 자동 계산
+                // 필드 그리드 좌표 추론 (센터 기준 → 스텝 단위)
+                const fieldCenterX = item.fieldRect.x + item.fieldRect.w / 2
+                const fieldCenterY = item.fieldRect.y + item.fieldRect.h / 2
+                const fieldGridX = Math.round(fieldCenterX / fieldStepX)
+                const fieldGridY = Math.round(fieldCenterY / fieldStepY)
+
+                // 이 Field의 SEM 포인트 (절대좌표 기반) - 기존 호환
+                const fieldSemPoints = mappedSemPoints.filter(
+                  (mp) =>
+                    Math.abs(mp.fieldCenterX - fieldCenterX) < 0.01 &&
+                    Math.abs(mp.fieldCenterY - fieldCenterY) < 0.01
+                )
+
+                // 계층형 Die 포인트 (상대좌표 포함)
+                const dieSemPoints = dieSemPointsByField.get(`${fieldGridX},${fieldGridY}`) ?? []
+
  * 
  * === 데이터 흐름 ===
  * 
  * SemPoint 입력
  *   ↓ (mapSemPointsToFields)
+                    fieldGridX={fieldGridX}
+                    fieldGridY={fieldGridY}
  * SemPointMapped (절대좌표 + Die 위치 계산)
  *   ↓ (useSemPointData)
  * SemPointDataSet
@@ -207,8 +219,7 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
   // Hierarchical SEM 포인트 데이터 생성 (Field > Die > SemPoints)
   // 향후 Feature: SEM 포인트별 분석, 필터링, 팔레트 색상 맵핑 등에서 사용
   // 구조: diePointsWithSem[], fieldPointsWithSem[], allSemPointsMapped[]
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _semPointDataSet = useSemPointData({
+  const semPointDataSet = useSemPointData({
     semPoints,
     fieldStepX,
     fieldStepY,
@@ -217,6 +228,21 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
     dieCols,
     dieRows,
   })
+
+  // Field 그리드별 Die SemPoint 그룹 캐시
+  const dieSemPointsByField = useMemo(() => {
+    const map = new Map<string, typeof semPointDataSet.diePointsWithSem>()
+    semPointDataSet.diePointsWithSem.forEach((die) => {
+      const key = `${die.fieldGridX},${die.fieldGridY}`
+      const arr = map.get(key)
+      if (arr) {
+        arr.push(die)
+      } else {
+        map.set(key, [die])
+      }
+    })
+    return map
+  }, [semPointDataSet])
 
   // SEM 포인트 매핑 (Field/Die 좌표계로 변환)
   // 하위 호환성을 위해 기존 매핑도 유지
@@ -539,12 +565,17 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
                     Math.abs(mp.fieldCenterX - (item.fieldRect.x + item.fieldRect.w / 2)) < 0.01 &&
                     Math.abs(mp.fieldCenterY - (item.fieldRect.y + item.fieldRect.h / 2)) < 0.01
                 )
+                const fieldGridX = Math.round((item.fieldRect.x + item.fieldRect.w / 2) / fieldStepX)
+                const fieldGridY = Math.round((item.fieldRect.y + item.fieldRect.h / 2) / fieldStepY)
+                const dieSemPoints = dieSemPointsByField.get(`${fieldGridX},${fieldGridY}`) ?? []
                 
                 return (
                 <FieldGroup
                   key={fi}
                   item={item}
                   fieldIndex={fi}
+                  fieldGridX={fieldGridX}
+                  fieldGridY={fieldGridY}
                   dieWidth={dieWidth}
                   dieHeight={dieHeight}
                   mm2px={mm2px}
@@ -603,12 +634,11 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
                   semPointOpacity={semPointOpacity}
                   semPointColor={semPointColor}
                   getSemPointColor={getSemPointColor}
-                  appliedPalette={appliedPalette}
-                  fieldPercentages={fieldPercentages}
                   applyFieldFillFromSemValue={applyFieldFillFromSemValue}
                   applyDieFillFromSemValue={applyDieFillFromSemValue}
                   getFieldFillColor={getFieldFillColor}
                   getDieFillColor={getDieFillColor}
+                  dieSemPoints={dieSemPoints}
                 />
               )})
           )}
