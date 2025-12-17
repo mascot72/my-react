@@ -73,10 +73,10 @@ export const FieldGroup: React.FC<FieldGroupProps> = ({
   const { x, y, w, h } = item.fieldRect
 
   return (
-    <g key={fieldIndex}
-       onMouseEnter={(e) => onMouseEnter(fieldKey, e as unknown as React.MouseEvent<SVGRectElement>)}
-       onMouseLeave={onMouseLeave}
-    >
+    <g
+      key={fieldIndex}
+      onMouseEnter={(e) => onMouseEnter(fieldKey, e as unknown as React.MouseEvent<SVGRectElement>)}
+      onMouseLeave={onMouseLeave}>
       {/* 필드 fill (평균 CDU 또는 SEM value 기반) */}
       {showFieldFill && (
         <rect
@@ -109,27 +109,14 @@ export const FieldGroup: React.FC<FieldGroupProps> = ({
 
       {/* shot index 표시 (필드 좌상단) - 항상 표시 */}
       {item.shotIndex !== undefined && (
-        <text
-          x={mm2px(x) + 4}
-          y={mm2px(y) + 12}
-          fontSize={10}
-          fill='#0066ff'
-          fontWeight='bold'>
+        <text x={mm2px(x) + 4} y={mm2px(y) + 12} fontSize={10} fill='#0066ff' fontWeight='bold'>
           Shot: {item.shotIndex}
         </text>
       )}
 
-
-
       {/* 병합된 그룹 */}
       {item.mergeGroups.map((g) => (
-        <MergeGroupRect
-          key={`mg-${g.id}`}
-          group={g}
-          mm2px={mm2px}
-          cduToColor={cduToColor}
-          showValues={showValues}
-        />
+        <MergeGroupRect key={`mg-${g.id}`} group={g} mm2px={mm2px} cduToColor={cduToColor} showValues={showValues} />
       ))}
 
       {/* 개별 다이 */}
@@ -137,25 +124,26 @@ export const FieldGroup: React.FC<FieldGroupProps> = ({
         // Die의 Field 내부 위치 계산 (0 ~ dieCols-1, 0 ~ dieRows-1)
         const dieColIndex = d.dieIndex ? d.dieIndex % 2 : 0 // 2 columns 가정
         const dieRowIndex = d.dieIndex ? Math.floor(d.dieIndex / 2) : 0 // row는 dieIndex / 2
-        
+
         return (
-        <DieRect
-          key={`d-${fieldIndex}-${d.dieIndex}`}
-          die={d}
-          dieWidth={dieWidth}
-          dieHeight={dieHeight}
-          mm2px={mm2px}
-          cduToColor={cduToColor}
-          showValues={showValues}
-          showDieIndex={showDieIndex}
-          showDieSequence={showDieSequence}
-          fieldIndex={fieldIndex}
-          onDieHover={(info) => onDieHover && onDieHover({ ...info, fieldIndex })}
-          onHoverEnd={onDieHoverEnd}
-          getDieFillColor={getDieFillColor}
-          applyDieFillFromSemValue={applyDieFillFromSemValue}
-        />
-      )})}
+          <DieRect
+            key={`d-${fieldIndex}-${d.dieIndex}`}
+            die={d}
+            dieWidth={dieWidth}
+            dieHeight={dieHeight}
+            mm2px={mm2px}
+            cduToColor={cduToColor}
+            showValues={showValues}
+            showDieIndex={showDieIndex}
+            showDieSequence={showDieSequence}
+            fieldIndex={fieldIndex}
+            onDieHover={(info) => onDieHover && onDieHover({ ...info, fieldIndex })}
+            onHoverEnd={onDieHoverEnd}
+            getDieFillColor={getDieFillColor}
+            applyDieFillFromSemValue={applyDieFillFromSemValue}
+          />
+        )
+      })}
 
       {/* shot sequence (on-top) - only numeric value with opaque background for visibility */}
       {showShotSequence && item.shotIndex !== undefined && (
@@ -168,14 +156,7 @@ export const FieldGroup: React.FC<FieldGroupProps> = ({
             fill='rgba(255,255,255,0.8)'
             rx={3}
           />
-          <text
-            x={mm2px(x + w - 3)}
-            y={mm2px(y) + 12}
-            fontSize={10}
-            fill='#ff6600'
-            fontWeight='bold'
-            textAnchor='end'
-          >
+          <text x={mm2px(x + w - 3)} y={mm2px(y) + 12} fontSize={10} fill='#ff6600' fontWeight='bold' textAnchor='end'>
             {item.shotIndex}
           </text>
         </g>
@@ -183,46 +164,42 @@ export const FieldGroup: React.FC<FieldGroupProps> = ({
 
       {/* SEM 포인트 렌더링 */}
       {showSemPoints && semPoints && semPoints.length > 0 && (
-        <g className="sem-points">
+        <g className='sem-points'>
           {semPoints.map((sp, idx) => {
             // getSemPointColor 함수가 있으면 사용, 없으면 UI에서의 색상 사용
-            const pointColor = getSemPointColor
-              ? getSemPointColor(sp.semPoint)
-              : semPointColor
+            const pointColor = getSemPointColor ? getSemPointColor(sp.semPoint) : semPointColor
             return (
-            <circle
-              key={`sem-${idx}`}
-              cx={mm2px(sp.absoluteX)}
-              cy={mm2px(sp.absoluteY)}
-              r={semPointRadiusPx}
-              fill={pointColor}
-              opacity={semPointOpacity}
-              stroke="#fff"
-              strokeWidth={0.5}
-              style={{ cursor: 'pointer' }}
-              onMouseEnter={() => {
-                if (onDieHover) {
-                  onDieHover({
-                    x: sp.absoluteX,
-                    y: sp.absoluteY,
-                    value: sp.semPoint.value,
-                    fieldIndex,
-                  })
-                }
-              }}
-              onMouseLeave={() => {
-                if (onDieHoverEnd) {
-                  onDieHoverEnd()
-                }
-              }}
-            >
-              <title>{`SEM Site ${sp.semPoint.siteSeq}\nValue: ${sp.semPoint.value.toFixed(3)}\nDie: (${sp.dieCol}, ${sp.dieRow})`}</title>
-            </circle>
+              <circle
+                key={`sem-${idx}`}
+                cx={mm2px(sp.absoluteX)}
+                cy={mm2px(sp.absoluteY)}
+                r={semPointRadiusPx}
+                fill={pointColor}
+                opacity={semPointOpacity}
+                stroke='#fff'
+                strokeWidth={0.5}
+                style={{ cursor: 'pointer' }}
+                onMouseEnter={() => {
+                  if (onDieHover) {
+                    onDieHover({
+                      x: sp.absoluteX,
+                      y: sp.absoluteY,
+                      value: sp.semPoint.value,
+                      fieldIndex,
+                    })
+                  }
+                }}
+                onMouseLeave={() => {
+                  if (onDieHoverEnd) {
+                    onDieHoverEnd()
+                  }
+                }}>
+                <title>{`SEM Site ${sp.semPoint.siteSeq}\nValue: ${sp.semPoint.value.toFixed(3)}\nDie: (${sp.dieCol}, ${sp.dieRow})`}</title>
+              </circle>
             )
           })}
         </g>
       )}
-      
     </g>
   )
 }

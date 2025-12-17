@@ -1,6 +1,50 @@
+/**
+ * WaferFieldCDU_V6 - 계층적 포인트 데이터 시스템
+ * 
+ * === 아키텍처 ===
+ * 
+ * 1. CDU 기반 포인트 (usePointData)
+ *    - Field 내 모든 Die의 CDU 값을 포인트로 변환
+ *    - 구조: Wafer > Field > Die > CDU Value
+ * 
+ * 2. SEM 측정 기반 포인트 (useSemPointData) - NEW!
+ *    - SEM 측정 데이터를 hierarchical 구조로 정렬
+ *    - 구조: Wafer > Field (gridX, gridY) > Die (col, row) > SemPoints
+ *    - 각 레벨에서 하위 데이터의 평균값 자동 계산
+ * 
+ * === 데이터 흐름 ===
+ * 
+ * SemPoint 입력
+ *   ↓ (mapSemPointsToFields)
+ * SemPointMapped (절대좌표 + Die 위치 계산)
+ *   ↓ (useSemPointData)
+ * SemPointDataSet
+ *   ├─ diePointsWithSem: Die별 SemPoint 그룹 (평균값 포함)
+ *   ├─ fieldPointsWithSem: Field별 SemPoint 그룹 (Die별 재그룹화)
+ *   └─ allSemPointsMapped: 모든 매핑된 SemPoint (참조용)
+ * 
+ * === 사용 방법 ===
+ * 
+ * // WaferFieldCDU_V6 props
+ * <WaferFieldCDU_V6
+ *   semPoints={semPoints}              // SemPoint[] 입력
+ *   showSemPoints={true}               // SEM 포인트 표시
+ *   useSemPointColorFromPalette={true} // value 기반 색상 매핑
+ *   applyFieldFillFromSemValue={true}  // Field 배경에 평균값 적용
+ *   applyDieFillFromSemValue={true}    // Die 배경에 평균값 적용
+ * />
+ * 
+ * // 컴포넌트 내부에서 자동으로 생성:
+ * const semPointDataSet = useSemPointData({
+ *   semPoints,
+ *   fieldStepX, fieldStepY,
+ *   fieldWidth, fieldHeight,
+ *   dieCols, dieRows
+ * })
+ */
 import React, { useState, useRef, useEffect, useMemo } from 'react'
 import type { WaferFieldCDU_V6Props } from './types'
-import { useCDUData, useMergeGroups, useFieldRenderItems, usePointData } from './hooks'
+import { useCDUData, useMergeGroups, useFieldRenderItems, usePointData, useSemPointData } from './hooks'
 import { WaferOutline, ColorBar, FieldGroup, CoordinateGrid, PointLayer, OutlineLayer } from './components'
 import { mapSemPointsToFields } from './utils/semPointMapper'
 import type { SemPointMapped } from './utils/semPointMapper'
@@ -160,7 +204,22 @@ const WaferFieldCDU_V6: React.FC<WaferFieldCDU_V6Props> = ({
     includeNullDies: !fitToContent,
   })
 
+  // Hierarchical SEM 포인트 데이터 생성 (Field > Die > SemPoints)
+  // 향후 Feature: SEM 포인트별 분석, 필터링, 팔레트 색상 맵핑 등에서 사용
+  // 구조: diePointsWithSem[], fieldPointsWithSem[], allSemPointsMapped[]
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _semPointDataSet = useSemPointData({
+    semPoints,
+    fieldStepX,
+    fieldStepY,
+    fieldWidth,
+    fieldHeight,
+    dieCols,
+    dieRows,
+  })
+
   // SEM 포인트 매핑 (Field/Die 좌표계로 변환)
+  // 하위 호환성을 위해 기존 매핑도 유지
   const mappedSemPoints: SemPointMapped[] = useMemo(() => {
     if (!showSemPoints || !semPoints || semPoints.length === 0) {
       return []

@@ -73,6 +73,116 @@ export interface PointDataSet {
   fieldPoints: FieldPoint[] // 모든 field의 포인트 데이터
 }
 
+/**
+ * SEM 포인트를 포함한 hierarchical 포인트 데이터
+ * 
+ * === 계층 구조 (Hierarchy) ===
+ * Wafer
+ *   └─ Field (fieldGridX, fieldGridY)  <- 중앙 기준 그리드 좌표
+ *       └─ Die (dieCol, dieRow)        <- Field 내 상대 인덱스
+ *           └─ SemPoints[]              <- Die 내부 상대좌표 포함
+ * 
+ * === 값의 의미 ===
+ * - FieldPointWithSemPoints.value
+ *   = (모든 포함 SemPoint의 value 평균)
+ * - DieGroupedSemPoints.value  
+ *   = (특정 Die의 SemPoint value 평균)
+ * - DiePointWithSemPoints.value
+ *   = (Die의 모든 SemPoint value 평균)
+ * 
+ * === 좌표 체계 ===
+ * Field 좌표 (mm, 절대):
+ *   - x = fieldGridX * fieldStepX
+ *   - y = fieldGridY * fieldStepY
+ * 
+ * Die 좌표 (mm, Field 내 절대):
+ *   - x, y = Die 중심점
+ * 
+ * SemPoint 좌표 (mm):
+ *   - x, y = 절대좌표
+ *   - dieLocalX, dieLocalY = Die 내 상대좌표 (die left-bottom 기준)
+ */
+
+export interface SemPointWithDieLocal extends SemPoint {
+  /** Die 내부 상대 좌표 X (mm, die left-bottom 기준) */
+  dieLocalX: number | null
+  /** Die 내부 상대 좌표 Y (mm, die left-bottom 기준) */
+  dieLocalY: number | null
+}
+
+/**
+ * Die에 포함된 SEM 포인트 그룹
+ */
+export interface DieGroupedSemPoints {
+  dieCol: number
+  dieRow: number
+  value: number | null // 이 Die의 SEM 포인트 평균값
+  semPoints: SemPointWithDieLocal[]
+}
+
+/**
+ * SEM 포인트를 포함한 Die 포인트 데이터
+ * 
+ * 역할: Die 레벨에서 모든 포함 SemPoint에 접근
+ * 위치: Wafer > Field > Die
+ * 
+ * dieLocalX/dieLocalY: Die 내부 상대 좌표
+ *   - die의 left-bottom을 원점 (0, 0)
+ *   - die의 right-top이 (dieWidth, dieHeight)
+ */
+export interface DiePointWithSemPoints {
+  x: number // mm 단위 die 중심 x 좌표
+  y: number // mm 단위 die 중심 y 좌표
+  value: number | null // 포함된 SEM 포인트의 평균값
+  fieldGridX: number // Field 그리드 X 좌표 (중앙 기준)
+  fieldGridY: number // Field 그리드 Y 좌표 (중앙 기준)
+  dieCol: number // Field 내 Die 열 인덱스 (left-bottom 기준)
+  dieRow: number // Field 내 Die 행 인덱스 (left-bottom 기준)
+  semPoints: SemPointWithDieLocal[] // 포함된 SEM 포인트
+}
+
+/**
+ * SEM 포인트를 포함한 Field 포인트 데이터
+ * 
+ * 역할: Field 레벨에서 모든 포함 SemPoint에 접근
+ * 위치: Wafer > Field
+ * 
+ * 특징:
+ * - semPoints: 이 Field의 모든 SemPoint (flat)
+ * - dieGroupedSemPoints: Die별로 재그룹화된 SemPoint (nested)
+ *   → Die 레벨의 분석에 유용
+ */
+export interface FieldPointWithSemPoints {
+  x: number // mm 단위 field 중심 x 좌표
+  y: number // mm 단위 field 중심 y 좌표
+  value: number | null // 포함된 SEM 포인트의 평균값
+  fieldGridX: number // Field 그리드 X 좌표 (중앙 기준)
+  fieldGridY: number // Field 그리드 Y 좌표 (중앙 기준)
+  semPoints: SemPointWithDieLocal[] // 이 Field의 모든 SEM 포인트
+  dieGroupedSemPoints: DieGroupedSemPoints[] // Field 내 Die별로 그룹화된 SEM 포인트
+}
+
+/**
+ * Hierarchical SEM 포인트 데이터셋
+ * 
+ * === 위상 (Phase) ===
+ * Field > Die > SemPoints
+ * 
+ * === 통합 기능 ===
+ * - usePointData: Die/Field의 CDU 기반 포인트
+ * - useSemPointData: SEM 측정 데이터를 hierarchical로 정렬
+ * 
+ * === 접근 패턴 ===
+ * 1. Die 중심 분석: diePointsWithSem → die.semPoints
+ * 2. Field 중심 분석: fieldPointsWithSem → field.dieGroupedSemPoints
+ * 3. 전체 데이터: allSemPointsMapped (캐시/참조용)
+ */
+export interface SemPointDataSet {
+  diePointsWithSem: DiePointWithSemPoints[] // Die별 포인트 + 소속 SEM 포인트
+  fieldPointsWithSem: FieldPointWithSemPoints[] // Field별 포인트 + 소속 SEM 포인트 (Die별 그룹화)
+  allSemPointsMapped: any[] // 모든 매핑된 SEM 포인트 (참조용)
+}
+
 export interface WaferFieldCDU_V6Props {
   cduSeed?: number
   cduData?: (number | null)[]

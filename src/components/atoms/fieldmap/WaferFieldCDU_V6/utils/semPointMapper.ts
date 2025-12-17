@@ -1,7 +1,29 @@
 import type { SemPoint } from '../../../../../types/semPoint'
 
 /**
- * SEM 포인트를 절대 좌표로 변환하고 Die에 매핑
+ * SEM 포인트를 Field/Die 좌표계로 매핑한 중간 형식
+ * 
+ * === 목적 ===
+ * - SemPoint를 hierarchical 구조 생성 전 단계의 매핑 데이터
+ * - useSemPointData에서 이 데이터를 그룹화하여 최종 계층 구조 생성
+ * 
+ * === 좌표 변환 과정 ===
+ * 1. indexX, indexY (FieldPoint.fieldGridX/Y)
+ *    → fieldGridToCenter() → fieldCenterX, fieldCenterY (mm)
+ * 
+ * 2. x, y (절대좌표, 주로 노광장비 좌표)
+ *    → calculatePointBounds() → 범위 정규화
+ *    → absoluteToFieldRelative() → Field 내 상대좌표 (mm)
+ *    → 절대좌표로 변환 → absoluteX, absoluteY (mm)
+ * 
+ * 3. Field 내 상대좌표 (relX, relY)
+ *    → findDieIndex() → dieCol, dieRow (Die 인덱스)
+ *    → dieLocalX, dieLocalY (Die 내 상대좌표, mm)
+ * 
+ * === Die 내 상대좌표 ===
+ * - dieLocalX: Die 내 X 좌표 (mm, die left-bottom 기준)
+ * - dieLocalY: Die 내 Y 좌표 (mm, die left-bottom 기준)
+ * - null 값: Field 경계 밖에 위치한 포인트
  */
 export interface SemPointMapped {
   semPoint: SemPoint
@@ -46,9 +68,7 @@ function calculatePointBounds(semPoints: SemPoint[]): {
 } {
   if (semPoints.length === 0) {
     return { minX: 0, maxX: 0, minY: 0, maxY: 0 }
-  }
-
-  let minX = Infinity
+  }  let minX = Infinity
   let maxX = -Infinity
   let minY = Infinity
   let maxY = -Infinity
@@ -205,6 +225,8 @@ export function mapSemPointsToFields(
 
     return {
       semPoint: sp,
+      relX,
+      relY,
       fieldCenterX: cx,
       fieldCenterY: -cy,
       absoluteX,

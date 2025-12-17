@@ -4,6 +4,58 @@ import WaferController from '../components/molecules/WaferController'
 import type { SemPointRaw } from '../types/semPoint'
 import { parseSemPoints } from '../types/semPoint'
 
+/**
+ * WaferPlayground - SEM 포인트 및 포인트 데이터 시스템
+ * 
+ * === Hierarchical Point Data Structure ===
+ * 새로운 hierarchical 포인트 시스템:
+ * 
+ * Wafer > Field (gridX, gridY) > Die (col, row) > SemPoints
+ * 
+ * 1. usePointData: 기본 Die/Field 포인트 (CDU 기반)
+ *    - usePointData({ fields }) -> PointDataSet
+ *    - diePoints: [x, y, value, fieldIndex, dieIndex]
+ *    - fieldPoints: [x, y, value, shotIndex, fieldGridX, fieldGridY]
+ * 
+ * 2. useSemPointData: Hierarchical SEM 포인트 (측정 데이터 기반)
+ *    - useSemPointData({ semPoints, fieldStepX, fieldStepY, ... })
+ *    - SemPointDataSet:
+ *      - diePointsWithSem: Die 중심점 + 포함된 SEM 포인트들
+ *      - fieldPointsWithSem: Field 중심점 + 포함된 SEM 포인트들 (Die별 그룹화)
+ *      - allSemPointsMapped: 모든 매핑된 SEM 포인트 (참조용)
+ * 
+ * 3. Die 내부 종속 관계:
+ *    - 각 SemPoint는 die 내부의 상대 좌표(dieLocalX, dieLocalY)를 포함
+ *    - DiePointWithSemPoints.semPoints: 이 Die에 포함된 모든 SemPoint
+ *    - FieldPointWithSemPoints.dieGroupedSemPoints: Field 내 Die별로 그룹화된 SemPoint
+ * 
+ * === 사용 예제 ===
+ * 
+ * // WaferFieldCDU_V6 내부에서 자동 제공:
+ * const semPointDataSet = useSemPointData({
+ *   semPoints,           // SemPoint[] 입력
+ *   fieldStepX, fieldStepY,
+ *   fieldWidth, fieldHeight,
+ *   dieCols, dieRows
+ * })
+ * 
+ * // 특정 Field의 SemPoint 접근:
+ * const fieldData = semPointDataSet.fieldPointsWithSem.find(fp =>
+ *   fp.fieldGridX === gridX && fp.fieldGridY === gridY
+ * )
+ * fieldData?.dieGroupedSemPoints.forEach(dieGroup => {
+ *   console.log(`Die(${dieGroup.dieCol}, ${dieGroup.dieRow}):`, dieGroup.semPoints)
+ * })
+ * 
+ * // 특정 Die의 SemPoint 접근:
+ * const dieData = semPointDataSet.diePointsWithSem.find(dp =>
+ *   dp.fieldGridX === gridX && dp.fieldGridY === gridY &&
+ *   dp.dieCol === col && dp.dieRow === row
+ * )
+ * dieData?.semPoints.forEach(point => {
+ *   console.log(`(${point.dieLocalX}, ${point.dieLocalY}): ${point.value}`)
+ * })
+ */
 const WaferPlayground: React.FC = () => {
   const [zoom, setZoom] = useState(1)
   const [showValues, setShowValues] = useState(true)
@@ -39,9 +91,22 @@ const WaferPlayground: React.FC = () => {
   const [waferTickStepMm, setWaferTickStepMm] = useState(50)
 
   // SEM 측정 포인트 샘플 데이터
-  // [indexX, indexY, x(절대좌표), y(절대좌표), value, siteSeq]
-  // indexX, indexY: FieldPoint.fieldGridX, fieldGridY와 동일 (중앙 기준 그리드)
-  // x, y: 노광장비에서 촬영한 실제 측정 좌표 (μm 단위, 전체 범위를 구해 Field 상대 좌표로 비율 변환됨)
+  // 형식: [indexX, indexY, x(절대좌표), y(절대좌표), value, siteSeq]
+  // 
+  // indexX, indexY:
+  //   - Field Grid 인덱스 (FieldPoint.fieldGridX, fieldGridY와 동일)
+  //   - 중앙 기준 상대 좌표 (예: -5 ~ 5)
+  // 
+  // x, y:
+  //   - 노광장비에서 촬영한 실제 측정 좌표 (μm 단위)
+  //   - 절대 좌표이며 전체 범위를 구해 Field 상대 좌표로 비율 변환
+  // 
+  // value:
+  //   - 측정값 (예: CDU, 위치 오차 등)
+  //   - 팔레트 색상 매핑에 사용
+  // 
+  // siteSeq:
+  //   - 사이트 시퀀스 번호 (촬영 순서)
   const sampleSemPointData: SemPointRaw[] = [
     // [-5, 0, 536144, 124621, 1.43, 1],
     // [-5, 1, 536143, 124631, 1.46, 2],
